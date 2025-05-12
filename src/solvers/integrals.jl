@@ -120,7 +120,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
 end
 
 @views function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralWeakForm, dg, cache)
+                                       ::SurfaceIntegralWeakForm, dg, cache)
     (; surface_operator, surface_flux_values) = cache
     for v in eachvariable(equations)
         du[v, :, :] .= du[v, :, :] + surface_operator * surface_flux_values[v, :, :]
