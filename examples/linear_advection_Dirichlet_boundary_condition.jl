@@ -24,7 +24,8 @@ mesh = Mesh(coordinates_min, coordinates_max, N_elements)
 boundary_conditions = (x_neg = BoundaryConditionDirichlet(initial_condition_Gauss),
                        x_pos = boundary_condition_do_nothing)
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition_Gauss, solver; boundary_conditions)
+semi = Semidiscretization(mesh, equations, initial_condition_Gauss, solver;
+                          boundary_conditions)
 
 ###############################################################################
 # ODE solvers, callbacks etc.
