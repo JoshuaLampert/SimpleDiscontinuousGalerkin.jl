@@ -107,13 +107,13 @@ end
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mesh,
                              equations, integral::SurfaceIntegralWeakForm, dg)
     (; x_neg, x_pos) = boundary_conditions
-    u_ll = x_neg(u, t, equations, true)
+    u_ll = x_neg(u, xmin(mesh), t, equations, true)
     u_rr = get_node_vars(u, equations, 1, 1)
     f = integral.surface_flux(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
     u_ll = get_node_vars(u, equations, nnodes(dg), nelements(mesh))
-    u_rr = x_pos(u, t, equations, false)
+    u_rr = x_pos(u, xmax(mesh), t, equations, false)
     f = integral.surface_flux(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
     return nothing

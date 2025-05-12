@@ -7,3 +7,8 @@ end
 @testitem "linear_advection.jl" setup=[Examples] begin
     @trixi_test_nowarn trixi_include(joinpath(examples_dir(), "linear_advection.jl"))
 end
+
+@testitem "linear_advection_Dirichlet_boundary_condition.jl" setup=[Examples] begin
+    @trixi_test_nowarn trixi_include(joinpath(examples_dir(),
+                                              "linear_advection_Dirichlet_boundary_condition.jl"))
+end
