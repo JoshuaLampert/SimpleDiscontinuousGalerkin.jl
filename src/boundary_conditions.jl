@@ -13,7 +13,6 @@ function digest_boundary_conditions(boundary_conditions::NamedTuple{Keys, ValueT
     (; x_neg, x_pos)
 end
 
-
 struct BoundaryConditionPeriodic end
 
 """
