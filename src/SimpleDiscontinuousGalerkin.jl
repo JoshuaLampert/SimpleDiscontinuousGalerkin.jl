@@ -15,7 +15,10 @@ include("boundary_conditions.jl")
 include("solvers/solver.jl")
 include("semidiscretization.jl")
 
-export LinearAdvectionEquation1D, flux_central, flux_godunov,
-       Mesh, grid, boundary_condition_periodic,
-       DGSEM, Semidiscretization, semidiscretize
+export LinearAdvectionEquation1D
+export flux_central, flux_godunov
+export Mesh, grid
+export boundary_condition_periodic, boundary_condition_do_nothing, BoundaryConditionDirichlet
+export DGSEM
+export Semidiscretization, semidiscretize
 end
