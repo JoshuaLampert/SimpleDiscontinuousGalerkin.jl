@@ -18,7 +18,8 @@ include("semidiscretization.jl")
 export LinearAdvectionEquation1D
 export flux_central, flux_godunov
 export Mesh, grid
-export boundary_condition_periodic, boundary_condition_do_nothing, BoundaryConditionDirichlet
+export boundary_condition_periodic, boundary_condition_do_nothing,
+       BoundaryConditionDirichlet
 export DGSEM
 export Semidiscretization, semidiscretize
 end
