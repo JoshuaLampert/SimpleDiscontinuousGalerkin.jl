@@ -6,10 +6,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-success.svg)](https://opensource.org/licenses/MIT)
 
 **SimpleDiscontinuousGalerkin.jl** is a [Julia](https://julialang.org/) package that
-implements some extra functionality for the package [SummationByPartsOperators.jl](https://github.com/ranocha/SummationByPartsOperators.jl).
-SimpleDiscontinuousGalerkin.jl is still in an early stage of development and is meant to be used
-for research purposes. Maybe some parts of the package will be moved to SummationByPartsOperators.jl in the future.
-Until now, the package focuses on the implementation of function space summation-by-parts operators in one and multiple dimensions.
+implements some basic discontinuous Galerkin (DG) methods for the solution of hyperbolic
+partial differential equations (PDEs). The package is designed to be simple and easy to use and understand. It is
+intended for educational purposes and to provide a starting point for more complex DG methods. For a more
+comprehensive and advanced implementation of DG methods, we recommend using the package
+[Trixi.jl](https://github.com/trixi-framework/Trixi.jl). This package can be understood as a
+minimalistic version of Trixi.jl, which is designed to be easy to understand and modify. Many design concepts are
+inspired by Trixi.jl, but the implementation is much simpler and more straightforward. SimpleDiscontinuousGalerkin.jl
+builds on the foundations of the package [SummationByPartsOperators.jl](https://github.com/ranocha/SummationByPartsOperators.jl).
 
 ## Installation
 
