@@ -33,3 +33,8 @@ function flux_godunov(u_ll, u_rr, equation::LinearAdvectionEquation1D)
         return SVector(a * u_R)
     end
 end
+
+function initial_condition_convergence_test(x, t, equations::LinearAdvectionEquation1D)
+    x_trans = x - equations.advection_velocity * t
+    return SVector(sinpi(x_trans))
+end
