@@ -36,7 +36,7 @@ function create_cache(mesh, equations, dg::DGSEM, initial_condition,
     # compute all mapped GLL nodes
     x = zeros(real(dg), nnodes(dg), nelements(mesh))
     for element in eachelement(mesh)
-        x_l = -1 + (element - 1) * dx + dx / 2
+        x_l = xmin(mesh) + (element - 1) * dx + dx / 2
         for (j, xi_j) in enumerate(grid(dg)) # GLL nodes in [-1, 1]
             x[j, element] = x_l + dx / 2 * xi_j
         end
