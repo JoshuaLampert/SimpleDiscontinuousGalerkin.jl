@@ -17,9 +17,11 @@ include("semidiscretization.jl")
 
 export LinearAdvectionEquation1D
 export flux_central, flux_godunov
+export initial_condition_convergence_test
 export Mesh, grid
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
-export DGSEM
+export DGSEM, VolumeIntegralStrongForm, VolumeIntegralWeakForm,
+       SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
 end
