@@ -89,27 +89,32 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
     (; x_neg, x_pos) = boundary_conditions
     u_ll = x_neg(u, xmin(mesh), t, equations, true)
     u_rr = get_node_vars(u, equations, 1, 1)
-    f = integral.surface_flux(u_ll, u_rr, equations)
+    f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
     u_ll = get_node_vars(u, equations, nnodes(dg), nelements(mesh))
     u_rr = x_pos(u, xmax(mesh), t, equations, false)
-    f = integral.surface_flux(u_ll, u_rr, equations)
+    f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
     return nothing
 end
 
 """
-    SurfaceIntegralStrongForm(surface_flux=flux_central)
+    SurfaceIntegralStrongForm(surface_flux=flux_central, surface_flux_boundary=surface_flux)
 
 The classical strong form surface integral type for FD/DG methods.
+It uses `surface_flux` for the interior fluxes and `surface_flux_boundary` for the
+boundary fluxes.
 
 See also [`VolumeIntegralStrongForm`](@ref).
 """
-struct SurfaceIntegralStrongForm{SurfaceFlux} <: AbstractSurfaceIntegral
+struct SurfaceIntegralStrongForm{SurfaceFlux, SurfaceFluxBoundary} <: AbstractSurfaceIntegral
     surface_flux::SurfaceFlux
+    surface_flux_boundary::SurfaceFluxBoundary
 end
 
+SurfaceIntegralStrongForm(surface_flux::Tuple) = SurfaceIntegralStrongForm(surface_flux[1], surface_flux[2])
+SurfaceIntegralStrongForm(surface_flux) = SurfaceIntegralStrongForm(surface_flux, surface_flux)
 SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
 function create_cache(mesh, equations, solver, ::SurfaceIntegralStrongForm)
@@ -153,10 +158,11 @@ function Base.show(io::IO, ::MIME"text/plain", integral::SurfaceIntegralStrongFo
 end
 
 """
-    SurfaceIntegralWeakForm(surface_flux=flux_central)
+    SurfaceIntegralWeakForm(surface_flux=flux_central, surface_flux_boundary=surface_flux)
 
 The classical weak form surface integral type for DG methods as explained in standard
-textbooks.
+textbooks. It uses `surface_flux` for the interior fluxes and `surface_flux_boundary` for the
+boundary fluxes.
 
 See also [`VolumeIntegralWeakForm`](@ref).
 
@@ -171,10 +177,13 @@ See also [`VolumeIntegralWeakForm`](@ref).
   Applications
   [doi: 10.1007/978-0-387-72067-8](https://doi.org/10.1007/978-0-387-72067-8)
 """
-struct SurfaceIntegralWeakForm{SurfaceFlux} <: AbstractSurfaceIntegral
+struct SurfaceIntegralWeakForm{SurfaceFlux, SurfaceFluxBoundary} <: AbstractSurfaceIntegral
     surface_flux::SurfaceFlux
+    surface_flux_boundary::SurfaceFluxBoundary
 end
 
+SurfaceIntegralWeakForm(surface_flux::Tuple) = SurfaceIntegralWeakForm(surface_flux[1], surface_flux[2])
+SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, surface_flux)
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
 function create_cache(mesh, equations, solver, ::SurfaceIntegralWeakForm)

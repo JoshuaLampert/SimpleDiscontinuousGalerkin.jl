@@ -12,7 +12,7 @@ function initial_condition_Gaussian(x, t, equations::LinearAdvectionEquation1D)
     return SVector(exp(-(x_trans + 0.5)^2 / 0.1))
 end
 
-# Create DG solver with polynomial degree = 3 and (local) Godunov flux as surface flux
+# Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
 solver = DGSEM(polydeg = 3, surface_flux = flux_godunov)
 
 coordinates_min = -1.0 # minimum coordinate
