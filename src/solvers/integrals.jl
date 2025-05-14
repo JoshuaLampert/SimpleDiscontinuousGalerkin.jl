@@ -108,13 +108,18 @@ boundary fluxes.
 
 See also [`VolumeIntegralStrongForm`](@ref).
 """
-struct SurfaceIntegralStrongForm{SurfaceFlux, SurfaceFluxBoundary} <: AbstractSurfaceIntegral
+struct SurfaceIntegralStrongForm{SurfaceFlux, SurfaceFluxBoundary} <:
+       AbstractSurfaceIntegral
     surface_flux::SurfaceFlux
     surface_flux_boundary::SurfaceFluxBoundary
 end
 
-SurfaceIntegralStrongForm(surface_flux::Tuple) = SurfaceIntegralStrongForm(surface_flux[1], surface_flux[2])
-SurfaceIntegralStrongForm(surface_flux) = SurfaceIntegralStrongForm(surface_flux, surface_flux)
+function SurfaceIntegralStrongForm(surface_flux::Tuple)
+    SurfaceIntegralStrongForm(surface_flux[1], surface_flux[2])
+end
+function SurfaceIntegralStrongForm(surface_flux)
+    SurfaceIntegralStrongForm(surface_flux, surface_flux)
+end
 SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
 function create_cache(mesh, equations, solver, ::SurfaceIntegralStrongForm)
@@ -182,7 +187,9 @@ struct SurfaceIntegralWeakForm{SurfaceFlux, SurfaceFluxBoundary} <: AbstractSurf
     surface_flux_boundary::SurfaceFluxBoundary
 end
 
-SurfaceIntegralWeakForm(surface_flux::Tuple) = SurfaceIntegralWeakForm(surface_flux[1], surface_flux[2])
+function SurfaceIntegralWeakForm(surface_flux::Tuple)
+    SurfaceIntegralWeakForm(surface_flux[1], surface_flux[2])
+end
 SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, surface_flux)
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
