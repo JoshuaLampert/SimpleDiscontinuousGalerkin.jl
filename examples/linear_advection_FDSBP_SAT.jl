@@ -17,7 +17,7 @@ coordinates_max = 1.0 # maximum coordinate
 # global DG operator and we only use one big element here. This is equivalent to
 # using the DGSEM solver with polynomial degree 3 and a central flux for the interior
 # and a Godunov flux for the boundary. This is equivalent to the global SBP-SAT method
-# du = -a * (D * u) - M^{-1} * e_L * (e_L^T * u - g(t)),
+# du = -a * (D * u) - aM^{-1} * e_L * (e_L^T * u - g(t)),
 # where D is a discontinuously coupled Legendre derivative operator.
 p = 3
 D_leg = legendre_derivative_operator(-1.0, 1.0, p + 1)
