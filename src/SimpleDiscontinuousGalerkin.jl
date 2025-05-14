@@ -5,7 +5,7 @@ using Reexport: @reexport
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
-import SummationByPartsOperators: grid
+import SummationByPartsOperators: AbstractDerivativeOperator, grid
 @reexport using TrixiBase: trixi_include
 using TrixiBase: TrixiBase, @trixi_timeit, timer
 
@@ -21,7 +21,7 @@ export initial_condition_convergence_test
 export Mesh, grid
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
-export DGSEM, VolumeIntegralStrongForm, VolumeIntegralWeakForm,
+export DGSEM, FDSBP, VolumeIntegralStrongForm, VolumeIntegralWeakForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
 end

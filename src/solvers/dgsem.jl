@@ -30,14 +30,38 @@ end
 
 Base.summary(io::IO, dg::DGSEM) = print(io, "DGSEM(polydeg=$(polydeg(dg)))")
 
-function create_cache(mesh, equations, dg::DGSEM, initial_condition,
+"""
+    FDSBP(D; RealT=Float64,
+             surface_flux=flux_central,
+             surface_integral=SurfaceIntegralWeakForm(surface_flux),
+             volume_integral=VolumeIntegralWeakForm(),
+             mortar=MortarL2(basis))
+
+Create a discontinuous Galerkin method using a summation-by-parts operator
+`D` from SummationByPartsOperators.jl. This is similar to the `DGSEM`, but uses
+a general derivative operator instead of a Legendre derivative operator.
+"""
+const FDSBP = DG{Basis} where {Basis <: AbstractDerivativeOperator}
+
+function FDSBP(D; RealT = Float64,
+               surface_flux = flux_central,
+               surface_integral = SurfaceIntegralWeakForm(surface_flux),
+               volume_integral = VolumeIntegralWeakForm())
+    basis = D
+    return DG{typeof(basis), typeof(surface_integral),
+              typeof(volume_integral)}(basis, surface_integral, volume_integral)
+end
+
+Base.summary(io::IO, dg::FDSBP) = print(io, "FDSBP(D=$D)")
+
+function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_condition,
                       boundary_conditions)
     dx = (xmax(mesh) - xmin(mesh)) / nelements(mesh) # length of each element
     # compute all mapped GLL nodes
     x = zeros(real(dg), nnodes(dg), nelements(mesh))
     for element in eachelement(mesh)
-        x_l = -1 + (element - 1) * dx + dx / 2
-        for (j, xi_j) in enumerate(grid(dg)) # GLL nodes in [-1, 1]
+        x_l = xmin(mesh) + (element - 1) * dx + dx / 2
+        for (j, xi_j) in enumerate(grid(dg))
             x[j, element] = x_l + dx / 2 * xi_j
         end
     end
@@ -47,7 +71,7 @@ function create_cache(mesh, equations, dg::DGSEM, initial_condition,
     return cache
 end
 
-function apply_jacobian!(du, mesh, equations, dg::DGSEM, cache)
+function apply_jacobian!(du, mesh, equations, dg::Union{DGSEM, FDSBP}, cache)
     (; dx) = cache
     @. du = (2 / dx) * du
 end

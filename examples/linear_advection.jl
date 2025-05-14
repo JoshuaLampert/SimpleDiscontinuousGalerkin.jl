@@ -9,7 +9,7 @@ equations = LinearAdvectionEquation1D(advection_velocity)
 
 initial_condition = initial_condition_convergence_test
 
-# Create DG solver with polynomial degree = 3 and (local) Godunov flux as surface flux
+# Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
 solver = DGSEM(polydeg = 3, surface_flux = flux_godunov)
 
 coordinates_min = -1.0 # minimum coordinate

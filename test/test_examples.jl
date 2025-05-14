@@ -17,3 +17,13 @@ end
     @trixi_test_nowarn trixi_include(joinpath(examples_dir(),
                                               "linear_advection_strong_form.jl"))
 end
+
+@testitem "linear_advection_FDSBP.jl" setup=[Examples] begin
+    @trixi_test_nowarn trixi_include(joinpath(examples_dir(),
+                                              "linear_advection_FDSBP.jl"))
+end
+
+@testitem "linear_advection_FDSBP_SAT.jl" setup=[Examples] begin
+    @trixi_test_nowarn trixi_include(joinpath(examples_dir(),
+                                              "linear_advection_FDSBP_SAT.jl"))
+end
