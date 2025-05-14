@@ -15,7 +15,8 @@ coordinates_max = 1.0 # maximum coordinate
 # We couple the discontinuous Legendre derivative operator on a uniform mesh
 # directly with the tools from SummationByPartsOperators.jl to create a
 # global DG operator and we only use one big element here. This is equivalent to
-# using the DGSEM solver with polynomial degree 3 and a central flux.
+# using the DGSEM solver with polynomial degree 3 and a central flux in the interior
+# and the same flux on the boundary as is used here in the surface integral.
 p = 3
 D_leg = legendre_derivative_operator(-1.0, 1.0, p + 1)
 N_elements = 10
