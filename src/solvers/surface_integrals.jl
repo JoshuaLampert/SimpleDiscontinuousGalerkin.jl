@@ -1,68 +1,3 @@
-abstract type AbstractVolumeIntegral end
-
-@views function calc_volume_integral!(du, u, mesh, equations,
-                                      ::AbstractVolumeIntegral, dg, cache)
-    (; volume_operator, f_all) = cache
-    for element in eachelement(mesh)
-        for node in eachnode(dg)
-            f = flux(u[:, node, element], equations)
-            for v in eachvariable(equations)
-                f_all[v, node, element] = f[v]
-            end
-        end
-        for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] + volume_operator * f_all[v, :, element]
-        end
-    end
-    return nothing
-end
-
-"""
-    VolumeIntegralStrongForm()
-
-The classical strong form volume integral type for FD/DG methods.
-"""
-struct VolumeIntegralStrongForm <: AbstractVolumeIntegral end
-
-function create_cache(mesh, equations, solver, ::VolumeIntegralStrongForm)
-    D = Matrix(solver.basis)
-    volume_operator = -D
-    f_all = zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
-    return (; volume_operator, f_all)
-end
-
-"""
-    VolumeIntegralWeakForm()
-
-The classical weak form volume integral type for DG methods as explained in
-standard textbooks.
-
-## References
-
-- Kopriva (2009)
-  Implementing Spectral Methods for Partial Differential Equations:
-  Algorithms for Scientists and Engineers
-  [doi: 10.1007/978-90-481-2261-5](https://doi.org/10.1007/978-90-481-2261-5)
-- Hesthaven, Warburton (2007)
-  Nodal Discontinuous Galerkin Methods: Algorithms, Analysis, and
-  Applications
-  [doi: 10.1007/978-0-387-72067-8](https://doi.org/10.1007/978-0-387-72067-8)
-
-`VolumeIntegralWeakForm()` is only implemented for conserved terms as
-non-conservative terms should always be discretized in conjunction with a flux-splitting scheme,
-see [`VolumeIntegralFluxDifferencing`](@ref).
-This treatment is required to achieve, e.g., entropy-stability or well-balancedness.
-"""
-struct VolumeIntegralWeakForm <: AbstractVolumeIntegral end
-
-function create_cache(mesh, equations, solver, ::VolumeIntegralWeakForm)
-    M = mass_matrix(solver.basis)
-    D = Matrix(solver.basis)
-    volume_operator = (M \ D') * M
-    f_all = zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
-    return (; volume_operator, f_all)
-end
-
 abstract type AbstractSurfaceIntegral end
 
 function calc_interface_flux!(surface_flux_values, u, mesh,
@@ -122,6 +57,8 @@ function SurfaceIntegralStrongForm(surface_flux)
 end
 SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
+# This is M^{-1} * B * (f* - f) for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
+# So basically a SAT.
 function create_cache(mesh, equations, solver, ::SurfaceIntegralStrongForm)
     M = mass_matrix(solver.basis)
     e_L = zeros(real(solver), nnodes(solver))
@@ -193,6 +130,7 @@ end
 SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, surface_flux)
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
+# This is M^{-1} * B * f* for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 function create_cache(mesh, equations, solver, ::SurfaceIntegralWeakForm)
     M = mass_matrix(solver.basis)
     R = zeros(real(solver), 2, nnodes(solver))

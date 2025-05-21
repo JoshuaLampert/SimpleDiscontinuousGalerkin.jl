@@ -1,6 +1,6 @@
 module SimpleDiscontinuousGalerkin
 
-import LinearAlgebra: Diagonal
+import LinearAlgebra: Diagonal, diag
 using Reexport: @reexport
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
@@ -18,10 +18,11 @@ include("semidiscretization.jl")
 export LinearAdvectionEquation1D
 export flux_central, flux_godunov
 export initial_condition_convergence_test
-export Mesh, grid
+export Mesh
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
-export DGSEM, FDSBP, VolumeIntegralStrongForm, VolumeIntegralWeakForm,
+export DGSEM, FDSBP,
+       VolumeIntegralStrongForm, VolumeIntegralWeakForm, VolumeIntegralFluxDifferencing,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
 end

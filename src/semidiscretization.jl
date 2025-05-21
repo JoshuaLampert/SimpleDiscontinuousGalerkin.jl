@@ -92,7 +92,7 @@ end
 
 Get the grid of a semidiscretization.
 """
-grid(semi::Semidiscretization) = semi.cache.node_coordinates
+SummationByPartsOperators.grid(semi::Semidiscretization) = semi.cache.node_coordinates
 
 @inline function mesh_equations_solver_cache(semi::Semidiscretization)
     @unpack mesh, equations, solver, cache = semi
