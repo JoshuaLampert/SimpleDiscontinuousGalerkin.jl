@@ -102,6 +102,11 @@ function rhs!(du, u, t, mesh::Mesh, equations, initial_condition,
               boundary_conditions, dg::DG, cache)
     @trixi_timeit timer() "reset ∂u/∂t" reset_du!(du)
 
+    @trixi_timeit timer() "volume integral" begin
+        calc_volume_integral!(du, u, mesh, equations,
+                              dg.volume_integral, dg, cache)
+    end
+
     @trixi_timeit timer() "interface flux" begin
         calc_interface_flux!(cache.surface_flux_values, u, mesh,
                              equations, dg.surface_integral, dg, cache)
@@ -115,11 +120,6 @@ function rhs!(du, u, t, mesh::Mesh, equations, initial_condition,
     @trixi_timeit timer() "surface integral" begin
         calc_surface_integral!(du, u, mesh, equations,
                                dg.surface_integral, dg, cache)
-    end
-
-    @trixi_timeit timer() "volume integral" begin
-        calc_volume_integral!(du, u, mesh, equations,
-                              dg.volume_integral, dg, cache)
     end
 
     @trixi_timeit timer() "Jacobian" apply_jacobian!(du, mesh, equations, dg, cache)
