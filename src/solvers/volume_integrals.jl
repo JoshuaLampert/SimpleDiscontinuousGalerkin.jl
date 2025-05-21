@@ -71,7 +71,7 @@ Volume integral type for DG methods based on SBP operators and flux differencing
 using a symmetric two-point `volume_flux`. This `volume_flux` needs to satisfy
 the interface of numerical fluxes.
 
-To be used together with
+To be used together with [`SurfaceIntegralWeakForm`](@ref).
 """
 struct VolumeIntegralFluxDifferencing{VolumeFlux} <:
        AbstractVolumeIntegral
