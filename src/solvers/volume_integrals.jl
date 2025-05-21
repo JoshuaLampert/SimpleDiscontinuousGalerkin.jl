@@ -93,10 +93,10 @@ end
             u_node = get_node_vars(u, equations, node, element)
             for node_2 in eachnode(dg)
                 u_node_2 = get_node_vars(u, equations, node_2, element)
-                f = integral.volume_flux(u_node, u_node_2, equations)
+                f_vol = integral.volume_flux(u_node, u_node_2, equations)
                 for v in eachvariable(equations)
                     du[v, node, element] = du[v, node, element] -
-                                           D_split[node, node_2] * f[v]
+                                           D_split[node, node_2] * f_vol[v]
                 end
             end
         end
