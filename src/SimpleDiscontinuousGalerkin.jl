@@ -22,7 +22,8 @@ export Mesh
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
 export DGSEM, FDSBP,
-       VolumeIntegralStrongForm, VolumeIntegralWeakForm, VolumeIntegralFluxDifferencing,
+       VolumeIntegralStrongForm, VolumeIntegralWeakForm,
+       VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
 end

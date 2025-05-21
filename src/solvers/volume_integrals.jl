@@ -1,23 +1,5 @@
 abstract type AbstractVolumeIntegral end
 
-@views function calc_volume_integral!(du, u, mesh, equations,
-                                      ::AbstractVolumeIntegral, dg, cache)
-    (; volume_operator, f_all) = cache
-    for element in eachelement(mesh)
-        for node in eachnode(dg)
-            u_node = get_node_vars(u, equations, node, element)
-            f = flux(u_node, equations)
-            for v in eachvariable(equations)
-                f_all[v, node, element] = f[v]
-            end
-        end
-        for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] + volume_operator * f_all[v, :, element]
-        end
-    end
-    return nothing
-end
-
 """
     VolumeIntegralStrongForm()
 
@@ -59,6 +41,26 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralWeakForm)
     return (; volume_operator, f_all)
 end
 
+@views function calc_volume_integral!(du, u, mesh, equations,
+                                      ::Union{VolumeIntegralStrongForm,
+                                              VolumeIntegralWeakForm},
+                                      dg, cache)
+    (; volume_operator, f_all) = cache
+    for element in eachelement(mesh)
+        for node in eachnode(dg)
+            u_node = get_node_vars(u, equations, node, element)
+            f = flux(u_node, equations)
+            for v in eachvariable(equations)
+                f_all[v, node, element] = f[v]
+            end
+        end
+        for v in eachvariable(equations)
+            du[v, :, element] .= du[v, :, element] + volume_operator * f_all[v, :, element]
+        end
+    end
+    return nothing
+end
+
 """
     VolumeIntegralFluxDifferencing(volume_flux=flux_central)
 
@@ -81,13 +83,40 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencing)
     D_split = 2 * D
     D_split[1, 1] += 1 / weights[1]
     D_split[end, end] -= 1 / weights[end]
-    return (; D_split)
+    return (; volume_operator = D_split)
 end
 
-# Subtract D_split * f^{vol}
+"""
+    VolumeIntegralFluxDifferencingStrongForm(volume_flux=flux_central)
+
+Volume integral type for DG methods based on SBP operators and flux differencing
+using a symmetric two-point `volume_flux`. This `volume_flux` needs to satisfy
+the interface of numerical fluxes.
+
+This is the strong formulation, which means it should be used together with [`SurfaceIntegralStrongForm`](@ref).
+"""
+struct VolumeIntegralFluxDifferencingStrongForm{VolumeFlux} <:
+       AbstractVolumeIntegral
+    volume_flux::VolumeFlux
+end
+
+function VolumeIntegralFluxDifferencingStrongForm()
+    VolumeIntegralFluxDifferencingStrongForm(flux_central)
+end
+
+function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencingStrongForm)
+    weights = diag(mass_matrix(solver.basis))
+    D = Matrix(solver.basis)
+    return (; volume_operator = 2 * D)
+end
+
+# Subtract D_split * f^{vol} for `VolumeIntegralFluxDifferencing` and 2 * D * f^{vol} for
+# `VolumeIntegralFluxDifferencingStrongForm`.
 @views function calc_volume_integral!(du, u, mesh, equations,
-                                      integral::VolumeIntegralFluxDifferencing, dg, cache)
-    (; D_split) = cache
+                                      integral::Union{VolumeIntegralFluxDifferencing,
+                                                      VolumeIntegralFluxDifferencingStrongForm},
+                                      dg, cache)
+    (; volume_operator) = cache
     for element in eachelement(mesh)
         for node in eachnode(dg)
             u_node = get_node_vars(u, equations, node, element)
@@ -96,7 +125,7 @@ end
                 f_vol = integral.volume_flux(u_node, u_node_2, equations)
                 for v in eachvariable(equations)
                     du[v, node, element] = du[v, node, element] -
-                                           D_split[node, node_2] * f_vol[v]
+                                           volume_operator[node, node_2] * f_vol[v]
                 end
             end
         end
