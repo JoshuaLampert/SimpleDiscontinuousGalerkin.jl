@@ -84,7 +84,7 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencing)
     return (; D_split)
 end
 
-# Subtract D_split * f*
+# Subtract D_split * f^{vol}
 @views function calc_volume_integral!(du, u, mesh, equations,
                                       integral::VolumeIntegralFluxDifferencing, dg, cache)
     (; D_split) = cache
