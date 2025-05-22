@@ -34,5 +34,43 @@ julia> SimpleDiscontinuousGalerkin.get_name(LinearAdvectionEquation1D(advection_
 """
 get_name(equations::AbstractEquations) = equations |> typeof |> nameof |> string
 
+"""
+    cons2cons(u, equations)
+
+Return the conservative variables `u`. While this function is as trivial as `identity`,
+it is also as useful.
+"""
+@inline cons2cons(u, ::AbstractEquations) = u
+
+# Add methods to show some information on systems of equations.
+function Base.show(io::IO, equations::AbstractEquations)
+    # Since this is not performance-critical, we can use `@nospecialize` to reduce latency.
+    @nospecialize equations # reduce precompilation time
+
+    print(io, get_name(equations), " with ")
+    if nvariables(equations) == 1
+        print(io, "one variable")
+    else
+        print(io, nvariables(equations), " variables")
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", equations::AbstractEquations)
+    # Since this is not performance-critical, we can use `@nospecialize` to reduce latency.
+    @nospecialize equations # reduce precompilation time
+
+    if get(io, :compact, false)
+        show(io, equations)
+    else
+        println(io, get_name(equations))
+        print(io, "#variables: ", nvariables(equations))
+        for variable in eachvariable(equations)
+            println()
+            print("    variable " * string(variable), ": ",
+                  varnames(cons2cons, equations)[variable])
+        end
+    end
+end
+
 include("numerical_fluxes.jl")
 include("linear_advection.jl")
