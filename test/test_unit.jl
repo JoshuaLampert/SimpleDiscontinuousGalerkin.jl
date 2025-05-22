@@ -1,5 +1,5 @@
 @testitem "equations" begin
-    equations = @test_nowarn LinearAdvectionEquation1D(2.0)
+    equations = @test_nowarn LinearAdvectionEquation1D(-2.0)
     @test_nowarn print(equations)
     @test_nowarn display(equations)
     @test ndims(equations) == 1
