@@ -40,6 +40,9 @@ semi = Semidiscretization(mesh, equations, initial_condition, solver; boundary_c
 # Create ODE problem with time span from 0.0 to 1.0
 tspan = (0.0, 1.0)
 ode = semidiscretize(semi, tspan)
+summary_callback = SummaryCallback()
+callbacks = CallbackSet(summary_callback)
+
 saveat = range(tspan..., length = 100)
 sol = solve(ode, RDPK3SpFSAL49(), abstol = 1.0e-8, reltol = 1.0e-8,
-            saveat = saveat)
+            save_everystep = false, callback = callbacks, saveat = saveat)

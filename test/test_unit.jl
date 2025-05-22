@@ -1,5 +1,5 @@
 @testitem "equations" begin
-    equations = @test_nowarn LinearAdvectionEquation1D(2.0)
+    equations = @test_nowarn LinearAdvectionEquation1D(-2.0)
     @test_nowarn print(equations)
     @test_nowarn display(equations)
     @test ndims(equations) == 1
@@ -7,7 +7,7 @@
     @test SimpleDiscontinuousGalerkin.get_name(equations) == "LinearAdvectionEquation1D"
     u = [SVector(1.0), SVector(-2.0)]
     @test cons2cons.(u, equations) == u
-    @test flux.(u, equations) == [SVector(2.0), SVector(-4.0)]
+    @test flux.(u, equations) == [SVector(-2.0), SVector(4.0)]
     @test flux_central.(u, u, equations) == flux.(u, equations)
     @test flux_godunov.(u, u, equations) == flux.(u, equations)
 end
@@ -86,4 +86,10 @@ end
     @test SimpleDiscontinuousGalerkin.nelements(semi) == 10
     @test SimpleDiscontinuousGalerkin.ndofs(semi) == 40
     @test real(semi) == Float64
+end
+
+@testitem "callbacks" begin
+    summary_callback = SummaryCallback()
+    @test_nowarn print(summary_callback)
+    @test_nowarn display(summary_callback)
 end
