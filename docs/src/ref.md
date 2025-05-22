@@ -34,7 +34,7 @@ Pages = ["boundary_conditions.jl"]
 
 ```@autodocs
 Modules = [SimpleDiscontinuousGalerkin]
-Pages = ["solver.jl"]
+Pages = Main.SOLVER_FILES
 ```
 
 ## Semidiscretization
