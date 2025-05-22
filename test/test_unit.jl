@@ -3,7 +3,7 @@
     @test_nowarn print(equations)
     @test_nowarn display(equations)
     @test ndims(equations) == 1
-    @test nvariables(equations) == 1
+    @test SimpleDiscontinuousGalerkin.nvariables(equations) == 1
     @test SimpleDiscontinuousGalerkin.get_name(equations) == "LinearAdvectionEquation1D"
     u = [SVector(1.0), SVector(-2.0)]
     @test flux.(u, equations) == [SVector(2.0), SVector(-4.0)]
