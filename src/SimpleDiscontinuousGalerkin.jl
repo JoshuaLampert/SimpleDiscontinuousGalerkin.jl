@@ -1,3 +1,17 @@
+"""
+    SimpleDiscontinuousGalerkin
+
+**SimpleDiscontinuousGalerkin.jl** is a Julia package that implements some basic discontinuous Galerkin (DG) methods for the solution of
+hyperbolic partial differential equations (PDEs). The package is designed to be simple and easy to use and understand. It is intended for
+educational purposes and to provide a starting point for more complex DG methods. For a more comprehensive and advanced implementation of
+DG methods, we recommend using the package [Trixi.jl](https://github.com/trixi-framework/Trixi.jl). This package can be understood as a
+minimalistic version of Trixi.jl, which is designed to be easy to understand and modify. Many design concepts are inspired by Trixi.jl,
+but the implementation is much simpler and more straightforward.
+
+SimpleDiscontinuousGalerkin.jl builds on the foundations of the package [SummationByPartsOperators.jl](https://github.com/ranocha/SummationByPartsOperators.jl).
+
+See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/SimpleDiscontinuousGalerkin.jl)
+"""
 module SimpleDiscontinuousGalerkin
 
 import LinearAlgebra: Diagonal, diag
