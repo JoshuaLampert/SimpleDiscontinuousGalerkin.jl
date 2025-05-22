@@ -28,7 +28,7 @@ Base.broadcastable(equations::AbstractEquations) = (equations,)
 Return the canonical, human-readable name for the given system of equations.
 # Examples
 ```jldoctest
-julia> SimpleDiscontinuousGalerkin.get_name(LinearAdvectionEquation1D(advection_velocity = 1.0))
+julia> SimpleDiscontinuousGalerkin.get_name(LinearAdvectionEquation1D(1.0))
 "LinearAdvectionEquation1D"
 ```
 """
