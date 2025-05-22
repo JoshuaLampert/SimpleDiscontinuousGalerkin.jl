@@ -67,7 +67,7 @@ function Base.show(io::IO, ::MIME"text/plain", equations::AbstractEquations)
         for variable in eachvariable(equations)
             println()
             print("    variable " * string(variable), ": ",
-                    varnames(cons2cons, equations)[variable])
+                  varnames(cons2cons, equations)[variable])
         end
     end
 end

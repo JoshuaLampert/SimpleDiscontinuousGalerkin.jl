@@ -140,7 +140,8 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencingS
     return (; volume_operator = 2 * D)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralFluxDifferencingStrongForm)
+function Base.show(io::IO, ::MIME"text/plain",
+                   integral::VolumeIntegralFluxDifferencingStrongForm)
     @nospecialize integral # reduce precompilation time
 
     if get(io, :compact, false)
