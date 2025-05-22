@@ -11,8 +11,8 @@ CALLBACKS_STEP_FILES = joinpath.(Ref("callbacks_step"),
                                  readdir(joinpath(dirname(@__DIR__), "src",
                                                   "callbacks_step")))
 SOLVER_FILES = joinpath.(Ref("solvers"),
-                          readdir(joinpath(dirname(@__DIR__), "src",
-                                           "solvers")))
+                         readdir(joinpath(dirname(@__DIR__), "src",
+                                          "solvers")))
 
 # Define module-wide setups such that the respective modules are available in doctests
 DocMeta.setdocmeta!(SimpleDiscontinuousGalerkin, :DocTestSetup,
