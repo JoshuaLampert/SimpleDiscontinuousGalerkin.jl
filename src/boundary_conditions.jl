@@ -1,14 +1,16 @@
-function digest_boundary_conditions(boundary_conditions, mesh::Mesh{1}, solver, cache)
+function digest_boundary_conditions(boundary_conditions)
     (; x_neg = boundary_conditions, x_pos = boundary_conditions)
 end
 
-function digest_boundary_conditions(boundary_conditions::NTuple{2, Any}, mesh::Mesh{1},
-                                    solver, cache)
+function digest_boundary_conditions(boundary_conditions::NTuple{2, Any})
     (; x_neg = boundary_conditions[1], x_pos = boundary_conditions[2])
 end
-function digest_boundary_conditions(boundary_conditions::NamedTuple{Keys, ValueTypes},
-                                    mesh::Mesh{1}, solver,
-                                    cache) where {Keys, ValueTypes <: NTuple{2, Any}}
+function digest_boundary_conditions(boundary_conditions::NamedTuple{Keys, ValueTypes}) where {
+                                                                                              Keys,
+                                                                                              ValueTypes <:
+                                                                                              NTuple{2,
+                                                                                                     Any}
+                                                                                              }
     @unpack x_neg, x_pos = boundary_conditions
     (; x_neg, x_pos)
 end

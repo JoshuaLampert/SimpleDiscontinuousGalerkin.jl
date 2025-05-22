@@ -41,8 +41,7 @@ function Semidiscretization(mesh, equations, initial_condition, solver;
                             boundary_conditions = boundary_condition_periodic)
     cache = create_cache(mesh, equations, solver, initial_condition,
                          boundary_conditions)
-    _boundary_conditions = digest_boundary_conditions(boundary_conditions, mesh, solver,
-                                                      cache)
+    _boundary_conditions = digest_boundary_conditions(boundary_conditions)
     Semidiscretization{typeof(mesh), typeof(equations), typeof(initial_condition),
                        typeof(_boundary_conditions), typeof(solver), typeof(cache)}(mesh,
                                                                                     equations,

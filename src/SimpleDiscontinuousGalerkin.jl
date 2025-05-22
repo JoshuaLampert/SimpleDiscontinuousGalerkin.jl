@@ -16,7 +16,7 @@ include("solvers/solver.jl")
 include("semidiscretization.jl")
 
 export LinearAdvectionEquation1D
-export flux_central, flux_godunov
+export flux, flux_central, flux_godunov
 export initial_condition_convergence_test
 export Mesh
 export boundary_condition_periodic, boundary_condition_do_nothing,

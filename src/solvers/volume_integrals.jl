@@ -14,6 +14,16 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralStrongForm)
     return (; volume_operator, f_all)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralStrongForm)
+    @nospecialize integral # reduce precompilation time
+
+    if get(io, :compact, false)
+        show(io, integral)
+    else
+        print(io, "VolumeIntegralStrongForm")
+    end
+end
+
 """
     VolumeIntegralWeakForm()
 
@@ -39,6 +49,16 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralWeakForm)
     volume_operator = (M \ D') * M
     f_all = zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
     return (; volume_operator, f_all)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralWeakForm)
+    @nospecialize integral # reduce precompilation time
+
+    if get(io, :compact, false)
+        show(io, integral)
+    else
+        print(io, "VolumeIntegralWeakForm")
+    end
 end
 
 @views function calc_volume_integral!(du, u, mesh, equations,
@@ -86,6 +106,16 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencing)
     return (; volume_operator = D_split)
 end
 
+function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralFluxDifferencing)
+    @nospecialize integral # reduce precompilation time
+
+    if get(io, :compact, false)
+        show(io, integral)
+    else
+        print(io, "VolumeIntegralFluxDifferencing(", integral.volume_flux, ")")
+    end
+end
+
 """
     VolumeIntegralFluxDifferencingStrongForm(volume_flux=flux_central)
 
@@ -108,6 +138,16 @@ function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencingS
     weights = diag(mass_matrix(solver.basis))
     D = Matrix(solver.basis)
     return (; volume_operator = 2 * D)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralFluxDifferencingStrongForm)
+    @nospecialize integral # reduce precompilation time
+
+    if get(io, :compact, false)
+        show(io, integral)
+    else
+        print(io, "VolumeIntegralFluxDifferencingStrongForm(", integral.volume_flux, ")")
+    end
 end
 
 # Subtract D_split * f^{vol} for `VolumeIntegralFluxDifferencing` and 2 * D * f^{vol} for

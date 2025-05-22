@@ -95,7 +95,8 @@ function Base.show(io::IO, ::MIME"text/plain", integral::SurfaceIntegralStrongFo
     if get(io, :compact, false)
         show(io, integral)
     else
-        print(io, "SurfaceIntegralStrongForm(", integral.surface_flux, ")")
+        print(io, "SurfaceIntegralStrongForm(", integral.surface_flux, ", ",
+              integral.surface_flux_boundary, ")")
     end
 end
 
@@ -157,6 +158,7 @@ function Base.show(io::IO, ::MIME"text/plain", integral::SurfaceIntegralWeakForm
     if get(io, :compact, false)
         show(io, integral)
     else
-        print(io, "SurfaceIntegralWeakForm(", integral.surface_flux, ")")
+        print(io, "SurfaceIntegralWeakForm(", integral.surface_flux, ", ",
+              integral.surface_flux_boundary, ")")
     end
 end

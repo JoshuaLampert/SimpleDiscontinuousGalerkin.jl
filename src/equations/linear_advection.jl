@@ -11,6 +11,8 @@ struct LinearAdvectionEquation1D{RealT <: Real} <: AbstractEquations{1, 1}
     advection_velocity::RealT
 end
 
+varnames(::typeof(cons2cons), ::LinearAdvectionEquation1D) = ("u",)
+
 @inline function flux(u, equation::LinearAdvectionEquation1D)
     a = equation.advection_velocity
     return a * u
