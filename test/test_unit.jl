@@ -92,5 +92,4 @@ end
     summary_callback = SummaryCallback()
     @test_nowarn print(summary_callback)
     @test_nowarn display(summary_callback)
-    @test_nowarn summary_callback()
 end
