@@ -65,12 +65,7 @@ function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_conditio
     for element in eachelement(mesh)
         x_l = xmin(mesh) + (element - 1) * dx
         for j in eachindex(nodes_basis)
-            if j == 1
-                x[j, element] = x_l
-            else
-                x[j, element] = x[j - 1, element] +
-                                jacobian * (nodes_basis[j] - nodes_basis[j - 1])
-            end
+            x[j, element] = x_l + jacobian * (nodes_basis[j] - first(nodes_basis))
         end
     end
     cache = (; jacobian, node_coordinates = x,
