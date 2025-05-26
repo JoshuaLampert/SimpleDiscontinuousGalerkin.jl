@@ -74,8 +74,9 @@ end
 
 @testitem "semidiscretization" begin
     equations = LinearAdvectionEquation1D(2.0)
-    mesh = Mesh(0.0, 1.0, 10)
+    mesh = Mesh(0.0, 1.0, 5)
     boundary_conditions = (boundary_condition_do_nothing, boundary_condition_periodic)
+    D_leg = legendre_derivative_operator(-2.0, 3.0, 4)
     solver = DGSEM(polydeg = 3)
     semi = Semidiscretization(mesh, equations, initial_condition_convergence_test, solver;
                               boundary_conditions)
@@ -83,9 +84,15 @@ end
     @test_nowarn display(semi)
     @test ndims(semi) == 1
     @test SimpleDiscontinuousGalerkin.nvariables(semi) == 1
-    @test SimpleDiscontinuousGalerkin.nelements(semi) == 10
-    @test SimpleDiscontinuousGalerkin.ndofs(semi) == 40
+    @test SimpleDiscontinuousGalerkin.nelements(semi) == 5
+    @test SimpleDiscontinuousGalerkin.ndofs(semi) == 20
     @test real(semi) == Float64
+
+    @test all(isapprox.(SimpleDiscontinuousGalerkin.grid(semi),
+                        [0.0 0.2 0.4 0.6 0.8;
+                         0.05527864045000422 0.25527864045000426 0.4552786404500042 0.6552786404500043 0.8552786404500042;
+                         0.14472135954999582 0.34472135954999583 0.5447213595499958 0.7447213595499959 0.9447213595499958;
+                         0.2 0.4 0.6 0.8 1.0], atol = 1.0e-14))
 end
 
 @testitem "callbacks" begin
