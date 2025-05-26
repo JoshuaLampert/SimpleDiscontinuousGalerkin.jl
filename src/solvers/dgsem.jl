@@ -68,7 +68,8 @@ function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_conditio
             if j == 1
                 x[j, element] = x_l
             else
-                x[j, element] = x[j - 1, element] + jacobian * (nodes_basis[j] - nodes_basis[j - 1])
+                x[j, element] = x[j - 1, element] +
+                                jacobian * (nodes_basis[j] - nodes_basis[j - 1])
             end
         end
     end
