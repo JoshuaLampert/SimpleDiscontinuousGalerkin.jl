@@ -28,6 +28,11 @@ end
                                               "linear_advection_FDSBP_SAT.jl"))
 end
 
+@testitem "linear_advection_FD.jl" setup=[Examples] begin
+    @trixi_test_nowarn trixi_include(joinpath(examples_dir(),
+                                              "linear_advection_FD.jl"))
+end
+
 @testitem "linear_advection_flux_differencing.jl" setup=[Examples] begin
     @trixi_test_nowarn trixi_include(joinpath(examples_dir(),
                                               "linear_advection_flux_differencing.jl"))
