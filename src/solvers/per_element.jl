@@ -34,7 +34,7 @@ end
 
 function create_cache(mesh, equations, dg::PerElementFDSBP, initial_condition,
                       boundary_conditions)
-    @assert length(dg.basis.bases) == nelements(mesh) "Number of bases must match number of elements in the mesh"
+    @assert length(dg.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
     dx = element_spacing(mesh) # length of each element
     # We need a `Vector{Vector}` to account for potentially different number of nodes for each element
     # compute all mapped nodes

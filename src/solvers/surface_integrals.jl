@@ -59,7 +59,8 @@ SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
 # This is M^{-1} * B * (f* - f) for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # So basically a SAT.
-function compute_integral_operator(basis::AbstractDerivativeOperator, ::SurfaceIntegralStrongForm; left)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::SurfaceIntegralStrongForm; left)
     M = mass_matrix(basis)
     unit_vector = zeros(eltype(M), length(grid(basis)))
     left ? unit_vector[begin] = 1 : unit_vector[end] = 1
@@ -136,7 +137,8 @@ SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, su
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
 # This is M^{-1} * B * f* for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
-function compute_integral_operator(basis::AbstractDerivativeOperator, ::SurfaceIntegralWeakForm)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::SurfaceIntegralWeakForm)
     M = mass_matrix(basis)
     R = zeros(eltype(M), 2, length(grid(basis)))
     R[1, 1] = R[end, end] = 1

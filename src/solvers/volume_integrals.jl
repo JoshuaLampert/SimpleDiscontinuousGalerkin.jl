@@ -7,7 +7,8 @@ The classical strong form volume integral type for FD/DG methods.
 """
 struct VolumeIntegralStrongForm <: AbstractVolumeIntegral end
 
-function compute_integral_operator(basis::AbstractDerivativeOperator, ::VolumeIntegralStrongForm)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralStrongForm)
     D = Matrix(basis)
     return -D
 end
@@ -41,7 +42,8 @@ standard textbooks.
 """
 struct VolumeIntegralWeakForm <: AbstractVolumeIntegral end
 
-function compute_integral_operator(basis::AbstractDerivativeOperator, ::VolumeIntegralWeakForm)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralWeakForm)
     M = mass_matrix(basis)
     D = Matrix(basis)
     return (M \ D') * M
@@ -102,7 +104,8 @@ end
 
 VolumeIntegralFluxDifferencing() = VolumeIntegralFluxDifferencing(flux_central)
 
-function compute_integral_operator(basis::AbstractDerivativeOperator, ::VolumeIntegralFluxDifferencing)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralFluxDifferencing)
     weights = diag(mass_matrix(basis))
     D = Matrix(basis)
     D_split = 2 * D
@@ -139,7 +142,8 @@ function VolumeIntegralFluxDifferencingStrongForm()
     VolumeIntegralFluxDifferencingStrongForm(flux_central)
 end
 
-function compute_integral_operator(basis::AbstractDerivativeOperator, ::VolumeIntegralFluxDifferencingStrongForm)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralFluxDifferencingStrongForm)
     D = Matrix(basis)
     return 2 * D
 end
