@@ -2,3 +2,27 @@ include("volume_integrals.jl")
 include("surface_integrals.jl")
 include("dg.jl")
 include("dgsem.jl")
+include("per_element.jl")
+
+# We define this function to allow for a different operator per element,
+# This way we can use the same function for both classical `DG` and `PerElementFDSBP`,
+# but without having to also store redundant information in the classical `DG` case.
+get_basis(dg::DG, element) = dg.basis
+get_basis(dg::PerElementFDSBP, element) = dg.basis.bases[element]
+
+get_integral_operator(operator, solver, element) = operator
+function get_integral_operator(operator, ::PerElementFDSBP, element)
+    operator[element]
+end
+
+function compute_integral_operator(solver::DG, integral; kwargs...)
+    compute_integral_operator(solver.basis, integral; kwargs...)
+end
+function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
+    volume_operator = Vector{real(solver)}(undef, nelements(mesh))
+    for element in eachelement(mesh)
+        volume_operator[element] = compute_integral_operator(get_basis(solver, element),
+                                                             integral; kwargs...)
+    end
+    return volume_operator
+end

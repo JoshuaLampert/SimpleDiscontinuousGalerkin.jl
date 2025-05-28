@@ -35,10 +35,10 @@ export cons2cons
 export LinearAdvectionEquation1D
 export flux, flux_central, flux_godunov
 export initial_condition_convergence_test
-export Mesh
+export Mesh, nelements, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
-export DGSEM, FDSBP,
+export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralStrongForm, VolumeIntegralWeakForm,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm

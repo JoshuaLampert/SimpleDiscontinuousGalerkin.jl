@@ -48,3 +48,10 @@ end
 
 xmin(mesh::Mesh) = mesh.xmin
 xmax(mesh::Mesh) = mesh.xmax
+"""
+    element_spacing(mesh::Mesh)
+
+Return the spacing of the elements in the mesh.
+This is the length of each element, which is the same for all elements in a homogeneous mesh.
+"""
+element_spacing(mesh::Mesh) = (xmax(mesh) - xmin(mesh)) / nelements(mesh)

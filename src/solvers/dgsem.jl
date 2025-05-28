@@ -56,11 +56,11 @@ Base.summary(io::IO, dg::FDSBP) = print(io, "FDSBP(D=$D)")
 
 function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_condition,
                       boundary_conditions)
-    dx = (xmax(mesh) - xmin(mesh)) / nelements(mesh) # length of each element
+    dx = element_spacing(mesh) # length of each element
     nodes_basis = grid(dg.basis)
     dx_basis = last(nodes_basis) - first(nodes_basis) # length of the basis nodes
     jacobian = dx / dx_basis
-    # compute all mapped GLL nodes
+    # compute all mapped nodes
     x = zeros(real(dg), nnodes(dg), nelements(mesh))
     for element in eachelement(mesh)
         x_l = xmin(mesh) + (element - 1) * dx
