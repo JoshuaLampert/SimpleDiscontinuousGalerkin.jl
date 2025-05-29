@@ -160,7 +160,7 @@ function Base.show(io::IO, ::MIME"text/plain",
 end
 
 function create_cache(mesh, equations, solver,
-                      integral::Union{VolumeIntegralFluxDifferencingStrongForm,
+                      integral::Union{VolumeIntegralFluxDifferencing,
                                       VolumeIntegralFluxDifferencingStrongForm})
     volume_operator = compute_integral_operator(solver, integral)
     return (; volume_operator)
