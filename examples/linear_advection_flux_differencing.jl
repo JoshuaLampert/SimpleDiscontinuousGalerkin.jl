@@ -17,7 +17,7 @@ solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(surface_f
 coordinates_min = -1.0 # minimum coordinate
 coordinates_max = 1.0 # maximum coordinate
 
-N_elements = 8 # number of elements
+N_elements = 10 # number of elements
 mesh = Mesh(coordinates_min, coordinates_max, N_elements)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
