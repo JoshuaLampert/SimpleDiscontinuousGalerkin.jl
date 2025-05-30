@@ -3,15 +3,16 @@ abstract type AbstractSurfaceIntegral end
 function calc_interface_flux!(surface_flux_values, u, mesh,
                               equations, integral::AbstractSurfaceIntegral, dg, cache)
     for element in 2:(nelements(mesh) - 1)
-        N = nnodes(dg, element)
+        N_element = nnodes(dg, element)
+        N_element_m1 = nnodes(dg, element - 1)
         # left interface
-        u_ll = get_node_vars(u, equations, N, element - 1)
+        u_ll = get_node_vars(u, equations, N_element_m1, element - 1)
         u_rr = get_node_vars(u, equations, 1, element)
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 1, element)
         set_node_vars!(surface_flux_values, f, equations, 2, element - 1)
         # right interface
-        u_ll = get_node_vars(u, equations, N, element)
+        u_ll = get_node_vars(u, equations, N_element, element)
         u_rr = get_node_vars(u, equations, 1, element + 1)
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 2, element)
@@ -75,7 +76,9 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongFo
     return (; surface_operator_left, surface_operator_right, surface_flux_values)
 end
 
-@views function calc_surface_integral!(du, u, mesh, equations,
+# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
+# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
+function calc_surface_integral!(du, u, mesh, equations,
                                        ::SurfaceIntegralStrongForm, dg, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
@@ -153,14 +156,23 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm
     return (; surface_operator, surface_flux_values)
 end
 
-@views function calc_surface_integral!(du, u, mesh, equations,
+# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
+# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
+function calc_surface_integral!(du, u, mesh, equations,
                                        ::SurfaceIntegralWeakForm, dg, cache)
     (; surface_operator, surface_flux_values) = cache
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, dg, element)
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] +
-                                 surface_operator_ * surface_flux_values[v, :, element]
+            # TODO: We would like to use broadcasting here:
+            # du[v, :, element] .= du[v, :, element] +
+            #                      surface_operator_ * surface_flux_values[v, :, element]
+            # but there are currently issues with RecursiveArrayTools.jl:
+            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+            du_update = surface_operator_ * surface_flux_values[v, :, element]
+            for node in eachnode(dg, element)
+                du[v, node, element] += du_update[node]
+            end
         end
     end
     return nothing

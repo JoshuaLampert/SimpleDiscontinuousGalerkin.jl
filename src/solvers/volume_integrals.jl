@@ -67,7 +67,9 @@ function create_cache(mesh, equations, solver,
     return (; volume_operator, f_all)
 end
 
-@views function calc_volume_integral!(du, u, mesh, equations,
+# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
+# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
+function calc_volume_integral!(du, u, mesh, equations,
                                       ::Union{VolumeIntegralStrongForm,
                                               VolumeIntegralWeakForm},
                                       dg, cache)
@@ -82,7 +84,14 @@ end
             end
         end
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] + volume_operator_ * f_all[v, :, element]
+            # TODO: We would like to use broadcasting here:
+            # du[v, :, element] .= du[v, :, element] + volume_operator_ * f_all[v, :, element]
+            # but there are currently issues with RecursiveArrayTools.jl:
+            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+            du_update = volume_operator_ * f_all[v, :, element]
+            for node in eachnode(dg, element)
+                du[v, node, element] += du_update[node]
+            end
         end
     end
     return nothing
@@ -168,7 +177,7 @@ end
 
 # Subtract D_split * f^{vol} for `VolumeIntegralFluxDifferencing` and 2 * D * f^{vol} for
 # `VolumeIntegralFluxDifferencingStrongForm`.
-@views function calc_volume_integral!(du, u, mesh, equations,
+function calc_volume_integral!(du, u, mesh, equations,
                                       integral::Union{VolumeIntegralFluxDifferencing,
                                                       VolumeIntegralFluxDifferencingStrongForm},
                                       dg, cache)
