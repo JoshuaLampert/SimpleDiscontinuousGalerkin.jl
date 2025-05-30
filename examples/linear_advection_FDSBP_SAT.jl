@@ -24,6 +24,7 @@ D_leg = legendre_derivative_operator(-1.0, 1.0, p + 1)
 N_elements = 10
 uniform_mesh = UniformMesh1D(coordinates_min, coordinates_max, N_elements)
 D = couple_discontinuously(D_leg, uniform_mesh)
+# The interior flux doesn't matter here because we only have one element.
 solver = FDSBP(D, surface_integral = SurfaceIntegralStrongForm(flux_central, flux_godunov),
                volume_integral = VolumeIntegralStrongForm())
 
