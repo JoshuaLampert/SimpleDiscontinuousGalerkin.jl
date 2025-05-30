@@ -52,7 +52,7 @@ function FDSBP(D; RealT = Float64,
               typeof(volume_integral)}(basis, surface_integral, volume_integral)
 end
 
-Base.summary(io::IO, dg::FDSBP) = print(io, "FDSBP(D=$D)")
+Base.summary(io::IO, dg::FDSBP) = print(io, "FDSBP(D=$(dg.basis)")
 
 function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_condition,
                       boundary_conditions)
