@@ -61,7 +61,8 @@ function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_conditio
     dx_basis = last(nodes_basis) - first(nodes_basis) # length of the basis nodes
     jacobian = dx / dx_basis
     # compute all mapped nodes
-    x = zeros(real(dg), nnodes(dg), nelements(mesh))
+    # We know that for `DGSEM` and `FDSBP`, the number of nodes is constant across elements,
+    x = zeros(real(dg), nnodes(dg, 1), nelements(mesh))
     for element in eachelement(mesh)
         x_l = xmin(mesh) + (element - 1) * dx
         for j in eachindex(nodes_basis)

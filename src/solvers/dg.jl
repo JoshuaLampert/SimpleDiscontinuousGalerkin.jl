@@ -43,7 +43,7 @@ grid(dg::DG, element) = grid(dg.basis)
     eachnode(dg::DG, element)
 
 Return an iterator over the indices that specify the location in relevant data structures
-for the nodes in a specfic `element` in `dg`.
+for the nodes in a specific `element` in `dg`.
 In particular, not the nodes themselves are returned.
 """
 @inline eachnode(dg::DG, element) = Base.OneTo(nnodes(dg, element))
@@ -82,7 +82,7 @@ end
 function allocate_coefficients(mesh::Mesh, equations, solver::DG, cache)
     return allocate_coefficients(mesh, equations, solver)
 end
-# TODO: Maybe change to (nelements, nvariables, nnodes) to match `PerElementFDSBP` structure?
+
 function allocate_coefficients(mesh::Mesh, equations, solver::DG)
     return zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
 end
