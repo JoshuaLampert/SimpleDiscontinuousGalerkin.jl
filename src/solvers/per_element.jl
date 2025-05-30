@@ -8,6 +8,9 @@ struct PerElementBasis{BasisType}
     bases::Vector{BasisType}
 end
 
+@inline Base.real(basis::PerElementBasis) = real(first(basis.bases))
+grid(basis::PerElementBasis, element) = grid(basis.bases[element])
+
 """
     PerElementFDSBP(bases::Vector{BasisType};
                     surface_flux = flux_central,
@@ -23,7 +26,7 @@ function PerElementFDSBP(bases::Vector{BasisType};
                          surface_flux = flux_central,
                          surface_integral = SurfaceIntegralWeakForm(surface_flux),
                          volume_integral = VolumeIntegralWeakForm()) where {BasisType}
-    return DG{PerElementBasis{typeof(bases)}, typeof(surface_integral),
+    return DG{PerElementBasis{eltype(bases)}, typeof(surface_integral),
               typeof(volume_integral)}(PerElementBasis(bases), surface_integral,
                                        volume_integral)
 end
@@ -31,6 +34,8 @@ end
 function Base.summary(io::IO, dg::PerElementFDSBP)
     print(io, "PerElementFDSBP(bases=$(dg.basis.bases))")
 end
+
+grid(solver::PerElementFDSBP, element) = grid(solver.basis, element)
 
 function create_cache(mesh, equations, dg::PerElementFDSBP, initial_condition,
                       boundary_conditions)
@@ -45,13 +50,13 @@ function create_cache(mesh, equations, dg::PerElementFDSBP, initial_condition,
         D = get_basis(dg, element)
         nodes_basis = grid(D)
         dx_basis = last(nodes_basis) - first(nodes_basis)
-        jacobian[element] = dx_u / dx_basis
-        x[element] = zeros(length(nodes_basis))
+        jacobian[element] = dx / dx_basis
+        x[element] = zeros(real(dg), length(nodes_basis))
         for j in eachindex(nodes_basis)
-            x[j, element] = x_l + jacobian * (nodes_basis[j] - first(nodes_basis))
+            x[element][j] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
         end
     end
-    cache = (; jacobian, node_coordinates = x,
+    cache = (; jacobian, node_coordinates = VectorOfArray(x),
              create_cache(mesh, equations, dg, dg.volume_integral)...,
              create_cache(mesh, equations, dg, dg.surface_integral)...)
     return cache
@@ -60,6 +65,20 @@ end
 function apply_jacobian!(du, mesh, equations, dg::PerElementFDSBP, cache)
     (; jacobian) = cache
     for element in eachelement(mesh)
-        @. du[element] = du[element] / jacobian[element]
+        for i in eachnode(dg, element)
+            for v in eachvariable(equations)
+                du[v, i, element] = du[v, i, element] / jacobian[element]
+            end
+        end
     end
+end
+
+# We need different data structure because we have a different number of nodes per element
+# `get_node_coords`, `get_node_vars`, and `set_node_vars!` can be reused because we can
+# access the `Array{RealT, 3}` in the same way as the `VectorOfArray` structure
+# (`v` first, node variable(s) in the middle, `element` last).
+function allocate_coefficients(mesh::Mesh, equations, solver::PerElementFDSBP)
+    u = [zeros(real(solver), nvariables(equations), nnodes(solver, element))
+         for element in eachelement(mesh)]
+    return VectorOfArray(u)
 end

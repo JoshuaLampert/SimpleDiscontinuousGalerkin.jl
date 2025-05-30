@@ -2,8 +2,8 @@ abstract type AbstractSurfaceIntegral end
 
 function calc_interface_flux!(surface_flux_values, u, mesh,
                               equations, integral::AbstractSurfaceIntegral, dg, cache)
-    N = nnodes(dg)
     for element in 2:(nelements(mesh) - 1)
+        N = nnodes(dg, element)
         # left interface
         u_ll = get_node_vars(u, equations, N, element - 1)
         u_rr = get_node_vars(u, equations, 1, element)
@@ -27,7 +27,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
-    u_ll = get_node_vars(u, equations, nnodes(dg), nelements(mesh))
+    u_ll = get_node_vars(u, equations, nnodes(dg, nelements(mesh)), nelements(mesh))
     u_rr = x_pos(u, xmax(mesh), t, equations, false)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
@@ -68,8 +68,8 @@ function compute_integral_operator(basis::AbstractDerivativeOperator,
 end
 
 function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongForm)
-    surface_operator_left = compute_integral_operator(solver.basis, integral; left = true)
-    surface_operator_right = compute_integral_operator(solver.basis, integral; left = false)
+    surface_operator_left = compute_integral_operator(solver, integral; left = true)
+    surface_operator_right = compute_integral_operator(solver, integral; left = false)
 
     surface_flux_values = zeros(real(solver), nvariables(equations), 2, nelements(mesh))
     return (; surface_operator_left, surface_operator_right, surface_flux_values)
@@ -147,7 +147,7 @@ function compute_integral_operator(basis::AbstractDerivativeOperator,
 end
 
 function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm)
-    surface_operator = compute_integral_operator(solver.basis, integral)
+    surface_operator = compute_integral_operator(solver, integral)
 
     surface_flux_values = zeros(real(solver), nvariables(equations), 2, nelements(mesh))
     return (; surface_operator, surface_flux_values)

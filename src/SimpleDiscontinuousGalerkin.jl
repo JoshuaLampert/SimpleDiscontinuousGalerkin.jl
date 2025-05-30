@@ -15,6 +15,7 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 module SimpleDiscontinuousGalerkin
 
 import LinearAlgebra: Diagonal, diag
+using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
@@ -35,7 +36,7 @@ export cons2cons
 export LinearAdvectionEquation1D
 export flux, flux_central, flux_godunov
 export initial_condition_convergence_test
-export Mesh, nelements, element_spacing
+export Mesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
 export DGSEM, FDSBP, PerElementFDSBP,

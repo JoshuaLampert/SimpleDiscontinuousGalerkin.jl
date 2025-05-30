@@ -63,7 +63,7 @@ function create_cache(mesh, equations, solver,
                       integral::Union{VolumeIntegralStrongForm,
                                       VolumeIntegralWeakForm})
     volume_operator = compute_integral_operator(solver, integral)
-    f_all = zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
+    f_all = allocate_coefficients(mesh, equations, solver)
     return (; volume_operator, f_all)
 end
 
@@ -74,7 +74,7 @@ end
     (; volume_operator, f_all) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, dg, element)
-        for node in eachnode(dg)
+        for node in eachnode(dg, element)
             u_node = get_node_vars(u, equations, node, element)
             f = flux(u_node, equations)
             for v in eachvariable(equations)
@@ -175,9 +175,9 @@ end
     (; volume_operator) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, dg, element)
-        for node in eachnode(dg)
+        for node in eachnode(dg, element)
             u_node = get_node_vars(u, equations, node, element)
-            for node_2 in eachnode(dg)
+            for node_2 in eachnode(dg, element)
                 u_node_2 = get_node_vars(u, equations, node_2, element)
                 f_vol = integral.volume_flux(u_node, u_node_2, equations)
                 for v in eachvariable(equations)

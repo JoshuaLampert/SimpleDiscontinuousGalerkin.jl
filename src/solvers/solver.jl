@@ -19,8 +19,9 @@ function compute_integral_operator(solver::DG, integral; kwargs...)
     compute_integral_operator(solver.basis, integral; kwargs...)
 end
 function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
-    volume_operator = Vector{real(solver)}(undef, nelements(mesh))
-    for element in eachelement(mesh)
+    n_elements = length(solver.basis.bases)
+    volume_operator = Vector{Matrix{real(solver)}}(undef, n_elements)
+    for element in 1:n_elements
         volume_operator[element] = compute_integral_operator(get_basis(solver, element),
                                                              integral; kwargs...)
     end
