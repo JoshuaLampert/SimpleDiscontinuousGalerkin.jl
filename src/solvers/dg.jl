@@ -47,6 +47,8 @@ for the nodes in a specific `element` in `dg`.
 In particular, not the nodes themselves are returned.
 """
 @inline eachnode(dg::DG, element) = Base.OneTo(nnodes(dg, element))
+# This is only supported for solvers with a fixed number of nodes per element.
+@inline nnodes(dg::DG) = length(grid(dg))
 @inline nnodes(dg::DG, element) = length(grid(dg, element))
 @inline function ndofs(mesh::Mesh, dg::DG)
     sum(nnodes(dg, element) for element in eachelement(mesh))
