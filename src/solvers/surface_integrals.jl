@@ -169,7 +169,7 @@ function calc_surface_integral!(du, u, mesh, equations,
             #                      surface_operator_ * surface_flux_values[v, :, element]
             # but there are currently issues with RecursiveArrayTools.jl:
             # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
-            du_update = u
+            du_update = surface_operator_ * surface_flux_values[v, :, element]
             for node in eachnode(dg, element)
                 du[v, node, element] += du_update[node]
             end
