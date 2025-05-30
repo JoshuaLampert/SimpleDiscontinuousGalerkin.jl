@@ -63,17 +63,20 @@ end
 
 @testitem "solvers" begin
     solver = DGSEM(polydeg = 3)
+    @test_nowarn summary(solver)
     @test_nowarn print(solver)
     @test_nowarn display(solver)
 
     D = derivative_operator(MattssonNordström2004(), 1, 2, -1.0, 1.0, 4)
     solver = FDSBP(D)
+    @test_nowarn summary(solver)
     @test_nowarn print(solver)
     @test_nowarn display(solver)
 
     Ds = [derivative_operator(MattssonNordström2004(), 1, 2, -1.0, 1.0, 4),
         derivative_operator(MattssonNordström2004(), 1, 2, -1.0, 1.0, 5)]
     solver = PerElementFDSBP(Ds)
+    @test_nowarn summary(solver)
     @test_nowarn print(solver)
     @test_nowarn display(solver)
 end
