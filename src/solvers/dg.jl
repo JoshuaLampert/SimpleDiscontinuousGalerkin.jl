@@ -37,6 +37,8 @@ Base.summary(io::IO, dg::DG) = print(io, "DG(" * summary(dg.basis) * ")")
 
 @inline Base.real(dg::DG) = real(dg.basis)
 
+# This method is only supported for solvers with a fixed number of nodes per element.
+grid(dg::DG) = grid(dg.basis)
 grid(dg::DG, element) = grid(dg.basis)
 
 """
@@ -47,7 +49,7 @@ for the nodes in a specific `element` in `dg`.
 In particular, not the nodes themselves are returned.
 """
 @inline eachnode(dg::DG, element) = Base.OneTo(nnodes(dg, element))
-# This is only supported for solvers with a fixed number of nodes per element.
+# This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(dg::DG) = length(grid(dg))
 @inline nnodes(dg::DG, element) = length(grid(dg, element))
 @inline function ndofs(mesh::Mesh, dg::DG)
