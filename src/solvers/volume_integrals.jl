@@ -70,9 +70,9 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_volume_integral!(du, u, mesh, equations,
-                                      ::Union{VolumeIntegralStrongForm,
-                                              VolumeIntegralWeakForm},
-                                      dg, cache)
+                               ::Union{VolumeIntegralStrongForm,
+                                       VolumeIntegralWeakForm},
+                               dg, cache)
     (; volume_operator, f_all) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, dg, element)
@@ -178,9 +178,9 @@ end
 # Subtract D_split * f^{vol} for `VolumeIntegralFluxDifferencing` and 2 * D * f^{vol} for
 # `VolumeIntegralFluxDifferencingStrongForm`.
 function calc_volume_integral!(du, u, mesh, equations,
-                                      integral::Union{VolumeIntegralFluxDifferencing,
-                                                      VolumeIntegralFluxDifferencingStrongForm},
-                                      dg, cache)
+                               integral::Union{VolumeIntegralFluxDifferencing,
+                                               VolumeIntegralFluxDifferencingStrongForm},
+                               dg, cache)
     (; volume_operator) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, dg, element)

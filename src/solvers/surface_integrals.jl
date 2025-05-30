@@ -79,7 +79,7 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
-                                       ::SurfaceIntegralStrongForm, dg, cache)
+                                ::SurfaceIntegralStrongForm, dg, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
         f_L = flux(u[:, 1, element], equations)
@@ -159,7 +159,7 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
-                                       ::SurfaceIntegralWeakForm, dg, cache)
+                                ::SurfaceIntegralWeakForm, dg, cache)
     (; surface_operator, surface_flux_values) = cache
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, dg, element)
@@ -169,7 +169,7 @@ function calc_surface_integral!(du, u, mesh, equations,
             #                      surface_operator_ * surface_flux_values[v, :, element]
             # but there are currently issues with RecursiveArrayTools.jl:
             # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
-            du_update = surface_operator_ * surface_flux_values[v, :, element]
+            du_update = u
             for node in eachnode(dg, element)
                 du[v, node, element] += du_update[node]
             end
