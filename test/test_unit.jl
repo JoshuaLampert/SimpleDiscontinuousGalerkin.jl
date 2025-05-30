@@ -70,6 +70,12 @@ end
     solver = FDSBP(D)
     @test_nowarn print(solver)
     @test_nowarn display(solver)
+
+    Ds = [derivative_operator(MattssonNordström2004(), 1, 2, -1.0, 1.0, 4),
+        derivative_operator(MattssonNordström2004(), 1, 2, -1.0, 1.0, 5)]
+    solver = PerElementFDSBP(Ds)
+    @test_nowarn print(solver)
+    @test_nowarn display(solver)
 end
 
 @testitem "semidiscretization" begin
@@ -88,11 +94,24 @@ end
     @test SimpleDiscontinuousGalerkin.ndofs(semi) == 20
     @test real(semi) == Float64
 
-    @test all(isapprox.(SimpleDiscontinuousGalerkin.grid(semi),
+    @test all(isapprox.(grid(semi),
                         [0.0 0.2 0.4 0.6 0.8;
                          0.05527864045000422 0.25527864045000426 0.4552786404500042 0.6552786404500043 0.8552786404500042;
                          0.14472135954999582 0.34472135954999583 0.5447213595499958 0.7447213595499959 0.9447213595499958;
                          0.2 0.4 0.6 0.8 1.0], atol = 1.0e-14))
+
+    using RecursiveArrayTools: VectorOfArray
+    D_leg_2 = legendre_derivative_operator(-1.0, 1.0, 3)
+    Ds = [isodd(element) ? D_leg_2 : D_leg for element in eachelement(mesh)]
+    solver = PerElementFDSBP(Ds, surface_flux = flux_godunov)
+    semi = Semidiscretization(mesh, equations, initial_condition_convergence_test, solver;
+                              boundary_conditions)
+    @test isapprox(grid(semi),
+                   VectorOfArray([[0.0, 0.1, 0.2],
+                                     [0.2, 0.2552786404500042, 0.34472135954999583, 0.4],
+                                     [0.4, 0.5, 0.6],
+                                     [0.6, 0.6552786404500043, 0.7447213595499959, 0.8],
+                                     [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
 @testitem "callbacks" begin
