@@ -13,7 +13,7 @@ for some usage examples.
 ## Differences to Trixi.jl
 
 - The focus of SimpleDiscontinuousGalerkin.jl is on understandability and extendability of the code and less on
-  performance and features. It is designed closely follow the mathematical description of the DG method, which can
+  performance and features. It is designed to closely follow the mathematical description of the DG method, which can
   make it suitable for teaching and learning purposes. For example, SimpleDiscontinuousGalerkin.jl implements more
   equivalent formulations like weak and strong formulation of the flux-differencing method to demonstrate the
   equivalence of these formulations.
