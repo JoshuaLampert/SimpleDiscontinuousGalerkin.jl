@@ -5,4 +5,5 @@ using TestItemRunner
 
 @testsnippet Setup begin
     include("test_util.jl")
+    examples_dir() = pkgdir(SimpleDiscontinuousGalerkin, "examples")
 end

@@ -122,3 +122,11 @@ end
     @test_nowarn print(summary_callback)
     @test_nowarn display(summary_callback)
 end
+
+@testitem "visualization" setup=[Setup] begin
+    using Plots
+    include(joinpath(examples_dir(), "linear_advection.jl"))
+    @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
+    include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
+    @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
+end
