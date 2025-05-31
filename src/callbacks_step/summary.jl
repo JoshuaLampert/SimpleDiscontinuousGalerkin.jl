@@ -39,7 +39,7 @@ end
 function finalize_summary_callback(cb::DiscreteCallback, u, t, integrator)
     io = cb.affect!.io
     TimerOutputs.complement!(timer())
-    print_timer(io, timer(), title = "DispersiveSWE",
+    print_timer(io, timer(), title = "SimpleDiscontinuousGalerkin",
                 allocations = true, linechars = :unicode, compact = false)
     println(io)
     return nothing

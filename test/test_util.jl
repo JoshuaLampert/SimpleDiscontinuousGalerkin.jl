@@ -37,9 +37,9 @@ macro test_trixi_include(example, args...)
         if !isnothing($l2) || !isnothing($linf)
             # TODO: This should use the proper L2/Linf norms based on the basis of the solver, probably
             # also implemented as `AnalysisCallback`
-            ini_cond = semi.initial_condition.(grid(semi), sol.t[end], equations)
+            ini_cond = semi.initial_condition.(flat_grid(semi), sol.t[end], equations)
             for v in eachvariable(equations)
-                diff = vec(sol.u[end][v, :, :]) .- vec(getindex.(ini_cond, v))
+                diff = get_variable(sol.u[end], v, semi) .- getindex.(ini_cond, v)
                 l2 = sqrt(sum(diff .^ 2) / (ndofs(semi)))
                 linf = maximum(abs.(diff))
                 if !isnothing($l2)

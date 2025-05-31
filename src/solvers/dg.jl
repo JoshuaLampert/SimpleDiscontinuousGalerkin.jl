@@ -37,22 +37,26 @@ Base.summary(io::IO, dg::DG) = print(io, "DG(" * summary(dg.basis) * ")")
 
 @inline Base.real(dg::DG) = real(dg.basis)
 
+# This method is only supported for solvers with a fixed number of nodes per element.
 grid(dg::DG) = grid(dg.basis)
+grid(dg::DG, element) = grid(dg.basis)
 
 """
-    eachnode(dg::DG)
+    eachnode(dg::DG, element)
 
 Return an iterator over the indices that specify the location in relevant data structures
-for the nodes in `dg`.
+for the nodes in a specific `element` in `dg`.
 In particular, not the nodes themselves are returned.
 """
-@inline eachnode(dg::DG) = Base.OneTo(nnodes(dg))
+@inline eachnode(dg::DG, element) = Base.OneTo(nnodes(dg, element))
+# This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(dg::DG) = length(grid(dg))
+@inline nnodes(dg::DG, element) = length(grid(dg, element))
 @inline function ndofs(mesh::Mesh, dg::DG)
-    nelements(mesh) * nnodes(dg)^ndims(mesh)
+    sum(nnodes(dg, element) for element in eachelement(mesh))
 end
 
-@inline function get_node_coords(x, equations, solver::DG, indices...)
+@inline function get_node_coords(x, equations, ::DG, indices...)
     return x[indices...]
 end
 
@@ -79,13 +83,27 @@ end
     return nothing
 end
 
+"""
+    get_variable(u, v, ::DG)
+
+Return the solution belonging to the variable `v` of the solution `u`
+at one time step as a vector at every node across all elements.
+"""
+function get_variable(u, v, ::DG)
+    return vec(u[v, :, :])
+end
+
 function allocate_coefficients(mesh::Mesh, equations, solver::DG, cache)
+    return allocate_coefficients(mesh, equations, solver)
+end
+
+function allocate_coefficients(mesh::Mesh, equations, solver::DG)
     return zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
 end
 
 function compute_coefficients!(u, func, t, mesh::Mesh, equations, dg::DG, cache)
     for element in eachelement(mesh)
-        for i in eachnode(dg)
+        for i in eachnode(dg, element)
             x_node = get_node_coords(cache.node_coordinates, equations, dg, i,
                                      element)
             u_node = func(x_node, t, equations)

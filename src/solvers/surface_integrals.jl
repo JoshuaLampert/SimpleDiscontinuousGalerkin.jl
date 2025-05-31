@@ -2,16 +2,17 @@ abstract type AbstractSurfaceIntegral end
 
 function calc_interface_flux!(surface_flux_values, u, mesh,
                               equations, integral::AbstractSurfaceIntegral, dg, cache)
-    N = nnodes(dg)
     for element in 2:(nelements(mesh) - 1)
+        N_element = nnodes(dg, element)
+        N_element_m1 = nnodes(dg, element - 1)
         # left interface
-        u_ll = get_node_vars(u, equations, N, element - 1)
+        u_ll = get_node_vars(u, equations, N_element_m1, element - 1)
         u_rr = get_node_vars(u, equations, 1, element)
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 1, element)
         set_node_vars!(surface_flux_values, f, equations, 2, element - 1)
         # right interface
-        u_ll = get_node_vars(u, equations, N, element)
+        u_ll = get_node_vars(u, equations, N_element, element)
         u_rr = get_node_vars(u, equations, 1, element + 1)
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 2, element)
@@ -27,7 +28,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
-    u_ll = get_node_vars(u, equations, nnodes(dg), nelements(mesh))
+    u_ll = get_node_vars(u, equations, nnodes(dg, nelements(mesh)), nelements(mesh))
     u_rr = x_pos(u, xmax(mesh), t, equations, false)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
@@ -59,30 +60,37 @@ SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
 # This is M^{-1} * B * (f* - f) for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # So basically a SAT.
-function create_cache(mesh, equations, solver, ::SurfaceIntegralStrongForm)
-    M = mass_matrix(solver.basis)
-    e_L = zeros(real(solver), nnodes(solver))
-    e_L[1] = 1
-    surface_operator_left = M \ e_L
-    e_R = zeros(real(solver), nnodes(solver))
-    e_R[end] = 1
-    surface_operator_right = M \ e_R
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::SurfaceIntegralStrongForm; left)
+    M = mass_matrix(basis)
+    unit_vector = zeros(eltype(M), length(grid(basis)))
+    left ? unit_vector[begin] = 1 : unit_vector[end] = 1
+    return M \ unit_vector
+end
+
+function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongForm)
+    surface_operator_left = compute_integral_operator(solver, integral; left = true)
+    surface_operator_right = compute_integral_operator(solver, integral; left = false)
 
     surface_flux_values = zeros(real(solver), nvariables(equations), 2, nelements(mesh))
     return (; surface_operator_left, surface_operator_right, surface_flux_values)
 end
 
-@views function calc_surface_integral!(du, u, mesh, equations,
-                                       ::SurfaceIntegralStrongForm, dg, cache)
+# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
+# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
+function calc_surface_integral!(du, u, mesh, equations,
+                                ::SurfaceIntegralStrongForm, dg, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
         f_L = flux(u[:, 1, element], equations)
         f_R = flux(u[:, end, element], equations)
+        surface_operator_left_ = get_integral_operator(surface_operator_left, dg, element)
+        surface_operator_right_ = get_integral_operator(surface_operator_right, dg, element)
         for v in eachvariable(equations)
             du[v, :, element] .= du[v, :, element] +
-                                 surface_operator_left *
+                                 surface_operator_left_ *
                                  (surface_flux_values[v, 1, element] - f_L[v]) -
-                                 surface_operator_right *
+                                 surface_operator_right_ *
                                  (surface_flux_values[v, 2, element] - f_R[v])
         end
     end
@@ -132,22 +140,40 @@ SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, su
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
 # This is M^{-1} * B * f* for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
-function create_cache(mesh, equations, solver, ::SurfaceIntegralWeakForm)
-    M = mass_matrix(solver.basis)
-    R = zeros(real(solver), 2, nnodes(solver))
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::SurfaceIntegralWeakForm)
+    M = mass_matrix(basis)
+    R = zeros(eltype(M), 2, length(grid(basis)))
     R[1, 1] = R[end, end] = 1
     B = Diagonal([-1, 1])
-    surface_operator = -M \ (R' * B)
+    return -M \ (R' * B)
+end
+
+function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm)
+    surface_operator = compute_integral_operator(solver, integral)
 
     surface_flux_values = zeros(real(solver), nvariables(equations), 2, nelements(mesh))
     return (; surface_operator, surface_flux_values)
 end
 
-@views function calc_surface_integral!(du, u, mesh, equations,
-                                       ::SurfaceIntegralWeakForm, dg, cache)
+# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
+# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
+function calc_surface_integral!(du, u, mesh, equations,
+                                ::SurfaceIntegralWeakForm, dg, cache)
     (; surface_operator, surface_flux_values) = cache
-    for v in eachvariable(equations)
-        du[v, :, :] .= du[v, :, :] + surface_operator * surface_flux_values[v, :, :]
+    for element in eachelement(mesh)
+        surface_operator_ = get_integral_operator(surface_operator, dg, element)
+        for v in eachvariable(equations)
+            # TODO: We would like to use broadcasting here:
+            # du[v, :, element] .= du[v, :, element] +
+            #                      surface_operator_ * surface_flux_values[v, :, element]
+            # but there are currently issues with RecursiveArrayTools.jl:
+            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+            du_update = surface_operator_ * surface_flux_values[v, :, element]
+            for node in eachnode(dg, element)
+                du[v, node, element] += du_update[node]
+            end
+        end
     end
     return nothing
 end
