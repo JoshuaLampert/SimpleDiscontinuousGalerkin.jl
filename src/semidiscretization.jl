@@ -108,7 +108,8 @@ end
 """
     get_variable(u, v, semi)
 
-Return the variable `v` of the solution `u` as a vector at every node across all elements.
+Return the solution belonging to the variable `v` of the solution `u`
+at one time step as a vector at every node across all elements.
 """
 function get_variable(u, v, semi::Semidiscretization)
     get_variable(u, v, semi.solver)
