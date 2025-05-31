@@ -100,7 +100,8 @@ Return a vector of the coordinates of all nodes in `semi`, flattened across all 
 This is useful for plotting or other operations that require a single vector of coordinates.
 """
 flat_grid(semi) = vec(grid(semi))
-function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M, E, I, B, S <: PerElementFDSBP}
+function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M, E, I, B,
+                                                                   S <: PerElementFDSBP}
     return collect(Iterators.flatten(parent(grid(semi))))
 end
 
