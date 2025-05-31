@@ -18,7 +18,7 @@ for some usage examples.
   equivalent formulations like weak and strong formulation of the flux-differencing method to demonstrate the
   equivalence of these formulations.
 - SimpleDiscontinuousGalerkin.jl has no support for many features Trixi.jl has (many more equations, multiple space
-  dimensions, more sophisticated numerical fluxes, adaptive mesh refinement, shock capturing, positive-presreving
+  dimensions, more sophisticated numerical fluxes, adaptive mesh refinement, shock capturing, positive-preserving
   methods, limiting strategies, callbacks, parallel computing, etc.).
 - SimpleDiscontinuousGalerkin.jl has some (rather niche) features Trixi.jl does not support (yet), which stem from
   quick tests and prototyping to test some new ideas. This includes different numerical fluxes at the boundary than
