@@ -39,7 +39,7 @@ export initial_condition_convergence_test
 export Mesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
-export eachnode, nnodes, nelements, nelements, ndofs
+export eachnode, nnodes, nelements, ndofs, flat_grid, get_variable
 export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralStrongForm, VolumeIntegralWeakForm,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,

@@ -83,6 +83,15 @@ end
     return nothing
 end
 
+"""
+    get_variable(u, v, ::DG)
+
+Return the variable `v` of the solution `u` as a vector at every node across all elements.
+"""
+function get_variable(u, v, ::DG)
+    return vec(u[v, :, :])
+end
+
 function allocate_coefficients(mesh::Mesh, equations, solver::DG, cache)
     return allocate_coefficients(mesh, equations, solver)
 end

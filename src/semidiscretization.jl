@@ -93,6 +93,26 @@ Get the grid of a semidiscretization.
 """
 SummationByPartsOperators.grid(semi::Semidiscretization) = semi.cache.node_coordinates
 
+"""
+    flat_grid(semi)
+
+Return a vector of the coordinates of all nodes in `semi`, flattened across all elements.
+This is useful for plotting or other operations that require a single vector of coordinates.
+"""
+flat_grid(semi) = vec(grid(semi))
+function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M, E, I, B, S <: PerElementFDSBP}
+    return collect(Iterators.flatten(parent(grid(semi))))
+end
+
+"""
+    get_variable(u, v, semi)
+
+Return the variable `v` of the solution `u` as a vector at every node across all elements.
+"""
+function get_variable(u, v, semi::Semidiscretization)
+    get_variable(u, v, semi.solver)
+end
+
 @inline function mesh_equations_solver_cache(semi::Semidiscretization)
     @unpack mesh, equations, solver, cache = semi
     return mesh, equations, solver, cache
