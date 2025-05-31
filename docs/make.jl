@@ -30,6 +30,7 @@ makedocs(;
                                   canonical = "https://JoshuaLampert.github.io/SimpleDiscontinuousGalerkin.jl/stable",
                                   edit_link = "main"),
          pages = ["Home" => "index.md",
+             "Overview" => "overview.md",
              "Development" => "development.md",
              "Reference" => [
                  "TrixiBase" => "ref-trixibase.md",
