@@ -69,7 +69,7 @@ end
 
 @testitem "linear_advection_per_element.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
-                        l2=[0.23406659150246234], linf=[0.564353999854611])
+                        l2=[0.0025393825468388517], linf=[0.009084487338805292])
 
     Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
     # Same errors as in "linear_advection.jl"
