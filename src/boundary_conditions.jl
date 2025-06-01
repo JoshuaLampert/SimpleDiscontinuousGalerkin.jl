@@ -31,9 +31,10 @@ end
 @inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left)
     N_elements = nelements(mesh)
     if is_left
-        # We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results.
+        # and can give wrong results:
+        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         return u[:, nnodes(solver, N_elements), N_elements]
     else
         return u[:, 1, 1]
@@ -58,9 +59,10 @@ end
     if is_left
         return u[:, 1, 1]
     else
-        # We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results.
+        # and can give wrong results:
+        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         return u[:, nnodes(solver, N_elements), N_elements]
     end
 end
