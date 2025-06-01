@@ -28,9 +28,14 @@ function Base.show(io::IO, ::BoundaryConditionPeriodic)
     print(io, "boundary_condition_periodic")
 end
 
-@inline function (::BoundaryConditionPeriodic)(u, x, t, equations, is_left)
+@inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left)
+    N_elements = nelements(mesh)
     if is_left
-        return u[:, end, end]
+        # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
+        # and can give wrong results:
+        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
+        return u[:, nnodes(solver, N_elements), N_elements]
     else
         return u[:, 1, 1]
     end
@@ -49,11 +54,16 @@ function Base.show(io::IO, ::BoundaryConditionDoNothing)
     print(io, "boundary_condition_do_nothing")
 end
 
-@inline function (::BoundaryConditionDoNothing)(u, x, t, equations, is_left)
+@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left)
+    N_elements = nelements(mesh)
     if is_left
         return u[:, 1, 1]
     else
-        return u[:, end, end]
+        # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
+        # and can give wrong results:
+        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
+        return u[:, nnodes(solver, N_elements), N_elements]
     end
 end
 
@@ -82,7 +92,7 @@ end
 function Base.show(io::IO, ::BoundaryConditionDirichlet)
     print(io, "boundary_condition_dirichlet")
 end
-@inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, equations,
-                                                                  is_left)
+@inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, mesh, equations,
+                                                                  solver, is_left)
     return boundary_condition.boundary_value_function(x, t, equations)
 end

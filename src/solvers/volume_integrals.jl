@@ -7,11 +7,10 @@ The classical strong form volume integral type for FD/DG methods.
 """
 struct VolumeIntegralStrongForm <: AbstractVolumeIntegral end
 
-function create_cache(mesh, equations, solver, ::VolumeIntegralStrongForm)
-    D = Matrix(solver.basis)
-    volume_operator = -D
-    f_all = zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
-    return (; volume_operator, f_all)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralStrongForm)
+    D = Matrix(basis)
+    return -D
 end
 
 function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralStrongForm)
@@ -43,12 +42,11 @@ standard textbooks.
 """
 struct VolumeIntegralWeakForm <: AbstractVolumeIntegral end
 
-function create_cache(mesh, equations, solver, ::VolumeIntegralWeakForm)
-    M = mass_matrix(solver.basis)
-    D = Matrix(solver.basis)
-    volume_operator = (M \ D') * M
-    f_all = zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
-    return (; volume_operator, f_all)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralWeakForm)
+    M = mass_matrix(basis)
+    D = Matrix(basis)
+    return (M \ D') * M
 end
 
 function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralWeakForm)
@@ -61,13 +59,24 @@ function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralWeakForm)
     end
 end
 
-@views function calc_volume_integral!(du, u, mesh, equations,
-                                      ::Union{VolumeIntegralStrongForm,
-                                              VolumeIntegralWeakForm},
-                                      dg, cache)
+function create_cache(mesh, equations, solver,
+                      integral::Union{VolumeIntegralStrongForm,
+                                      VolumeIntegralWeakForm})
+    volume_operator = compute_integral_operator(solver, integral)
+    f_all = allocate_coefficients(mesh, equations, solver)
+    return (; volume_operator, f_all)
+end
+
+# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
+# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
+function calc_volume_integral!(du, u, mesh, equations,
+                               ::Union{VolumeIntegralStrongForm,
+                                       VolumeIntegralWeakForm},
+                               solver, cache)
     (; volume_operator, f_all) = cache
     for element in eachelement(mesh)
-        for node in eachnode(dg)
+        volume_operator_ = get_integral_operator(volume_operator, solver, element)
+        for node in eachnode(solver, element)
             u_node = get_node_vars(u, equations, node, element)
             f = flux(u_node, equations)
             for v in eachvariable(equations)
@@ -75,7 +84,14 @@ end
             end
         end
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] + volume_operator * f_all[v, :, element]
+            # TODO: We would like to use broadcasting here:
+            # du[v, :, element] .= du[v, :, element] + volume_operator_ * f_all[v, :, element]
+            # but there are currently issues with RecursiveArrayTools.jl:
+            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+            du_update = volume_operator_ * f_all[v, :, element]
+            for node in eachnode(solver, element)
+                du[v, node, element] += du_update[node]
+            end
         end
     end
     return nothing
@@ -97,13 +113,14 @@ end
 
 VolumeIntegralFluxDifferencing() = VolumeIntegralFluxDifferencing(flux_central)
 
-function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencing)
-    weights = diag(mass_matrix(solver.basis))
-    D = Matrix(solver.basis)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralFluxDifferencing)
+    weights = diag(mass_matrix(basis))
+    D = Matrix(basis)
     D_split = 2 * D
     D_split[1, 1] += 1 / weights[1]
     D_split[end, end] -= 1 / weights[end]
-    return (; volume_operator = D_split)
+    return D_split
 end
 
 function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralFluxDifferencing)
@@ -134,10 +151,10 @@ function VolumeIntegralFluxDifferencingStrongForm()
     VolumeIntegralFluxDifferencingStrongForm(flux_central)
 end
 
-function create_cache(mesh, equations, solver, ::VolumeIntegralFluxDifferencingStrongForm)
-    weights = diag(mass_matrix(solver.basis))
-    D = Matrix(solver.basis)
-    return (; volume_operator = 2 * D)
+function compute_integral_operator(basis::AbstractDerivativeOperator,
+                                   ::VolumeIntegralFluxDifferencingStrongForm)
+    D = Matrix(basis)
+    return 2 * D
 end
 
 function Base.show(io::IO, ::MIME"text/plain",
@@ -151,22 +168,30 @@ function Base.show(io::IO, ::MIME"text/plain",
     end
 end
 
+function create_cache(mesh, equations, solver,
+                      integral::Union{VolumeIntegralFluxDifferencing,
+                                      VolumeIntegralFluxDifferencingStrongForm})
+    volume_operator = compute_integral_operator(solver, integral)
+    return (; volume_operator)
+end
+
 # Subtract D_split * f^{vol} for `VolumeIntegralFluxDifferencing` and 2 * D * f^{vol} for
 # `VolumeIntegralFluxDifferencingStrongForm`.
-@views function calc_volume_integral!(du, u, mesh, equations,
-                                      integral::Union{VolumeIntegralFluxDifferencing,
-                                                      VolumeIntegralFluxDifferencingStrongForm},
-                                      dg, cache)
+function calc_volume_integral!(du, u, mesh, equations,
+                               integral::Union{VolumeIntegralFluxDifferencing,
+                                               VolumeIntegralFluxDifferencingStrongForm},
+                               solver, cache)
     (; volume_operator) = cache
     for element in eachelement(mesh)
-        for node in eachnode(dg)
+        volume_operator_ = get_integral_operator(volume_operator, solver, element)
+        for node in eachnode(solver, element)
             u_node = get_node_vars(u, equations, node, element)
-            for node_2 in eachnode(dg)
+            for node_2 in eachnode(solver, element)
                 u_node_2 = get_node_vars(u, equations, node_2, element)
                 f_vol = integral.volume_flux(u_node, u_node_2, equations)
                 for v in eachvariable(equations)
                     du[v, node, element] = du[v, node, element] -
-                                           volume_operator[node, node_2] * f_vol[v]
+                                           volume_operator_[node, node_2] * f_vol[v]
                 end
             end
         end

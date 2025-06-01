@@ -26,9 +26,9 @@ function DGSEM(; RealT = Float64,
               typeof(volume_integral)}(basis, surface_integral, volume_integral)
 end
 
-@inline polydeg(dg::DGSEM) = length(grid(dg.basis)) - 1
+@inline polydeg(solver::DGSEM) = length(grid(solver.basis)) - 1
 
-Base.summary(io::IO, dg::DGSEM) = print(io, "DGSEM(polydeg=$(polydeg(dg)))")
+Base.summary(io::IO, solver::DGSEM) = print(io, "DGSEM(polydeg=$(polydeg(solver)))")
 
 """
     FDSBP(D; RealT=Float64,
@@ -52,16 +52,16 @@ function FDSBP(D; RealT = Float64,
               typeof(volume_integral)}(basis, surface_integral, volume_integral)
 end
 
-Base.summary(io::IO, dg::FDSBP) = print(io, "FDSBP(D=$D)")
+Base.summary(io::IO, solver::FDSBP) = print(io, "FDSBP(D=$(solver.basis)")
 
-function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_condition,
+function create_cache(mesh, equations, solver::Union{DGSEM, FDSBP}, initial_condition,
                       boundary_conditions)
-    dx = (xmax(mesh) - xmin(mesh)) / nelements(mesh) # length of each element
-    nodes_basis = grid(dg.basis)
+    dx = element_spacing(mesh) # length of each element
+    nodes_basis = grid(solver.basis)
     dx_basis = last(nodes_basis) - first(nodes_basis) # length of the basis nodes
     jacobian = dx / dx_basis
-    # compute all mapped GLL nodes
-    x = zeros(real(dg), nnodes(dg), nelements(mesh))
+    # compute all mapped nodes
+    x = zeros(real(solver), nnodes(solver), nelements(mesh))
     for element in eachelement(mesh)
         x_l = xmin(mesh) + (element - 1) * dx
         for j in eachindex(nodes_basis)
@@ -69,12 +69,12 @@ function create_cache(mesh, equations, dg::Union{DGSEM, FDSBP}, initial_conditio
         end
     end
     cache = (; jacobian, node_coordinates = x,
-             create_cache(mesh, equations, dg, dg.volume_integral)...,
-             create_cache(mesh, equations, dg, dg.surface_integral)...)
+             create_cache(mesh, equations, solver, solver.volume_integral)...,
+             create_cache(mesh, equations, solver, solver.surface_integral)...)
     return cache
 end
 
-function apply_jacobian!(du, mesh, equations, dg::Union{DGSEM, FDSBP}, cache)
+function apply_jacobian!(du, mesh, equations, solver::Union{DGSEM, FDSBP}, cache)
     (; jacobian) = cache
     @. du = du / jacobian
 end
