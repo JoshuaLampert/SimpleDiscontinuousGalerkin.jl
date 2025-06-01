@@ -21,6 +21,8 @@ D_polydeg_2 = legendre_derivative_operator(-1.0, 1.0, 3)
 D_polydeg_4 = legendre_derivative_operator(-1.0, 1.0, 5)
 Ds = [isodd(element) ? D_polydeg_2 : D_polydeg_4 for element in eachelement(mesh)]
 solver = PerElementFDSBP(Ds, surface_flux = flux_godunov)
+# solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
+#                          volume_integral = VolumeIntegralFluxDifferencingStrongForm())
 
 # A semidiscretization collects data structures and functions for the spatial discretization
 semi = Semidiscretization(mesh, equations, initial_condition, solver)
