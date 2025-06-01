@@ -10,50 +10,50 @@ struct DG{Basis, SurfaceIntegral, VolumeIntegral}
     volume_integral::VolumeIntegral
 end
 
-function Base.show(io::IO, dg::DG)
-    @nospecialize dg # reduce precompilation time
+function Base.show(io::IO, solver::DG)
+    @nospecialize solver # reduce precompilation time
 
-    print(io, "DG{", real(dg), "}(")
-    print(io, dg.basis)
-    print(io, ", ", dg.surface_integral)
-    print(io, ", ", dg.volume_integral)
+    print(io, "DG{", real(solver), "}(")
+    print(io, solver.basis)
+    print(io, ", ", solver.surface_integral)
+    print(io, ", ", solver.volume_integral)
     print(io, ")")
 end
 
-function Base.show(io::IO, mime::MIME"text/plain", dg::DG)
-    @nospecialize dg # reduce precompilation time
+function Base.show(io::IO, mime::MIME"text/plain", solver::DG)
+    @nospecialize solver # reduce precompilation time
 
     if get(io, :compact, false)
-        show(io, dg)
+        show(io, solver)
     else
-        println(io, "DG{" * string(real(dg)) * "}")
-        println(io, "    basis: ", dg.basis)
-        println(io, "    surface integral: ", dg.surface_integral |> typeof |> nameof)
-        print(io, "    volume integral: ", dg.volume_integral |> typeof |> nameof)
+        println(io, "DG{" * string(real(solver)) * "}")
+        println(io, "    basis: ", solver.basis)
+        println(io, "    surface integral: ", solver.surface_integral |> typeof |> nameof)
+        print(io, "    volume integral: ", solver.volume_integral |> typeof |> nameof)
     end
 end
 
-Base.summary(io::IO, dg::DG) = print(io, "DG(" * summary(dg.basis) * ")")
+Base.summary(io::IO, solver::DG) = print(io, "DG(" * summary(solver.basis) * ")")
 
-@inline Base.real(dg::DG) = real(dg.basis)
+@inline Base.real(solver::DG) = real(solver.basis)
 
 # This method is only supported for solvers with a fixed number of nodes per element.
-grid(dg::DG) = grid(dg.basis)
-grid(dg::DG, element) = grid(dg.basis)
+grid(solver::DG) = grid(solver.basis)
+grid(solver::DG, element) = grid(solver.basis)
 
 """
-    eachnode(dg::DG, element)
+    eachnode(solver::DG, element)
 
 Return an iterator over the indices that specify the location in relevant data structures
-for the nodes in a specific `element` in `dg`.
+for the nodes in a specific `element` in `solver`.
 In particular, not the nodes themselves are returned.
 """
-@inline eachnode(dg::DG, element) = Base.OneTo(nnodes(dg, element))
+@inline eachnode(solver::DG, element) = Base.OneTo(nnodes(solver, element))
 # This method is only supported for solvers with a fixed number of nodes per element.
-@inline nnodes(dg::DG) = length(grid(dg))
-@inline nnodes(dg::DG, element) = length(grid(dg, element))
-@inline function ndofs(mesh::Mesh, dg::DG)
-    sum(nnodes(dg, element) for element in eachelement(mesh))
+@inline nnodes(solver::DG) = length(grid(solver))
+@inline nnodes(solver::DG, element) = length(grid(solver, element))
+@inline function ndofs(mesh::Mesh, solver::DG)
+    sum(nnodes(solver, element) for element in eachelement(mesh))
 end
 
 @inline function get_node_coords(x, equations, ::DG, indices...)
@@ -101,10 +101,10 @@ function allocate_coefficients(mesh::Mesh, equations, solver::DG)
     return zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
 end
 
-function compute_coefficients!(u, func, t, mesh::Mesh, equations, dg::DG, cache)
+function compute_coefficients!(u, func, t, mesh::Mesh, equations, solver::DG, cache)
     for element in eachelement(mesh)
-        for i in eachnode(dg, element)
-            x_node = get_node_coords(cache.node_coordinates, equations, dg, i,
+        for i in eachnode(solver, element)
+            x_node = get_node_coords(cache.node_coordinates, equations, solver, i,
                                      element)
             u_node = func(x_node, t, equations)
             set_node_vars!(u, u_node, equations, i, element)
@@ -117,30 +117,30 @@ function reset_du!(du)
 end
 
 function rhs!(du, u, t, mesh::Mesh, equations, initial_condition,
-              boundary_conditions, dg::DG, cache)
+              boundary_conditions, solver::DG, cache)
     @trixi_timeit timer() "reset ∂u/∂t" reset_du!(du)
 
     @trixi_timeit timer() "volume integral" begin
         calc_volume_integral!(du, u, mesh, equations,
-                              dg.volume_integral, dg, cache)
+                              solver.volume_integral, solver, cache)
     end
 
     @trixi_timeit timer() "interface flux" begin
         calc_interface_flux!(cache.surface_flux_values, u, mesh,
-                             equations, dg.surface_integral, dg, cache)
+                             equations, solver.surface_integral, solver, cache)
     end
 
     @trixi_timeit timer() "boundary flux" begin
         calc_boundary_flux!(cache.surface_flux_values, u, t, boundary_conditions, mesh,
-                            equations, dg.surface_integral, dg)
+                            equations, solver.surface_integral, solver)
     end
 
     @trixi_timeit timer() "surface integral" begin
         calc_surface_integral!(du, u, mesh, equations,
-                               dg.surface_integral, dg, cache)
+                               solver.surface_integral, solver, cache)
     end
 
-    @trixi_timeit timer() "Jacobian" apply_jacobian!(du, mesh, equations, dg, cache)
+    @trixi_timeit timer() "Jacobian" apply_jacobian!(du, mesh, equations, solver, cache)
 
     return nothing
 end

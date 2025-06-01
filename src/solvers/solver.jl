@@ -7,8 +7,8 @@ include("per_element.jl")
 # We define this function to allow for a different operator per element,
 # This way we can use the same function for both classical `DG` and `PerElementFDSBP`,
 # but without having to also store redundant information in the classical `DG` case.
-get_basis(dg::DG, element) = dg.basis
-get_basis(dg::PerElementFDSBP, element) = dg.basis.bases[element]
+get_basis(solver::DG, element) = solver.basis
+get_basis(solver::PerElementFDSBP, element) = solver.basis.bases[element]
 
 get_integral_operator(operator, solver, element) = operator
 function get_integral_operator(operator, ::PerElementFDSBP, element)

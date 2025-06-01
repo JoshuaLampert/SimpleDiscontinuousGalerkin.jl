@@ -72,11 +72,11 @@ end
 function calc_volume_integral!(du, u, mesh, equations,
                                ::Union{VolumeIntegralStrongForm,
                                        VolumeIntegralWeakForm},
-                               dg, cache)
+                               solver, cache)
     (; volume_operator, f_all) = cache
     for element in eachelement(mesh)
-        volume_operator_ = get_integral_operator(volume_operator, dg, element)
-        for node in eachnode(dg, element)
+        volume_operator_ = get_integral_operator(volume_operator, solver, element)
+        for node in eachnode(solver, element)
             u_node = get_node_vars(u, equations, node, element)
             f = flux(u_node, equations)
             for v in eachvariable(equations)
@@ -89,7 +89,7 @@ function calc_volume_integral!(du, u, mesh, equations,
             # but there are currently issues with RecursiveArrayTools.jl:
             # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
             du_update = volume_operator_ * f_all[v, :, element]
-            for node in eachnode(dg, element)
+            for node in eachnode(solver, element)
                 du[v, node, element] += du_update[node]
             end
         end
@@ -180,13 +180,13 @@ end
 function calc_volume_integral!(du, u, mesh, equations,
                                integral::Union{VolumeIntegralFluxDifferencing,
                                                VolumeIntegralFluxDifferencingStrongForm},
-                               dg, cache)
+                               solver, cache)
     (; volume_operator) = cache
     for element in eachelement(mesh)
-        volume_operator_ = get_integral_operator(volume_operator, dg, element)
-        for node in eachnode(dg, element)
+        volume_operator_ = get_integral_operator(volume_operator, solver, element)
+        for node in eachnode(solver, element)
             u_node = get_node_vars(u, equations, node, element)
-            for node_2 in eachnode(dg, element)
+            for node_2 in eachnode(solver, element)
                 u_node_2 = get_node_vars(u, equations, node_2, element)
                 f_vol = integral.volume_flux(u_node, u_node_2, equations)
                 for v in eachvariable(equations)

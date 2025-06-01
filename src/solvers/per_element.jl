@@ -31,41 +31,41 @@ function PerElementFDSBP(bases::Vector{BasisType};
                                        volume_integral)
 end
 
-function Base.summary(io::IO, dg::PerElementFDSBP)
-    print(io, "PerElementFDSBP(bases=$(dg.basis.bases))")
+function Base.summary(io::IO, solver::PerElementFDSBP)
+    print(io, "PerElementFDSBP(bases=$(solver.basis.bases))")
 end
 
 grid(solver::PerElementFDSBP, element) = grid(solver.basis, element)
 
-function create_cache(mesh, equations, dg::PerElementFDSBP, initial_condition,
+function create_cache(mesh, equations, solver::PerElementFDSBP, initial_condition,
                       boundary_conditions)
-    @assert length(dg.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
+    @assert length(solver.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
     dx = element_spacing(mesh) # length of each element
     # We need a `Vector{Vector}` to account for potentially different number of nodes for each element
     # compute all mapped nodes
-    x = Vector{Vector{real(dg)}}(undef, nelements(mesh))
-    jacobian = zeros(real(dg), nelements(mesh))
+    x = Vector{Vector{real(solver)}}(undef, nelements(mesh))
+    jacobian = zeros(real(solver), nelements(mesh))
     for element in eachelement(mesh)
         x_l = xmin(mesh) + (element - 1) * dx
-        D = get_basis(dg, element)
+        D = get_basis(solver, element)
         nodes_basis = grid(D)
         dx_basis = last(nodes_basis) - first(nodes_basis)
         jacobian[element] = dx / dx_basis
-        x[element] = zeros(real(dg), length(nodes_basis))
+        x[element] = zeros(real(solver), length(nodes_basis))
         for j in eachindex(nodes_basis)
             x[element][j] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
         end
     end
     cache = (; jacobian, node_coordinates = VectorOfArray(x),
-             create_cache(mesh, equations, dg, dg.volume_integral)...,
-             create_cache(mesh, equations, dg, dg.surface_integral)...)
+             create_cache(mesh, equations, solver, solver.volume_integral)...,
+             create_cache(mesh, equations, solver, solver.surface_integral)...)
     return cache
 end
 
-function apply_jacobian!(du, mesh, equations, dg::PerElementFDSBP, cache)
+function apply_jacobian!(du, mesh, equations, solver::PerElementFDSBP, cache)
     (; jacobian) = cache
     for element in eachelement(mesh)
-        for i in eachnode(dg, element)
+        for i in eachnode(solver, element)
             for v in eachvariable(equations)
                 du[v, i, element] = du[v, i, element] / jacobian[element]
             end
