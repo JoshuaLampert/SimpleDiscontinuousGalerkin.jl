@@ -31,8 +31,8 @@ end
 @inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left)
     N_elements = nelements(mesh)
     if is_left
-        # We cannot use `u[:, end, end]` here because `u` is a `VectorOfArray` of vectors with
-        # different lengths, where `end` is not well-defined.
+        # We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined.
         return u[:, nnodes(solver, N_elements), N_elements]
     else
         return u[:, 1, 1]
@@ -57,8 +57,8 @@ end
     if is_left
         return u[:, 1, 1]
     else
-        # We cannot use `u[:, end, end]` here because `u` is a `VectorOfArray` of vectors with
-        # different lengths, where `end` is not well-defined.
+        # We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined.
         return u[:, nnodes(solver, N_elements), N_elements]
     end
 end
