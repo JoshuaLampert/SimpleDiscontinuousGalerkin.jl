@@ -84,6 +84,5 @@ function allocate_coefficients(mesh::Mesh, equations, solver::PerElementFDSBP)
 end
 
 function get_variable(u, v, ::PerElementFDSBP)
-    # TODO: Get only `v`
-    return collect(Iterators.flatten(parent(u)))
+    return collect(Iterators.flatten(getindex.(parent(u), v, :)))
 end
