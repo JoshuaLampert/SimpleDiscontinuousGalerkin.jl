@@ -52,7 +52,7 @@ function Base.show(io::IO, ::BoundaryConditionDoNothing)
     print(io, "boundary_condition_do_nothing")
 end
 
-@inline function (::BoundaryConditionDoNothing)(u, x, t, equations, solver, is_left)
+@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left)
     N_elements = nelements(mesh)
     if is_left
         return u[:, 1, 1]
@@ -88,7 +88,7 @@ end
 function Base.show(io::IO, ::BoundaryConditionDirichlet)
     print(io, "boundary_condition_dirichlet")
 end
-@inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, equations,
+@inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, mesh, equations,
                                                                   solver, is_left)
     return boundary_condition.boundary_value_function(x, t, equations)
 end
