@@ -87,11 +87,21 @@ function calc_surface_integral!(du, u, mesh, equations,
         surface_operator_left_ = get_integral_operator(surface_operator_left, dg, element)
         surface_operator_right_ = get_integral_operator(surface_operator_right, dg, element)
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] +
-                                 surface_operator_left_ *
+            # TODO: We would like to use broadcasting here:
+            # du[v, :, element] .= du[v, :, element] +
+            #                      surface_operator_left_ *
+            #                     (surface_flux_values[v, 1, element] - f_L[v]) -
+            #                     surface_operator_right_ *
+            #                     (surface_flux_values[v, 2, element] - f_R[v])
+            # but there are currently issues with RecursiveArrayTools.jl:
+            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+            du_update = surface_operator_left_ *
                                  (surface_flux_values[v, 1, element] - f_L[v]) -
                                  surface_operator_right_ *
                                  (surface_flux_values[v, 2, element] - f_R[v])
+            for node in eachnode(dg, element)
+                du[v, node, element] += du_update[node]
+            end
         end
     end
     return nothing

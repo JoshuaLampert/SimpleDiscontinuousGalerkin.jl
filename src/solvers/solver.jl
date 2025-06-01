@@ -20,10 +20,11 @@ function compute_integral_operator(solver::DG, integral; kwargs...)
 end
 function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
     n_elements = length(solver.basis.bases)
-    volume_operator = Vector{Matrix{real(solver)}}(undef, n_elements)
+    # Vector needed for `SurfaceIntegralStrongForm`, otherwise we need a `Matrix`.
+    integral_operator = Vector{VecOrMat{real(solver)}}(undef, n_elements)
     for element in 1:n_elements
-        volume_operator[element] = compute_integral_operator(get_basis(solver, element),
-                                                             integral; kwargs...)
+        integral_operator[element] = compute_integral_operator(get_basis(solver, element),
+                                                               integral; kwargs...)
     end
-    return volume_operator
+    return integral_operator
 end
