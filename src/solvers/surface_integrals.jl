@@ -83,7 +83,11 @@ function calc_surface_integral!(du, u, mesh, equations,
     (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
         f_L = flux(u[:, 1, element], equations)
-        f_R = flux(u[:, end, element], equations)
+        # We cannot use `u[:, end, element]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
+        # and can give wrong results.
+        N = nnodes(solver, element)
+        f_R = flux(u[:, N, element], equations)
         surface_operator_left_ = get_integral_operator(surface_operator_left, solver,
                                                        element)
         surface_operator_right_ = get_integral_operator(surface_operator_right, solver,

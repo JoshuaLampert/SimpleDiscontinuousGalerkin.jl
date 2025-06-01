@@ -75,38 +75,41 @@ end
     @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
                         l2=[0.0025393825468388517], linf=[0.009084487338805292])
 
-    Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
-    @testset "Same operators on each element" begin
-        # Same errors as in "linear_advection.jl"
-        @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
-                            Ds=Ds,
-                            l2=[0.00016123961626746092], linf=[0.00042895011704657815])
-    end
-    Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
+    Ds = [isodd(element) ? D_polydeg_2 : D_polydeg_4 for element in eachelement(mesh)]
     solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
                              volume_integral = VolumeIntegralStrongForm())
     @testset "Same operators on each element, strong form" begin
         # Same errors as in "linear_advection.jl"
         @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
                             solver=solver,
-                            l2=[0.00016123961626746092], linf=[0.00042895011704657815])
+                            l2=[0.0025393825468388517], linf=[0.009084487338805292])
     end
-    Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
+
+    Ds = [isodd(element) ? D_polydeg_2 : D_polydeg_4 for element in eachelement(mesh)]
     solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralWeakForm(flux_godunov),
                              volume_integral = VolumeIntegralFluxDifferencing())
     @testset "Same operators on each element, flux differencing" begin
         # Same errors as in "linear_advection.jl"
         @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
                             solver=solver,
-                            l2=[0.00016123961626746092], linf=[0.00042895011704657815])
+                            l2=[0.0025393825468388517], linf=[0.009084487338805292])
     end
-    Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
+
+    Ds = [isodd(element) ? D_polydeg_2 : D_polydeg_4 for element in eachelement(mesh)]
     solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
                              volume_integral = VolumeIntegralFluxDifferencingStrongForm())
     @testset "Same operators on each element, flux differencing, strong form" begin
         # Same errors as in "linear_advection.jl"
         @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
                             solver=solver,
+                            l2=[0.0025393825468388517], linf=[0.009084487338805292])
+    end
+
+    Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
+    @testset "Same operators on each element" begin
+        # Same errors as in "linear_advection.jl"
+        @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
+                            Ds=Ds,
                             l2=[0.00016123961626746092], linf=[0.00042895011704657815])
     end
 end
