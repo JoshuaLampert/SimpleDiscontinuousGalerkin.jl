@@ -50,4 +50,5 @@ export DGSEM, FDSBP, PerElementFDSBP,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
 export SummaryCallback, AnalysisCallback
+export tstops, errors, integrals
 end
