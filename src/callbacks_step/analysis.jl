@@ -10,7 +10,7 @@ Additional errors can be computed, e.g. by passing `extra_analysis_errors = (:co
 
 Further scalar functions `func` in `extra_analysis_integrals` are applied to the numerical
 solution and integrated over the computational domain. Some examples for this are
-[`entropy`](@ref), and [`energy_total`](@ref).
+[`mass`](@ref), and [`entropy`](@ref).
 You can also write your own function with the same signature as the examples listed above and
 pass it via `extra_analysis_integrals`.
 The computed errors and intergrals are saved for each timestep and can be obtained by calling
