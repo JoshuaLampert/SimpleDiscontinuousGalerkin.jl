@@ -127,7 +127,7 @@ end
 function PolynomialBases.integrate(func, u, semi::Semidiscretization)
     dx = element_spacing(semi.mesh)
     return dx *
-           sum(integrate(func, u[element], get_basis(semi, element))
+           sum(integrate(func, u.u[element], get_basis(semi, element))
                for element in eachelement(semi))
 end
 
