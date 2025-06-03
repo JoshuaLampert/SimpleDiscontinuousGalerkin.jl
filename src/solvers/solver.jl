@@ -28,3 +28,25 @@ function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
     end
     return integral_operator
 end
+
+function calc_error_norms(u, t, initial_condition, mesh::Mesh, equations,
+                          solver::DG, cache)
+    u_exact = similar(u)
+    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)
+    l2_error = zeros(real(solver), nvariables(equations))
+    linf_error = zeros(real(solver), nvariables(equations))
+    for v in eachvariable(equations)
+        l2_error[v] = zero(real(solver))
+        linf_error[v] = zero(real(solver))
+        for element in eachelement(mesh)
+            # TODO: Broadcast (issue in RecursiveArrayTools.jl)
+            diff = zeros(real(solver), nnodes(solver, element))
+            for i in eachnode(solver, element)
+                diff[i] = u[v, i, element] - u_exact[v, i, element]
+            end
+            l2_error[v] += integrate(abs2, diff, get_basis(solver, element)) |> sqrt
+            linf_error[v] = max(linf_error[v], maximum(abs.(diff)))
+        end
+    end
+    return l2_error, linf_error
+end

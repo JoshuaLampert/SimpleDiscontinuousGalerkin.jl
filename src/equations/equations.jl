@@ -72,5 +72,45 @@ function Base.show(io::IO, ::MIME"text/plain", equations::AbstractEquations)
     end
 end
 
+"""
+    default_analysis_errors(equations)
+
+Default analysis errors used by the [`AnalysisCallback`](@ref).
+"""
+default_analysis_errors(::AbstractEquations) = (:l2_error, :linf_error)
+
+"""
+    default_analysis_integrals(equations)
+
+Default analysis integrals used by the [`AnalysisCallback`](@ref).
+"""
+default_analysis_integrals(::AbstractEquations) = Symbol[]
+
+"""
+    mass(u, equations)
+
+Return the mass of the conservative variables `u` for the given system of equations.
+"""
+function mass(u, ::AbstractEquations{1})
+    return u[1]
+end
+
+"""
+    entropy(u, equations)
+
+Return the entropy of the conservative variables `u` for the given system of equations.
+"""
+function entropy(u, ::AbstractEquations{1})
+    return 0.5 * u[1]^2
+end
+
+"""
+    cons2entropy(u, equations)
+
+Return the entropy variables from the conservative variables `u` for the given system of equations.
+The entropy variables are defined as the derivative of the entropy with respect to the conservative variables.
+"""
+cons2entropy(u, equations::AbstractEquations{1}) = u
+
 include("numerical_fluxes.jl")
 include("linear_advection.jl")

@@ -5,8 +5,11 @@ version = "0.1.0-DEV"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+PolynomialBases = "c74db56a-226d-5e98-8bb0-a6049094aeea"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
+SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 SummationByPartsOperators = "9f78cca6-572e-554e-b819-917d2f1cf240"
@@ -15,8 +18,11 @@ TrixiBase = "9a0f1c46-06d5-4909-a5a3-ce25d3fa3284"
 
 [compat]
 LinearAlgebra = "1"
+PolynomialBases = "0.4.15"
+Printf = "1"
 RecursiveArrayTools = "2.11, 3"
 Reexport = "1.2"
+SciMLBase = "2.78"
 SimpleUnPack = "1.1.0"
 StaticArrays = "1.9"
 SummationByPartsOperators = "0.5.78"
