@@ -348,16 +348,7 @@ function analyze(::typeof(entropy_timederivative), du, u, t, semi::Semidiscretiz
             # quantity[i, element] = dot([1], du_node)
         end
     end
-    x_neg = semi.boundary_conditions.x_neg
-    a = equations.advection_velocity
-    N_elements = nelements(mesh)
-    bc_value = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)[1]
-
-    e = integrate(quantity, semi)
-    e_boundary = e - a/2 * (bc_value^2 - u[1, nnodes(solver, N_elements), N_elements]^2)
-    e_boundary_dissipation = e_boundary + a/2 * (u[1, 1, 1] - bc_value)^2
-    println(e, " ", e_boundary, " ", e_boundary_dissipation)
-    return e_boundary_dissipation
+    return integrate(quantity, semi)
 end
 
 pretty_form_utf(::typeof(entropy_timederivative)) = "∫∂S/∂U ⋅ Uₜ"
