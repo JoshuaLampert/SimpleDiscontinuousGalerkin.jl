@@ -123,13 +123,14 @@ end
     @test_nowarn display(summary_callback)
 end
 
-@testitem "AnalysisCallback" begin
-    semi = Semidiscretization(Mesh(0.0, 1.0, 5), LinearAdvectionEquation1D(2.0),
-                              initial_condition_convergence_test, DGSEM(polydeg = 3))
-    analysis_callback = AnalysisCallback(semi; interval = 10,
-                                         extra_analysis_integrals = (mass, entropy))
+@testitem "AnalysisCallback" setup=[Setup] begin
+    include(joinpath(examples_dir(), "linear_advection.jl"))
     @test_nowarn print(analysis_callback)
     @test_nowarn display(analysis_callback)
+    l2, linf = analysis_callback(sol)
+    errs = errors(analysis_callback)
+    @test l2[1] == errs.l2_error[end]
+    @test linf[1] == errs.linf_error[end]
 end
 
 @testitem "visualization" setup=[Setup] begin
