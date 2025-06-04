@@ -4,7 +4,8 @@ end
 
 @testitem "linear_advection.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "linear_advection.jl"),
-                        l2=[0.0001574641423858981], linf=[0.00042895011704513486])
+                        l2=[0.0001574641423858981], linf=[0.00042895011704513486],
+                        cons_error=[4.3021142204224816e-16])
 
     surface_flux = (flux_central, flux_godunov)
     @testset "Different surface flux on boundary and interior" begin
@@ -74,7 +75,8 @@ end
 
 @testitem "linear_advection_per_element.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
-                        l2=[0.0033676357851732484], linf=[0.009084487338805292])
+                        l2=[0.0033676357851732484], linf=[0.009084487338805292],
+                        cons_error=[7.494005416219807e-16])
 
     Ds = [isodd(element) ? D_polydeg_2 : D_polydeg_4 for element in eachelement(mesh)]
     solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralStrongForm(flux_godunov),

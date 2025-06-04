@@ -18,12 +18,13 @@ The computed errors and intergrals are saved for each timestep and can be obtain
 
 During the Simulation, the `AnalysisCallback` will print information to `io`.
 """
-mutable struct AnalysisCallback{T, AnalysisIntegrals}
+mutable struct AnalysisCallback{T, AnalysisIntegrals, InitialStateIntegrals}
     start_time::Float64
     start_gc_time::Float64
     interval::Int
     analysis_errors::Vector{Symbol}
     analysis_integrals::AnalysisIntegrals
+    initial_state_integrals::InitialStateIntegrals
     tstops::Vector{Float64}
     errors::Vector{Matrix{T}}
     integrals::Vector{Vector{T}}
@@ -90,6 +91,8 @@ function AnalysisCallback(mesh, equations::AbstractEquations, solver;
     end
     analysis_callback = AnalysisCallback(0.0, 0.0, interval, analysis_errors,
                                          Tuple(analysis_integrals),
+                                         SVector(ntuple(_ -> zero(real(solver)),
+                                                        Val(nvariables(equations)))),
                                          Vector{Float64}(),
                                          Vector{Matrix{real(solver)}}(),
                                          Vector{Vector{real(solver)}}(),
@@ -150,7 +153,11 @@ end
 
 function initialize!(cb::DiscreteCallback{Condition, Affect!}, u, t,
                      integrator) where {Condition, Affect! <: AnalysisCallback}
+    semi = integrator.p
+    initial_state_integrals = integrate(u, semi)
+
     analysis_callback = cb.affect!
+    analysis_callback.initial_state_integrals = initial_state_integrals
 
     # Record current time using a high-resolution clock
     analysis_callback.start_time = time_ns()
@@ -256,6 +263,18 @@ function (analysis_callback::AnalysisCallback)(io, u, integrator, semi)
             @printf(io, "  % 10.8e", linf_error[v])
         end
         println(io)
+
+        # Conservation error
+        if :conservation_error in analysis_errors
+            @unpack initial_state_integrals = analysis_callback
+            state_integrals = integrate(u, semi)
+            current_errors[3, :] = abs.(state_integrals - initial_state_integrals)
+            print(io, " |∫u - ∫u₀|:  ")
+            for v in eachvariable(equations)
+                @printf(io, "  % 10.8e", current_errors[3, v])
+            end
+            println(io)
+        end
 
         push!(errors, current_errors)
 

@@ -29,7 +29,8 @@ tspan = (0.0, 1.0)
 ode = semidiscretize(semi, tspan)
 summary_callback = SummaryCallback()
 analysis_callback = AnalysisCallback(semi; interval = 10,
-                                     extra_analysis_integrals = (mass, entropy))
+                                     extra_analysis_integrals = (mass, entropy),
+                                     extra_analysis_errors = (:conservation_error,))
 callbacks = CallbackSet(analysis_callback, summary_callback)
 
 saveat = range(tspan..., length = 100)

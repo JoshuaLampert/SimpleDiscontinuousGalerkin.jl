@@ -128,9 +128,26 @@ function get_jacobian(semi::Semidiscretization, element)
 end
 
 # Here, `func` is a function that takes a vector at one element
+# `u` is a vector of coefficients at all nodes of the element.
+function integrate_on_element(func, u, semi::Semidiscretization, element)
+    return get_jacobian(semi, element) * integrate(func, u, get_basis(semi, element))
+end
+# This method is for integrating a vector quantity for all variables over the entire domain,
+# such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
+# and `VectorOfArray{T, 3, Vector{Matrix{T}}}` for `PerElementFDSBP`).
+function PolynomialBases.integrate(func, u::Union{Array{T, 3}, VectorOfArray{T, 3, Vector{Matrix{T}}}},
+                                   semi::Semidiscretization) where {T}
+    integrals = zeros(real(semi), nvariables(semi))
+    for v in eachvariable(semi)
+        integrals[v] = sum(integrate_on_element(func, u[v, :, element], semi, element)
+                           for element in eachelement(semi))
+    end
+    return integrals
+end
+
+# This method is for integrating a scalar quantity over the entire domain.
 function PolynomialBases.integrate(func, u, semi::Semidiscretization)
-    return sum(get_jacobian(semi, element) *
-               integrate(func, u.u[element], get_basis(semi, element))
+    return sum(integrate_on_element(func, u.u[element], semi, element)
                for element in eachelement(semi))
 end
 
