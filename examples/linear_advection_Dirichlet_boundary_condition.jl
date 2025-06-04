@@ -34,7 +34,8 @@ semi = Semidiscretization(mesh, equations, initial_condition_Gaussian, solver;
 tspan = (0.0, 1.0)
 ode = semidiscretize(semi, tspan)
 summary_callback = SummaryCallback()
-callbacks = CallbackSet(summary_callback)
+analysis_callback = AnalysisCallback(semi; interval = 10)
+callbacks = CallbackSet(analysis_callback, summary_callback)
 
 saveat = range(tspan..., length = 100)
 sol = solve(ode, RDPK3SpFSAL49(), abstol = 1.0e-8, reltol = 1.0e-8,

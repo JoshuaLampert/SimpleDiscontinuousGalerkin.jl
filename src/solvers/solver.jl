@@ -10,6 +10,9 @@ include("per_element.jl")
 get_basis(solver::DG, element) = solver.basis
 get_basis(solver::PerElementFDSBP, element) = solver.basis.bases[element]
 
+get_jacobian(solver::DG, element, cache) = cache.jacobian
+get_jacobian(solver::PerElementFDSBP, element, cache) = cache.jacobian[element]
+
 get_integral_operator(operator, solver, element) = operator
 function get_integral_operator(operator, ::PerElementFDSBP, element)
     operator[element]
@@ -27,4 +30,28 @@ function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
                                                                integral; kwargs...)
     end
     return integral_operator
+end
+
+function calc_error_norms(u, t, initial_condition, mesh::Mesh, equations,
+                          solver::DG, cache)
+    u_exact = similar(u)
+    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)
+    l2_error = zeros(real(solver), nvariables(equations))
+    linf_error = zeros(real(solver), nvariables(equations))
+    for v in eachvariable(equations)
+        l2_error[v] = zero(real(solver))
+        linf_error[v] = zero(real(solver))
+        for element in eachelement(mesh)
+            # TODO: Broadcast (issue in RecursiveArrayTools.jl)
+            diff = zeros(real(solver), nnodes(solver, element))
+            for i in eachnode(solver, element)
+                diff[i] = u[v, i, element] - u_exact[v, i, element]
+            end
+            l2_error[v] += get_jacobian(solver, element, cache) *
+                           integrate(abs2, diff, get_basis(solver, element))
+            linf_error[v] = max(linf_error[v], maximum(abs.(diff)))
+        end
+        l2_error[v] = sqrt(l2_error[v])
+    end
+    return l2_error, linf_error
 end

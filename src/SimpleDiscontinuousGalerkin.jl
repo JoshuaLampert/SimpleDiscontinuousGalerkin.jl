@@ -14,14 +14,18 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 """
 module SimpleDiscontinuousGalerkin
 
-import LinearAlgebra: Diagonal, diag
+import LinearAlgebra: Diagonal, diag, dot
+using PolynomialBases: PolynomialBases
+using Printf: @printf, @sprintf
+using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
+import SciMLBase: u_modified!, get_tmp_cache
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
 import SummationByPartsOperators: AbstractDerivativeOperator, grid
-using TimerOutputs: TimerOutputs, print_timer, reset_timer!
+using TimerOutputs: TimerOutputs, @notimeit, print_timer, reset_timer!
 @reexport using TrixiBase: trixi_include
 using TrixiBase: TrixiBase, @trixi_timeit, timer
 
@@ -31,8 +35,10 @@ include("boundary_conditions.jl")
 include("solvers/solver.jl")
 include("semidiscretization.jl")
 include("callbacks_step/callbacks_step.jl")
+include("visualization.jl")
 
 export cons2cons, eachvariable, nvariables
+export mass, entropy
 export LinearAdvectionEquation1D
 export flux, flux_central, flux_godunov
 export initial_condition_convergence_test
@@ -45,5 +51,6 @@ export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
-export SummaryCallback
+export SummaryCallback, AnalysisCallback
+export tstops, errors, integrals
 end

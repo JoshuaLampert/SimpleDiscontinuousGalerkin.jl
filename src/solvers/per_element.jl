@@ -67,7 +67,7 @@ function apply_jacobian!(du, mesh, equations, solver::PerElementFDSBP, cache)
     for element in eachelement(mesh)
         for i in eachnode(solver, element)
             for v in eachvariable(equations)
-                du[v, i, element] = du[v, i, element] / jacobian[element]
+                du[v, i, element] = du[v, i, element] / get_jacobian(solver, element, cache)
             end
         end
     end
