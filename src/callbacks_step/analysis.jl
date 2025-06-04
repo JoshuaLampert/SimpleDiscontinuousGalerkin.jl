@@ -345,7 +345,6 @@ function analyze(::typeof(entropy_timederivative), du, u, t, semi::Semidiscretiz
             u_node = get_node_vars(u, equations, i, element)
             du_node = get_node_vars(du, equations, i, element)
             quantity[i, element] = dot(cons2entropy(u_node, equations), du_node)
-            # quantity[i, element] = dot([1], du_node)
         end
     end
     return integrate(quantity, semi)
