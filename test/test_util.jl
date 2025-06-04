@@ -34,19 +34,23 @@ macro test_trixi_include(example, args...)
         # evaluate examples in the scope of the module they're called from
         @trixi_test_nowarn trixi_include(@__MODULE__, $example; $kwargs...)
 
+        # if present, compare l2, linf and conservation errors against reference values
         if !isnothing($l2) || !isnothing($linf)
-            # TODO: This should use the proper L2/Linf norms based on the basis of the solver, probably
-            # also implemented as `AnalysisCallback`
-            ini_cond = semi.initial_condition.(flat_grid(semi), sol.t[end], equations)
-            for v in eachvariable(equations)
-                diff = get_variable(sol.u[end], v, semi) .- getindex.(ini_cond, v)
-                l2 = sqrt(sum(diff .^ 2) / (ndofs(semi)))
-                linf = maximum(abs.(diff))
-                if !isnothing($l2)
-                    @test isapprox(l2, $l2[v], atol = $atol, rtol = $rtol)
+            errs = errors(analysis_callback)
+
+            if !isnothing($l2)
+                l2_measured = errs.l2_error[:, end]
+                @test length($l2) == length(l2_measured)
+                for (l2_expected, l2_actual) in zip($l2, l2_measured)
+                    @test isapprox(l2_expected, l2_actual, atol = $atol, rtol = $rtol)
                 end
-                if !isnothing($linf)
-                    @test isapprox(linf, $linf[v], atol = $atol, rtol = $rtol)
+            end
+
+            if !isnothing($linf)
+                linf_measured = errs.linf_error[:, end]
+                @test length($linf) == length(linf_measured)
+                for (linf_expected, linf_actual) in zip($linf, linf_measured)
+                    @test isapprox(linf_expected, linf_actual, atol = $atol, rtol = $rtol)
                 end
             end
         end
