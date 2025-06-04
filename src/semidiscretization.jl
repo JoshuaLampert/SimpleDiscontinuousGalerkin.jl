@@ -135,7 +135,9 @@ end
 # This method is for integrating a vector quantity for all variables over the entire domain,
 # such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
 # and `VectorOfArray{T, 3, Vector{Matrix{T}}}` for `PerElementFDSBP`).
-function PolynomialBases.integrate(func, u::Union{Array{T, 3}, VectorOfArray{T, 3, Vector{Matrix{T}}}},
+function PolynomialBases.integrate(func,
+                                   u::Union{Array{T, 3},
+                                            VectorOfArray{T, 3, Vector{Matrix{T}}}},
                                    semi::Semidiscretization) where {T}
     integrals = zeros(real(semi), nvariables(semi))
     for v in eachvariable(semi)
