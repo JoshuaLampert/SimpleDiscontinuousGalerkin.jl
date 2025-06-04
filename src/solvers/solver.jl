@@ -47,9 +47,11 @@ function calc_error_norms(u, t, initial_condition, mesh::Mesh, equations,
             for i in eachnode(solver, element)
                 diff[i] = u[v, i, element] - u_exact[v, i, element]
             end
-            l2_error[v] += integrate(abs2, diff, get_basis(solver, element)) |> sqrt
+            l2_error[v] += get_jacobian(solver, element, cache) *
+                           integrate(abs2, diff, get_basis(solver, element))
             linf_error[v] = max(linf_error[v], maximum(abs.(diff)))
         end
+        l2_error[v] = sqrt(l2_error[v])
     end
     return l2_error, linf_error
 end
