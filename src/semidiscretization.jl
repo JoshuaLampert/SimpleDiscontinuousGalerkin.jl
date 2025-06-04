@@ -123,11 +123,12 @@ function get_variable(u, v, semi::Semidiscretization)
     get_variable(u, v, semi.solver)
 end
 
+get_jacobian(semi::Semidiscretization, element) = get_jacobian(semi.solver, element, semi.cache)
+
 # Here, `func` is a function that takes a vector at one element
 function PolynomialBases.integrate(func, u, semi::Semidiscretization)
-    dx = element_spacing(semi.mesh)
-    return dx *
-           sum(integrate(func, u.u[element], get_basis(semi, element))
+    return sum(get_jacobian(semi, element) *
+               integrate(func, u.u[element], get_basis(semi, element))
                for element in eachelement(semi))
 end
 
