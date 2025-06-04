@@ -173,8 +173,9 @@ end
 function (analysis_callback::AnalysisCallback)(integrator)
     semi = integrator.p
 
-    l2_error, linf_error = analysis_callback(analysis_callback.io, integrator.u, integrator,
-                                             semi)
+    du = first(get_tmp_cache(integrator))
+    u = integrator.u
+    l2_error, linf_error = analysis_callback(analysis_callback.io, du, u, integrator, semi)
 
     # avoid re-evaluating possible FSAL stages
     u_modified!(integrator, false)
@@ -185,7 +186,7 @@ end
 
 # This method is just called internally from `(analysis_callback::AnalysisCallback)(integrator)`
 # and serves as a function barrier. Additionally, it makes the code easier to profile and optimize.
-function (analysis_callback::AnalysisCallback)(io, u, integrator, semi)
+function (analysis_callback::AnalysisCallback)(io, du, u, integrator, semi)
     equations = semi.equations
     @unpack analysis_errors, analysis_integrals, tstops, errors, integrals = analysis_callback
     @unpack t, dt = integrator
@@ -239,6 +240,8 @@ function (analysis_callback::AnalysisCallback)(io, u, integrator, semi)
                 " #DOF:           " * @sprintf("% 14d", ndofs(semi)) *
                 "               " *
                 " alloc'd memory: " * @sprintf("%14.3f MiB", memory_use))
+        println(io,
+                " #elements:      " * @sprintf("% 14d", nelements(semi)))
         println(io)
 
         print(io, " Variable:    ")
@@ -246,6 +249,8 @@ function (analysis_callback::AnalysisCallback)(io, u, integrator, semi)
             @printf(io, "   %-14s", varnames(cons2cons, equations)[v])
         end
         println(io)
+
+        @notimeit timer() integrator.f(du, u, semi, t)
 
         # Calculate L2/Linf errors, which are also returned
         l2_error, linf_error = calc_error_norms(u, t, semi)
@@ -284,7 +289,7 @@ function (analysis_callback::AnalysisCallback)(io, u, integrator, semi)
             println(io, " Integrals:    ")
         end
         current_integrals = zeros(real(semi), length(analysis_integrals))
-        analyze_integrals!(io, current_integrals, 1, analysis_integrals, u, t, semi)
+        analyze_integrals(io, current_integrals, 1, analysis_integrals, du, u, t, semi)
         push!(integrals, current_integrals)
 
         println(io, "─"^100)
@@ -293,27 +298,27 @@ function (analysis_callback::AnalysisCallback)(io, u, integrator, semi)
 end
 
 # Iterate over tuples of analysis integrals in a type-stable way using "lispy tuple programming".
-function analyze_integrals!(io, current_integrals, i, analysis_integrals::NTuple{N, Any},
-                            u, t, semi) where {N}
+function analyze_integrals(io, current_integrals, i, analysis_integrals::NTuple{N, Any},
+                           du, u, t, semi) where {N}
 
     # Extract the first analysis integral and process it; keep the remaining to be processed later
     quantity = first(analysis_integrals)
     remaining_quantities = Base.tail(analysis_integrals)
 
-    res = analyze!(semi, quantity, u, t)
+    res = analyze(quantity, du, u, t, semi)
     current_integrals[i] = res
     @printf(io, " %-12s:", pretty_form_utf(quantity))
     @printf(io, "  % 10.8e", res)
     println(io)
 
     # Recursively call this method with the unprocessed integrals
-    analyze_integrals!(io, current_integrals, i + 1, remaining_quantities, u, t, semi)
+    analyze_integrals(io, current_integrals, i + 1, remaining_quantities, du, u, t, semi)
     return nothing
 end
 
 # terminate the type-stable iteration over tuples
-function analyze_integrals!(io, current_integrals, i, analysis_integrals::Tuple{}, u, t,
-                            semi)
+function analyze_integrals(io, current_integrals, i, analysis_integrals::Tuple{}, du, u, t,
+                           semi)
     nothing
 end
 
@@ -328,9 +333,33 @@ function (cb::DiscreteCallback{Condition, Affect!})(sol) where {Condition,
     return (; l2 = l2_error, linf = linf_error)
 end
 
-function analyze!(semi::Semidiscretization, quantity, u, t)
+function analyze(quantity, du, u, t, semi::Semidiscretization)
     integrate_quantity(quantity, u, semi)
 end
 
+function analyze(::typeof(entropy_timederivative), du, u, t, semi::Semidiscretization)
+    mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
+    quantity = get_tmp_cache_scalar(semi)
+    for element in eachelement(semi)
+        for i in eachnode(semi, element)
+            u_node = get_node_vars(u, equations, i, element)
+            du_node = get_node_vars(du, equations, i, element)
+            quantity[i, element] = dot(cons2entropy(u_node, equations), du_node)
+            # quantity[i, element] = dot([1], du_node)
+        end
+    end
+    x_neg = semi.boundary_conditions.x_neg
+    a = equations.advection_velocity
+    N_elements = nelements(mesh)
+    bc_value = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)[1]
+
+    e = integrate(quantity, semi)
+    e_boundary = e - a/2 * (bc_value^2 - u[1, nnodes(solver, N_elements), N_elements]^2)
+    e_boundary_dissipation = e_boundary + a/2 * (u[1, 1, 1] - bc_value)^2
+    println(e, " ", e_boundary, " ", e_boundary_dissipation)
+    return e_boundary_dissipation
+end
+
+pretty_form_utf(::typeof(entropy_timederivative)) = "∫∂S/∂U ⋅ Uₜ"
 pretty_form_utf(::typeof(mass)) = "∫u"
-pretty_form_utf(::typeof(entropy)) = "∫U"
+pretty_form_utf(::typeof(entropy)) = "∫S"

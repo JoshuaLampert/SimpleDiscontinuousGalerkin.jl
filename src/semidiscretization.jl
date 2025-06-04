@@ -157,7 +157,7 @@ function PolynomialBases.integrate(u, semi::Semidiscretization)
     integrate(identity, u, semi)
 end
 
-# Here, `func` is a function that takes a vector at one node and the equations, e.g., `mass` or `energy_total`.
+# Here, `func` is a function that takes a vector at one node and the equations, e.g., `mass` or `entropy`.
 function integrate_quantity(func, u, semi::Semidiscretization)
     quantity = get_tmp_cache_scalar(semi)
     integrate_quantity!(quantity, func, u, semi)

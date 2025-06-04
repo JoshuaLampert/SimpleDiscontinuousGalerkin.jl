@@ -42,8 +42,7 @@ semi = Semidiscretization(mesh, equations, initial_condition, solver; boundary_c
 tspan = (0.0, 1.0)
 ode = semidiscretize(semi, tspan)
 summary_callback = SummaryCallback()
-analysis_callback = AnalysisCallback(semi; interval = 10,
-                                     extra_analysis_integrals = (mass, entropy))
+analysis_callback = AnalysisCallback(semi; interval = 10)
 callbacks = CallbackSet(analysis_callback, summary_callback)
 
 saveat = range(tspan..., length = 100)

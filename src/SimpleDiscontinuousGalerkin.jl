@@ -14,18 +14,18 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 """
 module SimpleDiscontinuousGalerkin
 
-import LinearAlgebra: Diagonal, diag
+import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
-import SciMLBase: u_modified!
+import SciMLBase: u_modified!, get_tmp_cache
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
 import SummationByPartsOperators: AbstractDerivativeOperator, grid
-using TimerOutputs: TimerOutputs, print_timer, reset_timer!
+using TimerOutputs: TimerOutputs, @notimeit, print_timer, reset_timer!
 @reexport using TrixiBase: trixi_include
 using TrixiBase: TrixiBase, @trixi_timeit, timer
 

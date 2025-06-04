@@ -84,7 +84,7 @@ default_analysis_errors(::AbstractEquations) = (:l2_error, :linf_error)
 
 Default analysis integrals used by the [`AnalysisCallback`](@ref).
 """
-default_analysis_integrals(::AbstractEquations) = Symbol[]
+default_analysis_integrals(::AbstractEquations) = (mass, entropy, entropy_timederivative)
 
 """
     mass(u, equations)
@@ -103,6 +103,14 @@ Return the entropy of the conservative variables `u` for the given system of equ
 function entropy(u, ::AbstractEquations{1})
     return 0.5 * u[1]^2
 end
+
+"""
+    entropy_timederivative
+
+The semi-discrete time derivative of the entropy, which can be used in the
+[`AnalysisCallback`](@ref) to compute the time derivative of the entropy.
+"""
+function entropy_timederivative end
 
 """
     cons2entropy(u, equations)
