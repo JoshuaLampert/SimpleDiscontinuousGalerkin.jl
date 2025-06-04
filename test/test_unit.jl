@@ -117,10 +117,19 @@ end
                                      [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
-@testitem "callbacks" begin
+@testitem "SummaryCallback" begin
     summary_callback = SummaryCallback()
     @test_nowarn print(summary_callback)
     @test_nowarn display(summary_callback)
+end
+
+@testitem "AnalysisCallback" begin
+    semi = Semidiscretization(Mesh(0.0, 1.0, 5), LinearAdvectionEquation1D(2.0),
+                              initial_condition_convergence_test, DGSEM(polydeg = 3))
+    analysis_callback = AnalysisCallback(semi; interval = 10,
+                                         extra_analysis_integrals = (mass, entropy))
+    @test_nowarn print(analysis_callback)
+    @test_nowarn display(analysis_callback)
 end
 
 @testitem "visualization" setup=[Setup] begin
@@ -129,4 +138,7 @@ end
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
+    @test_nowarn plot(analysis_callback)
+    @test_nowarn plot(analysis_callback, what = (:errors,))
+    @test_nowarn plot(analysis_callback, what = (:integrals, :errors))
 end

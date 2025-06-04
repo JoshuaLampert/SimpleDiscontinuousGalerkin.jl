@@ -17,6 +17,7 @@ module SimpleDiscontinuousGalerkin
 import LinearAlgebra: Diagonal, diag
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
+using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
 import SciMLBase: u_modified!
@@ -34,6 +35,7 @@ include("boundary_conditions.jl")
 include("solvers/solver.jl")
 include("semidiscretization.jl")
 include("callbacks_step/callbacks_step.jl")
+include("visualization.jl")
 
 export cons2cons, eachvariable, nvariables
 export mass, entropy
