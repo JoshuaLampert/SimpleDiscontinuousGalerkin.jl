@@ -77,6 +77,7 @@ end
     @test_trixi_include(joinpath(examples_dir(),
                                  "linear_advection_inhomogeneous_mesh.jl"),
                         l2=[0.00015505641092054123], linf=[0.0004295567744543316])
+
     coordinates = collect(coordinates_min:dx:coordinates_max)
     mesh = InhomogeneousMesh(coordinates)
     @testset "Inhomogeneous mesh with homogeneous nodes" begin
