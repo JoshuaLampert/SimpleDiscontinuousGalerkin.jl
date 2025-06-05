@@ -42,7 +42,7 @@ export mass, entropy
 export LinearAdvectionEquation1D
 export flux, flux_central, flux_godunov
 export initial_condition_convergence_test
-export Mesh, nelements, eachelement, element_spacing
+export Mesh, InhomogeneousMesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
 export eachnode, nnodes, nelements, ndofs, flat_grid, get_variable

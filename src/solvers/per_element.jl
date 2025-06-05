@@ -40,44 +40,33 @@ grid(solver::PerElementFDSBP, element) = grid(solver.basis, element)
 function create_cache(mesh, equations, solver::PerElementFDSBP, initial_condition,
                       boundary_conditions)
     @assert length(solver.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
-    dx = element_spacing(mesh) # length of each element
     # We need a `Vector{Vector}` to account for potentially different number of nodes for each element
     # compute all mapped nodes
-    x = Vector{Vector{real(solver)}}(undef, nelements(mesh))
+    x = VectorOfArray([zeros(real(solver), nnodes(solver, element))
+                       for element in eachelement(mesh)])
     jacobian = zeros(real(solver), nelements(mesh))
     for element in eachelement(mesh)
-        x_l = xmin(mesh) + (element - 1) * dx
+        x_l = left_element_boundary(mesh, element)
         D = get_basis(solver, element)
         nodes_basis = grid(D)
         dx_basis = last(nodes_basis) - first(nodes_basis)
+        dx = element_spacing(mesh, element) # length of the element
         jacobian[element] = dx / dx_basis
-        x[element] = zeros(real(solver), length(nodes_basis))
         for j in eachindex(nodes_basis)
-            x[element][j] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
+            x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
         end
     end
-    cache = (; jacobian, node_coordinates = VectorOfArray(x),
+    cache = (; jacobian, node_coordinates = x,
              create_cache(mesh, equations, solver, solver.volume_integral)...,
              create_cache(mesh, equations, solver, solver.surface_integral)...)
     return cache
-end
-
-function apply_jacobian!(du, mesh, equations, solver::PerElementFDSBP, cache)
-    (; jacobian) = cache
-    for element in eachelement(mesh)
-        for i in eachnode(solver, element)
-            for v in eachvariable(equations)
-                du[v, i, element] = du[v, i, element] / get_jacobian(solver, element, cache)
-            end
-        end
-    end
 end
 
 # We need different data structure because we have a different number of nodes per element
 # `get_node_coords`, `get_node_vars`, and `set_node_vars!` can be reused because we can
 # access the `Array{RealT, 3}` in the same way as the `VectorOfArray` structure
 # (`v` first, node variable(s) in the middle, `element` last).
-function allocate_coefficients(mesh::Mesh, equations, solver::PerElementFDSBP)
+function allocate_coefficients(mesh::AbstractMesh, equations, solver::PerElementFDSBP)
     u = [zeros(real(solver), nvariables(equations), nnodes(solver, element))
          for element in eachelement(mesh)]
     return VectorOfArray(u)

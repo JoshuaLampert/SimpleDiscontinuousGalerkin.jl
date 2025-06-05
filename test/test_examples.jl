@@ -73,6 +73,20 @@ end
                         l2=[0.00015746414238603103], linf=[0.00042895011704957575])
 end
 
+@testitem "linear_advection_inhomogeneous_mesh.jl" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(),
+                                 "linear_advection_inhomogeneous_mesh.jl"),
+                        l2=[0.00015505641092054123], linf=[0.0004295567744543316])
+    coordinates = collect(coordinates_min:dx:coordinates_max)
+    mesh = InhomogeneousMesh(coordinates)
+    @testset "Inhomogeneous mesh with homogeneous nodes" begin
+        @test_trixi_include(joinpath(examples_dir(),
+                                     "linear_advection_inhomogeneous_mesh.jl"),
+                            mesh=mesh,
+                            l2=[0.0001574641423857773], linf=[0.00042895011704657815])
+    end
+end
+
 @testitem "linear_advection_per_element.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
                         l2=[0.0033676357851732484], linf=[0.009084487338805292],
