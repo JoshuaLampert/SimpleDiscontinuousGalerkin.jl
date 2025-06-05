@@ -35,6 +35,15 @@ end
     @test real(mesh) == Float64
     @test SimpleDiscontinuousGalerkin.xmin(mesh) == coordinates_min
     @test SimpleDiscontinuousGalerkin.xmax(mesh) == coordinates_max
+
+    mesh = InhomogeneousMesh(coordinates_min:0.1:coordinates_max)
+    @test_nowarn print(mesh)
+    @test_nowarn display(mesh)
+    @test ndims(mesh) == 1
+    @test SimpleDiscontinuousGalerkin.nelements(mesh) == 10
+    @test real(mesh) == Float64
+    @test SimpleDiscontinuousGalerkin.xmin(mesh) == coordinates_min
+    @test SimpleDiscontinuousGalerkin.xmax(mesh) == coordinates_max
 end
 
 @testitem "surface integrals" begin

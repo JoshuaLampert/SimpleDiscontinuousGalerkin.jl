@@ -56,16 +56,17 @@ Base.summary(io::IO, solver::FDSBP) = print(io, "FDSBP(D=$(solver.basis)")
 
 function create_cache(mesh, equations, solver::Union{DGSEM, FDSBP}, initial_condition,
                       boundary_conditions)
-    dx = element_spacing(mesh) # length of each element
     nodes_basis = grid(solver.basis)
     dx_basis = last(nodes_basis) - first(nodes_basis) # length of the basis nodes
-    jacobian = dx / dx_basis
     # compute all mapped nodes
     x = zeros(real(solver), nnodes(solver), nelements(mesh))
+    jacobian = zeros(real(solver), nelements(mesh))
     for element in eachelement(mesh)
-        x_l = xmin(mesh) + (element - 1) * dx
+        x_l = left_element_boundary(mesh, element)
+        dx = element_spacing(mesh, element) # length of the element
+        jacobian[element] = dx / dx_basis
         for j in eachindex(nodes_basis)
-            x[j, element] = x_l + jacobian * (nodes_basis[j] - first(nodes_basis))
+            x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
         end
     end
     cache = (; jacobian, node_coordinates = x,
@@ -74,7 +75,12 @@ function create_cache(mesh, equations, solver::Union{DGSEM, FDSBP}, initial_cond
     return cache
 end
 
-function apply_jacobian!(du, mesh, equations, solver::Union{DGSEM, FDSBP}, cache)
-    (; jacobian) = cache
-    @. du = du / jacobian
+function apply_jacobian!(du, mesh, equations, solver::DG, cache)
+    for element in eachelement(mesh)
+        for i in eachnode(solver, element)
+            for v in eachvariable(equations)
+                du[v, i, element] = du[v, i, element] / get_jacobian(solver, element, cache)
+            end
+        end
+    end
 end

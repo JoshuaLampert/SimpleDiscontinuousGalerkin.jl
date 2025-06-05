@@ -10,8 +10,7 @@ include("per_element.jl")
 get_basis(solver::DG, element) = solver.basis
 get_basis(solver::PerElementFDSBP, element) = solver.basis.bases[element]
 
-get_jacobian(solver::DG, element, cache) = cache.jacobian
-get_jacobian(solver::PerElementFDSBP, element, cache) = cache.jacobian[element]
+get_jacobian(solver::DG, element, cache) = cache.jacobian[element]
 
 get_integral_operator(operator, solver, element) = operator
 function get_integral_operator(operator, ::PerElementFDSBP, element)
@@ -32,7 +31,7 @@ function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
     return integral_operator
 end
 
-function calc_error_norms(u, t, initial_condition, mesh::Mesh, equations,
+function calc_error_norms(u, t, initial_condition, mesh::AbstractMesh, equations,
                           solver::DG, cache)
     u_exact = similar(u)
     compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)

@@ -52,7 +52,7 @@ In particular, not the nodes themselves are returned.
 # This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(solver::DG) = length(grid(solver))
 @inline nnodes(solver::DG, element) = length(grid(solver, element))
-@inline function ndofs(mesh::Mesh, solver::DG)
+@inline function ndofs(mesh::AbstractMesh, solver::DG)
     sum(nnodes(solver, element) for element in eachelement(mesh))
 end
 
@@ -93,15 +93,15 @@ function get_variable(u, v, ::DG)
     return vec(u[v, :, :])
 end
 
-function allocate_coefficients(mesh::Mesh, equations, solver::DG, cache)
+function allocate_coefficients(mesh::AbstractMesh, equations, solver::DG, cache)
     return allocate_coefficients(mesh, equations, solver)
 end
 
-function allocate_coefficients(mesh::Mesh, equations, solver::DG)
+function allocate_coefficients(mesh::AbstractMesh, equations, solver::DG)
     return zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
 end
 
-function compute_coefficients!(u, func, t, mesh::Mesh, equations, solver::DG, cache)
+function compute_coefficients!(u, func, t, mesh::AbstractMesh, equations, solver::DG, cache)
     for element in eachelement(mesh)
         for i in eachnode(solver, element)
             x_node = get_node_coords(cache.node_coordinates, equations, solver, i,
@@ -116,7 +116,7 @@ function reset_du!(du)
     du .= zero(du)
 end
 
-function rhs!(du, u, t, mesh::Mesh, equations, initial_condition,
+function rhs!(du, u, t, mesh::AbstractMesh, equations, initial_condition,
               boundary_conditions, solver::DG, cache)
     @trixi_timeit timer() "reset ∂u/∂t" reset_du!(du)
 
