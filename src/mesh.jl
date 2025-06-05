@@ -9,7 +9,8 @@ function Base.show(io::IO, mesh::AbstractMesh{RealT}) where {RealT}
     print(io, " from ", xmin(mesh), " to ", xmax(mesh))
 end
 
-function Base.show(io::IO, ::MIME"text/plain", mesh::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT}
+function Base.show(io::IO, ::MIME"text/plain",
+                   mesh::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT}
     if get(io, :compact, false)
         show(io, mesh)
     else
