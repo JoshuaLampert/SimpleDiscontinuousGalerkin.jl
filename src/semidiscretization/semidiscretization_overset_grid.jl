@@ -210,20 +210,10 @@ function analyze(::typeof(entropy_timederivative), du, u, t,
     quantity = get_tmp_cache_scalar(semi)
     quantity_left, quantity_right = quantity
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
-    for element in eachelement(mesh_left)
-        for i in eachnode(solver, element)
-            u_node = get_node_vars(u_left, equations, i, element)
-            du_node = get_node_vars(du_left, equations, i, element)
-            quantity_left[i, element] = dot(cons2entropy(u_node, equations), du_node)
-        end
-    end
-    for element in eachelement(mesh_right)
-        for i in eachnode(solver, element)
-            u_node = get_node_vars(u_right, equations, i, element)
-            du_node = get_node_vars(du_right, equations, i, element)
-            quantity_right[i, element] = dot(cons2entropy(u_node, equations), du_node)
-        end
-    end
+    compute_quantity_timederivative!(quantity_left, cons2entropy, du_left, u_left,
+                                     mesh_left, equations, solver)
+    compute_quantity_timederivative!(quantity_right, cons2entropy, du_right, u_right,
+                                     mesh_right, equations, solver)
     return integrate(quantity, semi)
 end
 

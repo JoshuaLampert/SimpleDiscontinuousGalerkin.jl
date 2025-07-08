@@ -163,8 +163,8 @@ end
 function compute_quantity!(quantity, func, u, mesh, equations, solver)
     for element in eachelement(mesh)
         for i in eachnode(solver, element)
-            quantity[i, element] = func(get_node_vars(u, equations, i, element),
-                                        equations)
+            u_node = get_node_vars(u, equations, i, element)
+            quantity[i, element] = func(u_node, equations)
         end
     end
 end
@@ -173,6 +173,16 @@ function integrate_quantity!(quantity, func, u, semi::Semidiscretization)
     mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
     compute_quantity!(quantity, func, u, mesh, equations, solver)
     integrate(quantity, semi)
+end
+
+function compute_quantity_timederivative!(quantity, func, du, u, mesh, equations, solver)
+    for element in eachelement(mesh)
+        for i in eachnode(solver, element)
+            u_node = get_node_vars(u, equations, i, element)
+            du_node = get_node_vars(du, equations, i, element)
+            quantity[i, element] = dot(func(u_node, equations), du_node)
+        end
+    end
 end
 
 @inline function mesh_equations_solver_cache(semi::Semidiscretization)
