@@ -68,15 +68,6 @@ function calc_interface_flux!(surface_flux_values, u, mesh::OversetGridMesh, equ
                          equations, integral, solver, cache)
 end
 
-# TODO: Type piracy! Move this to SummationByPartsOperators.jl?
-# cf. https://github.com/ranocha/SummationByPartsOperators.jl/issues/349
-function PolynomialBases.interpolate(x, values,
-                                     D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
-    nodes = grid(D)
-    baryweights = PolynomialBases.barycentric_weights(nodes)
-    interpolate(x, values, nodes, baryweights)
-end
-
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
                              mesh::OversetGridMesh, equations,
                              integral::AbstractSurfaceIntegral, solver)
@@ -93,6 +84,8 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     # Right boundary condition of left mesh
     u_ll = get_node_vars(u_left, equations, nnodes(solver, nelements(mesh_left)),
                          nelements(mesh_left))
+    # TODO: Make this more efficient by computing e_M_right and e_M_left only once
+    # during initialization and storing it in the cache
     l_right = right_overlap_element(mesh)
     c = xmax(mesh_left)
     D = get_basis(solver, l_right)
@@ -101,9 +94,10 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     xlr_R = left_element_boundary(mesh_right, l_right + 1)
     c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
     u_rr = zeros(real(solver), nvariables(equations))
+    e_M_right = interpolation_operator(c_mapped, D)
     for v in eachvariable(equations)
         values = u_right[v, :, l_right]
-        u_rr[v] = interpolate(c_mapped, values, D)
+        u_rr[v] = e_M_right' * values
     end
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values[1], f, equations, 2, nelements(mesh_left))
@@ -116,9 +110,10 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     xll_R = left_element_boundary(mesh_left, l_left + 1)
     b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
     u_ll = zeros(real(solver), nvariables(equations))
+    e_M_left = interpolation_operator(b_mapped, D)
     for v in eachvariable(equations)
         values = u_left[v, :, l_left]
-        u_ll[v] = interpolate(b_mapped, values, D)
+        u_ll[v] = e_M_left' * values
     end
     u_rr = get_node_vars(u_right, equations, 1, 1)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)

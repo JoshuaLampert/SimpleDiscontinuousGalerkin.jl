@@ -1,3 +1,23 @@
+@testitem "utils" begin
+    D = legendre_derivative_operator(-1.0, 1.0, 5)
+    x = 0.5
+    nodes = grid(D)
+    values = sin.(nodes)
+    baryweights = PolynomialBases.barycentric_weights(nodes)
+    f = interpolate(x, values, nodes, baryweights)
+
+    e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
+    @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
+    @test_nowarn isapprox(e_M' * values, f, atol = 1.0e-14)
+
+    D = derivative_operator(MattssonNordström2004(), 1, 2, -1.1, 2.6, 20)
+    nodes = grid(D)
+    values = sin.(nodes)
+
+    e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
+    @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
+end
+
 @testitem "equations" begin
     equations = @test_nowarn LinearAdvectionEquation1D(-2.0)
     @test_nowarn print(equations)
