@@ -69,8 +69,7 @@ function create_jacobian_and_node_coordinates(mesh, solver::Union{DGSEM, FDSBP})
     return jacobian, x
 end
 
-function create_cache(mesh, equations, solver::Union{DGSEM, FDSBP}, initial_condition,
-                      boundary_conditions)
+function create_cache(mesh, equations, solver, initial_condition, boundary_conditions)
     jacobian, x = create_jacobian_and_node_coordinates(mesh, solver)
     cache = (; jacobian, node_coordinates = x,
              create_cache(mesh, equations, solver, solver.volume_integral)...,
