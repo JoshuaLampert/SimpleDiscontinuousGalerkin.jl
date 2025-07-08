@@ -29,16 +29,17 @@ function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
     return integral_operator
 end
 
-function calc_error_norms(u, t, initial_condition, mesh::AbstractMesh, equations,
-                          solver::DG, cache)
-    calc_error_norms(u, t, initial_condition, mesh::AbstractMesh, equations,
-                     solver::DG, cache, cache.jacobian)
+function calc_error_norms(u, t, initial_condition, mesh, equations,
+                          solver, cache)
+    calc_error_norms(u, t, initial_condition, mesh, equations,
+                     solver, cache, cache.jacobian, cache.node_coordinates)
 end
 
-function calc_error_norms(u, t, initial_condition, mesh::AbstractMesh, equations,
-                          solver::DG, cache, jacobian)
+function calc_error_norms(u, t, initial_condition, mesh, equations,
+                          solver, cache, jacobian, node_coordinates)
     u_exact = similar(u)
-    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)
+    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache,
+                          node_coordinates)
     l2_error = zeros(real(solver), nvariables(equations))
     linf_error = zeros(real(solver), nvariables(equations))
     for v in eachvariable(equations)

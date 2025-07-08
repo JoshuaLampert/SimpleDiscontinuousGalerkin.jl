@@ -338,7 +338,7 @@ function analyze(quantity, du, u, t, semi::Semidiscretization)
 end
 
 function analyze(::typeof(entropy_timederivative), du, u, t, semi::Semidiscretization)
-    mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
+    _, equations, _, _ = mesh_equations_solver_cache(semi)
     quantity = get_tmp_cache_scalar(semi)
     for element in eachelement(semi)
         for i in eachnode(semi, element)

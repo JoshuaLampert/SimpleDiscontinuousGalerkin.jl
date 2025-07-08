@@ -8,6 +8,12 @@ function create_jacobian_and_node_coordinates(mesh::OversetGridMesh,
     return (jacobian_left, jacobian_right), (x_left, x_right)
 end
 
+function create_tmp_scalar(mesh::OversetGridMesh, solver)
+    tmp_scalar_left = create_tmp_scalar(mesh.mesh_left, solver)
+    tmp_scalar_right = create_tmp_scalar(mesh.mesh_right, solver)
+    return VectorOfArray([tmp_scalar_left, tmp_scalar_right])
+end
+
 function allocate_coefficients(mesh::OversetGridMesh, equations,
                                solver::Union{DGSEM, FDSBP})
     u_left = allocate_coefficients(mesh.mesh_left, equations, solver)
@@ -17,10 +23,12 @@ end
 
 function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, solver,
                                cache, node_coordinates)
-    compute_coefficients!(u[1], func, t, mesh.mesh_left, equations, solver, cache,
-                          node_coordinates[1])
-    compute_coefficients!(u[2], func, t, mesh.mesh_right, equations, solver, cache,
-                          node_coordinates[2])
+    u_left, u_right = u
+    node_coordinates_left, node_coordinates_right = node_coordinates
+    compute_coefficients!(u_left, func, t, mesh.mesh_left, equations, solver, cache,
+                          node_coordinates_left)
+    compute_coefficients!(u_right, func, t, mesh.mesh_right, equations, solver, cache,
+                          node_coordinates_right)
 end
 
 function flat_grid(semi::SemidiscretizationOversetGrid)
@@ -144,4 +152,104 @@ function apply_jacobian!(du, mesh::OversetGridMesh, equations, solver, cache)
     du_left, du_right = du
     apply_jacobian!(du_left, mesh.mesh_left, equations, solver, cache, cache.jacobian[1])
     apply_jacobian!(du_right, mesh.mesh_right, equations, solver, cache, cache.jacobian[2])
+end
+
+# This method is for integrating a vector quantity for all variables over the entire domain,
+# such as the whole solution vector `u` (`VectorOfArray{T, 4, Vector{Array{T, 3}}}` for DG methods
+# with same basis across elements and `VectorOfArray{T, 4, Vector{VectorOfArray{T, 3, Vector{Matrix{T}}}}}}`
+# for `PerElementFDSBP`).
+function PolynomialBases.integrate(func,
+                                   u::Union{VectorOfArray{T, 4, Vector{Array{T, 3}}},
+                                            VectorOfArray{T, 4,
+                                                          Vector{VectorOfArray{T, 3,
+                                                                               Vector{Matrix{T}}}}}},
+                                   semi::SemidiscretizationOversetGrid) where {T}
+    u_left, u_right = u
+    integrals = zeros(real(semi), nvariables(semi))
+    mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
+    for v in eachvariable(semi)
+        u_left_v = VectorOfArray([u_left[v, :, element]
+                                  for element in eachelement(mesh_left)])
+        u_right_v = VectorOfArray([u_right[v, :, element]
+                                   for element in eachelement(mesh_right)])
+        u_v = VectorOfArray([u_left_v, u_right_v])
+        integrals[v] = integrate(func, u_v, semi)
+    end
+    return integrals
+end
+
+# This method is for integrating a scalar quantity over the entire domain.
+function PolynomialBases.integrate(func, u, semi::SemidiscretizationOversetGrid)
+    u_left, u_right = u
+    jacobian_left, jacobian_right = semi.cache.jacobian
+    l_left = left_overlap_element(semi.mesh)
+    integral_left = sum(integrate_on_element(func, u_left.u[element], semi, element,
+                                             jacobian_left)
+                        for element in 1:l_left)
+    integral_right = sum(integrate_on_element(func, u_right.u[element], semi, element,
+                                              jacobian_right)
+                         for element in 1:nelements(semi.mesh.mesh_right))
+    return integral_left + integral_right
+end
+
+function integrate_quantity!(quantity, func, u, semi::SemidiscretizationOversetGrid)
+    mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
+    u_left, u_right = u
+    quantity_left, quantity_right = quantity
+    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
+    for element in eachelement(mesh_left)
+        for i in eachnode(solver, element)
+            quantity_left[i, element] = func(get_node_vars(u_left, equations, i,
+                                                           element),
+                                             equations)
+        end
+    end
+    for element in eachelement(mesh_right)
+        for i in eachnode(semi.solver, element)
+            quantity_right[i, element] = func(get_node_vars(u_right, equations, i,
+                                                            element),
+                                              equations)
+        end
+    end
+    integrate(quantity, semi)
+end
+
+function analyze(::typeof(entropy_timederivative), du, u, t, semi::SemidiscretizationOversetGrid)
+    mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
+    u_left, u_right = u
+    du_left, du_right = du
+    quantity = get_tmp_cache_scalar(semi)
+    quantity_left, quantity_right = quantity
+    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
+    for element in eachelement(mesh_left)
+        for i in eachnode(solver, element)
+            u_node = get_node_vars(u_left, equations, i, element)
+            du_node = get_node_vars(du_left, equations, i, element)
+            quantity_left[i, element] = dot(cons2entropy(u_node, equations), du_node)
+        end
+    end
+    for element in eachelement(mesh_right)
+        for i in eachnode(solver, element)
+            u_node = get_node_vars(u_right, equations, i, element)
+            du_node = get_node_vars(du_right, equations, i, element)
+            quantity_right[i, element] = dot(cons2entropy(u_node, equations), du_node)
+        end
+    end
+    return integrate(quantity, semi)
+end
+
+function calc_error_norms(u, t, initial_condition, mesh::OversetGridMesh,
+                          equations, solver, cache)
+    u_left, u_right = u
+    jacobian_left, jacobian_right = cache.jacobian
+    node_coordinates_left, node_coordinates_right = cache.node_coordinates
+    l2_error_left, linf_error_left = calc_error_norms(u_left, t, initial_condition,
+                                                      mesh.mesh_left, equations,
+                                                      solver, cache, jacobian_left,
+                                                      node_coordinates_left)
+    l2_error_right, linf_error_right = calc_error_norms(u_right, t, initial_condition,
+                                                        mesh.mesh_right, equations,
+                                                        solver, cache, jacobian_right,
+                                                        node_coordinates_right)
+    return l2_error_left + l2_error_right, max(linf_error_left, linf_error_right)
 end

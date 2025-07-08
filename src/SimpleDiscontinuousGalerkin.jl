@@ -16,7 +16,6 @@ module SimpleDiscontinuousGalerkin
 
 import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
-import PolynomialBases: grid
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray

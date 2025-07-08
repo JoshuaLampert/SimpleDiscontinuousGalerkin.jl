@@ -69,9 +69,15 @@ function create_jacobian_and_node_coordinates(mesh, solver::Union{DGSEM, FDSBP})
     return jacobian, x
 end
 
+function create_tmp_scalar(mesh, solver)
+    return VectorOfArray([zeros(real(solver), nnodes(solver, element))
+                          for element in eachelement(mesh)])
+end
+
 function create_cache(mesh, equations, solver, initial_condition, boundary_conditions)
     jacobian, x = create_jacobian_and_node_coordinates(mesh, solver)
-    cache = (; jacobian, node_coordinates = x,
+    tmp_scalar = create_tmp_scalar(mesh, solver)
+    cache = (; jacobian, node_coordinates = x, tmp_scalar,
              create_cache(mesh, equations, solver, solver.volume_integral)...,
              create_cache(mesh, equations, solver, solver.surface_integral)...)
     return cache

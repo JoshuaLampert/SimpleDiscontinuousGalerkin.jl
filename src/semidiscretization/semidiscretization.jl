@@ -39,11 +39,9 @@ Construct a semidiscretization of a PDE.
 """
 function Semidiscretization(mesh, equations, initial_condition, solver;
                             boundary_conditions = boundary_condition_periodic)
-    tmp_scalar = VectorOfArray([zeros(real(solver), nnodes(solver, element))
-                                for element in eachelement(mesh)])
     cache = (;
              create_cache(mesh, equations, solver, initial_condition,
-                          boundary_conditions)..., tmp_scalar)
+                          boundary_conditions)...)
     _boundary_conditions = digest_boundary_conditions(boundary_conditions)
     Semidiscretization{typeof(mesh), typeof(equations), typeof(initial_condition),
                        typeof(_boundary_conditions), typeof(solver), typeof(cache)}(mesh,
@@ -140,8 +138,8 @@ function PolynomialBases.integrate(func,
                                    semi::Semidiscretization) where {T}
     integrals = zeros(real(semi), nvariables(semi))
     for v in eachvariable(semi)
-        integrals[v] = sum(integrate_on_element(func, u[v, :, element], semi, element)
-                           for element in eachelement(semi))
+        u_v = VectorOfArray([u[v, :, element] for element in eachelement(semi)])
+        integrals[v] = integrate(func, u_v, semi)
     end
     return integrals
 end
