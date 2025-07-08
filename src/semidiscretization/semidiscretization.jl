@@ -160,13 +160,18 @@ function integrate_quantity(func, u, semi::Semidiscretization)
     integrate_quantity!(quantity, func, u, semi)
 end
 
-function integrate_quantity!(quantity, func, u, semi::Semidiscretization)
-    for element in eachelement(semi)
-        for i in eachnode(semi, element)
-            quantity[i, element] = func(get_node_vars(u, semi.equations, i, element),
-                                        semi.equations)
+function compute_quantity!(quantity, func, u, mesh, equations, solver)
+    for element in eachelement(mesh)
+        for i in eachnode(solver, element)
+            quantity[i, element] = func(get_node_vars(u, equations, i, element),
+                                        equations)
         end
     end
+end
+
+function integrate_quantity!(quantity, func, u, semi::Semidiscretization)
+    mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
+    compute_quantity!(quantity, func, u, mesh, equations, solver)
     integrate(quantity, semi)
 end
 

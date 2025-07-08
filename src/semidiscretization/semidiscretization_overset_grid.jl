@@ -197,20 +197,8 @@ function integrate_quantity!(quantity, func, u, semi::SemidiscretizationOversetG
     u_left, u_right = u
     quantity_left, quantity_right = quantity
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
-    for element in eachelement(mesh_left)
-        for i in eachnode(solver, element)
-            quantity_left[i, element] = func(get_node_vars(u_left, equations, i,
-                                                           element),
-                                             equations)
-        end
-    end
-    for element in eachelement(mesh_right)
-        for i in eachnode(semi.solver, element)
-            quantity_right[i, element] = func(get_node_vars(u_right, equations, i,
-                                                            element),
-                                              equations)
-        end
-    end
+    compute_quantity!(quantity_left, func, u_left, mesh_left, equations, solver)
+    compute_quantity!(quantity_right, func, u_right, mesh_right, equations, solver)
     integrate(quantity, semi)
 end
 
