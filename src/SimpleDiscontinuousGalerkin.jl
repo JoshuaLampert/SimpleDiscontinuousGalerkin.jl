@@ -16,6 +16,7 @@ module SimpleDiscontinuousGalerkin
 
 import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
+import PolynomialBases: grid
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
@@ -33,7 +34,7 @@ include("equations/equations.jl")
 include("mesh.jl")
 include("boundary_conditions.jl")
 include("solvers/solver.jl")
-include("semidiscretization.jl")
+include("semidiscretization/semidiscretization.jl")
 include("callbacks_step/callbacks_step.jl")
 include("visualization.jl")
 
@@ -42,7 +43,7 @@ export mass, entropy
 export LinearAdvectionEquation1D
 export flux, flux_central, flux_godunov
 export initial_condition_convergence_test
-export Mesh, InhomogeneousMesh, nelements, eachelement, element_spacing
+export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
 export eachnode, nnodes, nelements, ndofs, flat_grid, get_variable

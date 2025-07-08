@@ -102,10 +102,14 @@ function allocate_coefficients(mesh::AbstractMesh, equations, solver::DG)
 end
 
 function compute_coefficients!(u, func, t, mesh::AbstractMesh, equations, solver::DG, cache)
+    compute_coefficients!(u, func, t, mesh, equations, solver, cache.node_coordinates)
+end
+
+function compute_coefficients!(u, func, t, mesh::AbstractMesh, equations, solver::DG,
+                               node_coordinates::AbstractMatrix)
     for element in eachelement(mesh)
         for i in eachnode(solver, element)
-            x_node = get_node_coords(cache.node_coordinates, equations, solver, i,
-                                     element)
+            x_node = get_node_coords(node_coordinates, equations, solver, i, element)
             u_node = func(x_node, t, equations)
             set_node_vars!(u, u_node, equations, i, element)
         end

@@ -99,7 +99,7 @@ get_tmp_cache_scalar(semi::Semidiscretization) = semi.cache.tmp_scalar
 
 Get the grid of a semidiscretization.
 """
-SummationByPartsOperators.grid(semi::Semidiscretization) = semi.cache.node_coordinates
+grid(semi::Semidiscretization) = semi.cache.node_coordinates
 
 """
     flat_grid(semi)
@@ -123,14 +123,13 @@ function get_variable(u, v, semi::Semidiscretization)
     get_variable(u, v, semi.solver)
 end
 
-function get_jacobian(semi::Semidiscretization, element)
-    get_jacobian(semi.solver, element, semi.cache)
-end
-
 # Here, `func` is a function that takes a vector at one element
 # `u` is a vector of coefficients at all nodes of the element.
-function integrate_on_element(func, u, semi::Semidiscretization, element)
-    return get_jacobian(semi, element) * integrate(func, u, get_basis(semi, element))
+function integrate_on_element(func, u, semi, element)
+    integrate_on_element(func, u, semi, element, semi.cache.jacobian)
+end
+function integrate_on_element(func, u, semi::Semidiscretization, element, jacobian)
+    return jacobian[element] * integrate(func, u, get_basis(semi, element))
 end
 # This method is for integrating a vector quantity for all variables over the entire domain,
 # such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
@@ -212,3 +211,5 @@ function semidiscretize(semi::Semidiscretization, tspan)
     iip = true # is-inplace, i.e., we modify a vector when calling rhs!
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
 end
+
+include("semidiscretization_overset_grid.jl")

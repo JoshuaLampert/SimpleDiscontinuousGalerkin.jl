@@ -41,6 +41,21 @@ end
     end
 end
 
+@inline function (::BoundaryConditionPeriodic)(u, x, t, mesh::OversetGridMesh, equations,
+                                               solver, is_left)
+    u_left, u_right = u
+    N_elements = nelements(mesh.mesh_right)
+    if is_left
+        # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
+        # and can give wrong results:
+        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
+        return u_right[:, nnodes(solver, N_elements), N_elements]
+    else
+        return u_left[:, 1, 1]
+    end
+end
+
 struct BoundaryConditionDoNothing end
 
 """
@@ -64,6 +79,21 @@ end
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         return u[:, nnodes(solver, N_elements), N_elements]
+    end
+end
+
+@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh::OversetGridMesh, equations,
+                                                solver, is_left)
+    u_left, u_right = u
+    N_elements = nelements(mesh.mesh_right)
+    if is_left
+        return u_left[:, 1, 1]
+    else
+        # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
+        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
+        # and can give wrong results:
+        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
+        return u_right[:, nnodes(solver, N_elements), N_elements]
     end
 end
 

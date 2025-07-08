@@ -67,13 +67,21 @@ function create_cache(mesh, equations, solver,
     return (; volume_operator, f_all)
 end
 
+function calc_volume_integral!(du, u, mesh, equations,
+                               integral::Union{VolumeIntegralStrongForm,
+                                               VolumeIntegralWeakForm},
+                               solver, cache)
+    calc_volume_integral!(du, u, mesh, equations,
+                          integral, solver, cache, cache.f_all)
+end
+
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_volume_integral!(du, u, mesh, equations,
                                ::Union{VolumeIntegralStrongForm,
                                        VolumeIntegralWeakForm},
-                               solver, cache)
-    (; volume_operator, f_all) = cache
+                               solver, cache, f_all)
+    (; volume_operator) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, solver, element)
         for node in eachnode(solver, element)
