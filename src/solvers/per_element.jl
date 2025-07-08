@@ -62,7 +62,7 @@ end
 # `get_node_coords`, `get_node_vars`, and `set_node_vars!` can be reused because we can
 # access the `Array{RealT, 3}` in the same way as the `VectorOfArray` structure
 # (`v` first, node variable(s) in the middle, `element` last).
-function allocate_coefficients(mesh::AbstractMesh, equations, solver::PerElementFDSBP)
+function allocate_coefficients(mesh, equations, solver::PerElementFDSBP)
     u = [zeros(real(solver), nvariables(equations), nnodes(solver, element))
          for element in eachelement(mesh)]
     return VectorOfArray(u)

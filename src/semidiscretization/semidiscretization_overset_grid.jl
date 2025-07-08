@@ -8,24 +8,28 @@ function create_jacobian_and_node_coordinates(mesh::OversetGridMesh,
     return (jacobian_left, jacobian_right), (x_left, x_right)
 end
 
-function allocate_coefficients(mesh::OversetGridMesh, equations, solver::DG)
+function allocate_coefficients(mesh::OversetGridMesh, equations, solver)
     u_left = allocate_coefficients(mesh.mesh_left, equations, solver)
     u_right = allocate_coefficients(mesh.mesh_right, equations, solver)
     return VectorOfArray([u_left, u_right])
 end
 
-function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, solver::DG,
-                               node_coordinates::Tuple)
-    compute_coefficients!(u[1], func, t, mesh.mesh_left, equations, solver,
+function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, solver,
+                               cache, node_coordinates)
+    compute_coefficients!(u[1], func, t, mesh.mesh_left, equations, solver, cache,
                           node_coordinates[1])
-    compute_coefficients!(u[2], func, t, mesh.mesh_right, equations, solver,
+    compute_coefficients!(u[2], func, t, mesh.mesh_right, equations, solver, cache,
                           node_coordinates[2])
 end
 
 function flat_grid(semi::SemidiscretizationOversetGrid)
     return vec(grid(semi)[1]), vec(grid(semi)[2])
 end
-
+# To avoid ambiguities
+function flat_grid(::Semidiscretization{M, E, I, B, S}) where {M <: OversetGridMesh, E, I,
+                                                               B, S <: PerElementFDSBP}
+    return vec(grid(semi)[1]), vec(grid(semi)[2])
+end
 function get_variable(u, v, semi::SemidiscretizationOversetGrid)
     u_left, u_right = u
     return get_variable(u_left, v, semi.solver), get_variable(u_right, v, semi.solver)
@@ -101,7 +105,6 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
         values = u_right[v, :, l_right]
         u_rr[v] = interpolate(c_mapped, values, D)
     end
-    @info l_right, c, xlr_L, xlr_R, first(grid(D)), last(grid(D)), u_rr
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values[1], f, equations, 2, nelements(mesh_left))
 
@@ -141,7 +144,7 @@ function calc_surface_integral!(du, u, mesh::OversetGridMesh, equations,
                            integral, solver, cache, cache.surface_flux_values[2])
 end
 
-function apply_jacobian!(du, mesh::OversetGridMesh, equations, solver::DG, cache)
+function apply_jacobian!(du, mesh::OversetGridMesh, equations, solver, cache)
     du_left, du_right = du
     apply_jacobian!(du_left, mesh.mesh_left, equations, solver, cache, cache.jacobian[1])
     apply_jacobian!(du_right, mesh.mesh_right, equations, solver, cache, cache.jacobian[2])

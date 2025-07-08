@@ -77,10 +77,10 @@ function create_cache(mesh, equations, solver, initial_condition, boundary_condi
     return cache
 end
 
-function apply_jacobian!(du, mesh, equations, solver::DG, cache)
+function apply_jacobian!(du, mesh, equations, solver, cache)
     apply_jacobian!(du, mesh, equations, solver, cache, cache.jacobian)
 end
-function apply_jacobian!(du, mesh, equations, solver::DG, cache, jacobian)
+function apply_jacobian!(du, mesh, equations, solver, cache, jacobian)
     for element in eachelement(mesh)
         for i in eachnode(solver, element)
             for v in eachvariable(equations)
