@@ -102,7 +102,8 @@ function allocate_coefficients(mesh::AbstractMesh, equations, solver::DG)
 end
 
 function compute_coefficients!(u, func, t, mesh::AbstractMesh, equations, solver::DG, cache)
-    compute_coefficients!(u, func, t, mesh, equations, solver, cache, cache.node_coordinates)
+    compute_coefficients!(u, func, t, mesh, equations, solver, cache,
+                          cache.node_coordinates)
 end
 
 function compute_coefficients!(u, func, t, mesh::AbstractMesh, equations, solver::DG,
