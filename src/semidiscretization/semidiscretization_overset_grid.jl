@@ -8,7 +8,8 @@ function create_jacobian_and_node_coordinates(mesh::OversetGridMesh,
     return (jacobian_left, jacobian_right), (x_left, x_right)
 end
 
-function allocate_coefficients(mesh::OversetGridMesh, equations, solver::Union{DGSEM, FDSBP})
+function allocate_coefficients(mesh::OversetGridMesh, equations,
+                               solver::Union{DGSEM, FDSBP})
     u_left = allocate_coefficients(mesh.mesh_left, equations, solver)
     u_right = allocate_coefficients(mesh.mesh_right, equations, solver)
     return VectorOfArray([u_left, u_right])
