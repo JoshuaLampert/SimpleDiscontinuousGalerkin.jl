@@ -214,7 +214,8 @@ function integrate_quantity!(quantity, func, u, semi::SemidiscretizationOversetG
     integrate(quantity, semi)
 end
 
-function analyze(::typeof(entropy_timederivative), du, u, t, semi::SemidiscretizationOversetGrid)
+function analyze(::typeof(entropy_timederivative), du, u, t,
+                 semi::SemidiscretizationOversetGrid)
     mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
     u_left, u_right = u
     du_left, du_right = du
