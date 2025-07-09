@@ -1,3 +1,65 @@
+struct PlotData
+    semisol::Pair{<:Semidiscretization, <:ODESolution}
+    plot_initial::Bool
+    step::Integer
+end
+
+@recipe function f(plotdata::PlotData)
+    @unpack semisol, plot_initial, step = plotdata
+    semi, sol = semisol
+    equations = semi.equations
+    names = varnames(cons2cons, equations)
+
+    nvars = nvariables(semi)
+    nsubplots = nvars
+
+    if step == -1
+        step = length(sol.t)
+    end
+
+    initial_condition = semi.initial_condition
+    t = sol.t[step]
+
+    if plot_initial == true
+        u_exact = compute_coefficients(initial_condition, t, semi)
+    end
+
+    u = sol.u[step]
+
+    plot_title --> "$(get_name(equations)) at t = $(round(t, digits=5))"
+    layout --> nsubplots
+
+    for i in 1:nsubplots
+        if plot_initial == true
+            @series begin
+                subplot --> i
+                linestyle := :solid
+                label --> "initial $(names[i])"
+                flat_grid(semi), get_variable(u_exact, i, semi)
+            end
+        end
+
+        @series begin
+            subplot --> i
+            label --> names[i]
+            xguide --> "x"
+            yguide --> names[i]
+            title --> names[i]
+            flat_grid(semi), get_variable(u, i, semi)
+        end
+    end
+end
+
+@recipe function f(semisol::Pair{<:Semidiscretization, <:ODESolution}; plot_initial = false,
+                   step = -1)
+    PlotData(semisol, plot_initial, step)
+end
+
+@recipe function f(semi::Semidiscretization, sol::ODESolution; plot_initial = false,
+                   step = -1)
+    PlotData(semi => sol, plot_initial, step)
+end
+
 function pretty_form_utf(name)
     if name == :l2_error
         return "L² error"

@@ -20,7 +20,7 @@ using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
-import SciMLBase: u_modified!, get_tmp_cache
+import SciMLBase: ODESolution, u_modified!, get_tmp_cache
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
