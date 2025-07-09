@@ -179,7 +179,13 @@ function PolynomialBases.integrate(func,
 end
 
 # This method is for integrating a scalar quantity over the entire domain.
-function PolynomialBases.integrate(func, u, semi::SemidiscretizationOversetGrid)
+# Need to dispatch on type of `u` to avoid method ambiguities.
+function PolynomialBases.integrate(func,
+                                   u::VectorOfArray{T, 3,
+                                                    Vector{VectorOfArray{T, 2,
+                                                                         Vector{Vector{T}}}}},
+                                   semi::SemidiscretizationOversetGrid) where {T}
+    display(typeof(u))
     u_left, u_right = u
     jacobian_left, jacobian_right = semi.cache.jacobian
     l_left = left_overlap_element(semi.mesh)
