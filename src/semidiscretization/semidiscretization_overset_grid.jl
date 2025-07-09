@@ -185,10 +185,12 @@ function PolynomialBases.integrate(func,
                                                     Vector{VectorOfArray{T, 2,
                                                                          Vector{Vector{T}}}}},
                                    semi::SemidiscretizationOversetGrid) where {T}
-    display(typeof(u))
     u_left, u_right = u
     jacobian_left, jacobian_right = semi.cache.jacobian
     l_left = left_overlap_element(semi.mesh)
+    # TODO: This integrates the left domain only until the left boundary of the left overlap element,
+    # i.e., we miss the integral from the left boundary of the left overlap element to b. Which part
+    # should be integrated in the overlap region?
     integral_left = sum(integrate_on_element(func, u_left.u[element], semi, element,
                                              jacobian_left)
                         for element in 1:l_left)
