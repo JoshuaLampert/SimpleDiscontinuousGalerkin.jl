@@ -31,21 +31,59 @@ end
 
     for i in 1:nsubplots
         if plot_initial == true
-            @series begin
-                subplot --> i
-                linestyle := :solid
-                label --> "initial $(names[i])"
-                flat_grid(semi), get_variable(u_exact, i, semi)
+            if semi isa SemidiscretizationOversetGrid
+                u_exact_left, u_exact_right = get_variable(u_exact, i, semi)
+                x_left, x_right = flat_grid(semi)
+                @series begin
+                    subplot --> i
+                    linestyle --> :solid
+                    label --> "initial $(names[i])"
+                    x_left, u_exact_left
+                end
+                @series begin
+                    subplot --> i
+                    linestyle --> :solid
+                    label --> "initial $(names[i])"
+                    x_right, u_exact_right
+                end
+            else
+                @series begin
+                    subplot --> i
+                    linestyle --> :solid
+                    label --> "initial $(names[i])"
+                    flat_grid(semi), get_variable(u_exact, i, semi)
+                end
             end
         end
 
-        @series begin
-            subplot --> i
-            label --> names[i]
-            xguide --> "x"
-            yguide --> names[i]
-            title --> names[i]
-            flat_grid(semi), get_variable(u, i, semi)
+        if semi isa SemidiscretizationOversetGrid
+            u_left, u_right = get_variable(u, i, semi)
+            x_left, x_right = flat_grid(semi)
+            @series begin
+                subplot --> i
+                label --> names[i]
+                xguide --> "x"
+                yguide --> names[i]
+                title --> names[i]
+                x_left, u_left
+            end
+            @series begin
+                subplot --> i
+                label --> names[i]
+                xguide --> "x"
+                yguide --> names[i]
+                title --> names[i]
+                x_right, u_right
+            end
+        else
+            @series begin
+                subplot --> i
+                label --> names[i]
+                xguide --> "x"
+                yguide --> names[i]
+                title --> names[i]
+                flat_grid(semi), get_variable(u, i, semi)
+            end
         end
     end
 end
