@@ -237,16 +237,15 @@ end
     initial_condition = initial_condition_Gaussian
     boundary_conditions = (x_neg = BoundaryConditionDirichlet(initial_condition),
                            x_pos = boundary_condition_do_nothing)
-    semi = Semidiscretization(mesh_left, equations, initial_condition, solver;
+    semi = Semidiscretization(mesh, equations, initial_condition, solver;
                               boundary_conditions)
     @testset "Boundary conditions" begin
         @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
                             semi=semi,
-                            l2=[1.853998203579708e-9], linf=[1.920271383885191e-8],
-                            cons_error=[0.5454289797664283],
-                            change_mass=-0.5454289797664283,
-                            change_entropy=-0.19781888899502437,
-                            entropy_timederivative=-1.0341507958549622e-15,
-                            atol=1e-8) # To make CI pass
+                            l2=[9.287766266389129e-6], linf=[4.926556788237193e-5],
+                            cons_error=[0.5462913980698885],
+                            change_mass=-0.5462913980698885,
+                            change_entropy=-0.19785618067708552,
+                            entropy_timederivative=-0.006735287186087797)
     end
 end
