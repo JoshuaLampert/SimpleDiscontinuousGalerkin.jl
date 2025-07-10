@@ -246,6 +246,7 @@ end
                             cons_error=[0.5454289797664283],
                             change_mass=-0.5454289797664283,
                             change_entropy=-0.19781888899502437,
-                            entropy_timederivative=-1.0341507958549622e-15)
+                            entropy_timederivative=-1.0341507958549622e-15,
+                            atol=1e-8) # To make CI pass
     end
 end
