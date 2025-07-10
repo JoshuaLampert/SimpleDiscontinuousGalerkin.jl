@@ -50,6 +50,7 @@ end
     mesh = Mesh(coordinates_min, coordinates_max, N)
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
+    @test_nowarn show(IOContext(stdout, :compact => false), mesh)
     @test ndims(mesh) == 1
     @test SimpleDiscontinuousGalerkin.nelements(mesh) == N
     @test real(mesh) == Float64
@@ -59,6 +60,7 @@ end
     mesh = InhomogeneousMesh(coordinates_min:0.1:coordinates_max)
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
+    @test_nowarn show(IOContext(stdout, :compact => false), mesh)
     @test ndims(mesh) == 1
     @test SimpleDiscontinuousGalerkin.nelements(mesh) == 10
     @test real(mesh) == Float64
@@ -70,6 +72,7 @@ end
     mesh = OversetGridMesh(mesh_left, mesh_right)
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
+    @test_nowarn show(IOContext(stdout, :compact => false), mesh)
     @test ndims(mesh) == 1
     @test SimpleDiscontinuousGalerkin.nelements(mesh) == 10
     @test real(mesh) == Float64
@@ -134,10 +137,12 @@ end
     @test_nowarn print(semi)
     @test_nowarn display(semi)
     @test ndims(semi) == 1
+    @test real(semi) == Float64
     @test SimpleDiscontinuousGalerkin.nvariables(semi) == 1
     @test SimpleDiscontinuousGalerkin.nelements(semi) == 5
     @test SimpleDiscontinuousGalerkin.ndofs(semi) == 20
-    @test real(semi) == Float64
+    @test nnodes(semi, 2) == 4
+    @test eachnode(semi, 2) == 1:4
 
     @test all(isapprox.(grid(semi),
                         [0.0 0.2 0.4 0.6 0.8;
