@@ -11,14 +11,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain",
                    mesh::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT}
-    if get(io, :compact, false)
-        show(io, mesh)
-    else
-        println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
-        println(io, "    xmin: ", xmin(mesh))
-        println(io, "    xmax: ", xmax(mesh))
-        print(io, "    nelements: ", nelements(mesh))
-    end
+    println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
+    println(io, "    xmin: ", xmin(mesh))
+    println(io, "    xmax: ", xmax(mesh))
+    print(io, "    nelements: ", nelements(mesh))
 end
 
 """
@@ -161,11 +157,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain",
                    mesh::OversetGridMesh{NDIMS, RealT}) where {NDIMS, RealT}
-    if get(io, :compact, false)
-        show(io, mesh)
-    else
-        println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
-        println(io, "    mesh_left: ", mesh.mesh_left)
-        print(io, "    mesh_right: ", mesh.mesh_right)
-    end
+    println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
+    println(io, "    mesh_left: ", mesh.mesh_left)
+    print(io, "    mesh_right: ", mesh.mesh_right)
 end
