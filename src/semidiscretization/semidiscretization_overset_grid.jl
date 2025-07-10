@@ -50,10 +50,11 @@ function calc_volume_integral!(du, u, mesh::OversetGridMesh, equations,
                                solver, cache)
     u_left, u_right = u
     du_left, du_right = du
+    f_all_left, f_all_right = cache.f_all
     calc_volume_integral!(du_left, u_left, mesh.mesh_left, equations,
-                          integral, solver, cache, cache.f_all[1])
+                          integral, solver, cache, f_all_left)
     calc_volume_integral!(du_right, u_right, mesh.mesh_right, equations,
-                          integral, solver, cache, cache.f_all[2])
+                          integral, solver, cache, f_all_right)
 end
 
 function create_cache_surface_flux_values(mesh::OversetGridMesh, equations, solver)
@@ -71,9 +72,10 @@ end
 function calc_interface_flux!(surface_flux_values, u, mesh::OversetGridMesh, equations,
                               integral::AbstractSurfaceIntegral, solver, cache)
     u_left, u_right = u
-    calc_interface_flux!(surface_flux_values[1], u_left, mesh.mesh_left,
+    surface_flux_values_left, surface_flux_values_right = surface_flux_values
+    calc_interface_flux!(surface_flux_values_left, u_left, mesh.mesh_left,
                          equations, integral, solver, cache)
-    calc_interface_flux!(surface_flux_values[2], u_right, mesh.mesh_right,
+    calc_interface_flux!(surface_flux_values_right, u_right, mesh.mesh_right,
                          equations, integral, solver, cache)
 end
 
@@ -83,12 +85,13 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     u_left, u_right = u
     (; x_neg, x_pos) = boundary_conditions
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
+    surface_flux_values_left, surface_flux_values_right = surface_flux_values
 
     # Left boundary condition of left mesh
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
     u_rr = get_node_vars(u_left, equations, 1, 1)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
-    set_node_vars!(surface_flux_values[1], f, equations, 1, 1)
+    set_node_vars!(surface_flux_values_left, f, equations, 1, 1)
 
     # Right boundary condition of left mesh
     u_ll = get_node_vars(u_left, equations, nnodes(solver, nelements(mesh_left)),
@@ -109,7 +112,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
         u_rr[v] = e_M_right' * values
     end
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
-    set_node_vars!(surface_flux_values[1], f, equations, 2, nelements(mesh_left))
+    set_node_vars!(surface_flux_values_left, f, equations, 2, nelements(mesh_left))
 
     # Left boundary condition of right mesh
     l_left = left_overlap_element(mesh)
@@ -126,14 +129,14 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     end
     u_rr = get_node_vars(u_right, equations, 1, 1)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
-    set_node_vars!(surface_flux_values[2], f, equations, 1, 1)
+    set_node_vars!(surface_flux_values_right, f, equations, 1, 1)
 
     # Right boundary condition of right mesh
     u_ll = get_node_vars(u_right, equations, nnodes(solver, nelements(mesh_right)),
                          nelements(mesh_right))
     u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
-    set_node_vars!(surface_flux_values[2], f, equations, 2, nelements(mesh_right))
+    set_node_vars!(surface_flux_values_right, f, equations, 2, nelements(mesh_right))
 end
 
 function calc_surface_integral!(du, u, mesh::OversetGridMesh, equations,
@@ -142,16 +145,18 @@ function calc_surface_integral!(du, u, mesh::OversetGridMesh, equations,
                                 solver, cache)
     du_left, du_right = du
     u_left, u_right = u
+    surface_flux_values_left, surface_flux_values_right = cache.surface_flux_values
     calc_surface_integral!(du_left, u_left, mesh.mesh_left, equations,
-                           integral, solver, cache, cache.surface_flux_values[1])
+                           integral, solver, cache, surface_flux_values_left)
     calc_surface_integral!(du_right, u_right, mesh.mesh_right, equations,
-                           integral, solver, cache, cache.surface_flux_values[2])
+                           integral, solver, cache, surface_flux_values_right)
 end
 
 function apply_jacobian!(du, mesh::OversetGridMesh, equations, solver, cache)
     du_left, du_right = du
-    apply_jacobian!(du_left, mesh.mesh_left, equations, solver, cache, cache.jacobian[1])
-    apply_jacobian!(du_right, mesh.mesh_right, equations, solver, cache, cache.jacobian[2])
+    jacobian_left, jacobian_right = cache.jacobian
+    apply_jacobian!(du_left, mesh.mesh_left, equations, solver, cache, jacobian_left)
+    apply_jacobian!(du_right, mesh.mesh_right, equations, solver, cache, jacobian_right)
 end
 
 # This method is for integrating a vector quantity for all variables over the entire domain,
