@@ -4,7 +4,7 @@ using OrdinaryDiffEqLowStorageRK
 ###############################################################################
 # semidiscretization of the linear advection equation
 
-advection_velocity = -2.0
+advection_velocity = 2.0
 equations = LinearAdvectionEquation1D(advection_velocity)
 
 initial_condition = initial_condition_convergence_test
@@ -32,7 +32,7 @@ semi = Semidiscretization(mesh, equations, initial_condition, solver)
 tspan = (0.0, 1.0)
 ode = semidiscretize(semi, tspan)
 summary_callback = SummaryCallback()
-analysis_callback = AnalysisCallback(semi; interval = 1,
+analysis_callback = AnalysisCallback(semi; interval = 10,
                                      extra_analysis_errors = (:conservation_error,))
 callbacks = CallbackSet(analysis_callback, summary_callback)
 
