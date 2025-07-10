@@ -229,4 +229,23 @@ end
                             change_entropy=-1.9940662454587255e-8,
                             entropy_timederivative=-1.4171278622798766e-8)
     end
+
+    function initial_condition_Gaussian(x, t, equations::LinearAdvectionEquation1D)
+        x_trans = x - equations.advection_velocity * t
+        return SVector(exp(-(x_trans + 0.5)^2 / 0.1))
+    end
+    initial_condition = initial_condition_Gaussian
+    boundary_conditions = (x_neg = BoundaryConditionDirichlet(initial_condition),
+                           x_pos = boundary_condition_do_nothing)
+    semi = Semidiscretization(mesh_left, equations, initial_condition, solver;
+                              boundary_conditions)
+    @testset "Boundary conditions" begin
+        @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
+                            semi=semi,
+                            l2=[1.853998203579708e-9], linf=[1.920271383885191e-8],
+                            cons_error=[0.5454289797664283],
+                            change_mass=-0.5454289797664283,
+                            change_entropy=-0.19781888899502437,
+                            entropy_timederivative=-1.0341507958549622e-15)
+    end
 end
