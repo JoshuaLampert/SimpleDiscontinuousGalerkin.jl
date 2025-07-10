@@ -10,8 +10,6 @@ include("per_element.jl")
 get_basis(solver::DG, element) = solver.basis
 get_basis(solver::PerElementFDSBP, element) = solver.basis.bases[element]
 
-get_jacobian(solver::DG, element, cache) = cache.jacobian[element]
-
 get_integral_operator(operator, solver, element) = operator
 function get_integral_operator(operator, ::PerElementFDSBP, element)
     operator[element]
@@ -31,10 +29,17 @@ function compute_integral_operator(solver::PerElementFDSBP, integral; kwargs...)
     return integral_operator
 end
 
-function calc_error_norms(u, t, initial_condition, mesh::AbstractMesh, equations,
-                          solver::DG, cache)
+function calc_error_norms(u, t, initial_condition, mesh, equations,
+                          solver, cache)
+    calc_error_norms(u, t, initial_condition, mesh, equations,
+                     solver, cache, cache.jacobian, cache.node_coordinates)
+end
+
+function calc_error_norms(u, t, initial_condition, mesh, equations,
+                          solver, cache, jacobian, node_coordinates)
     u_exact = similar(u)
-    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)
+    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache,
+                          node_coordinates)
     l2_error = zeros(real(solver), nvariables(equations))
     linf_error = zeros(real(solver), nvariables(equations))
     for v in eachvariable(equations)
@@ -46,7 +51,7 @@ function calc_error_norms(u, t, initial_condition, mesh::AbstractMesh, equations
             for i in eachnode(solver, element)
                 diff[i] = u[v, i, element] - u_exact[v, i, element]
             end
-            l2_error[v] += get_jacobian(solver, element, cache) *
+            l2_error[v] += jacobian[element] *
                            integrate(abs2, diff, get_basis(solver, element))
             linf_error[v] = max(linf_error[v], maximum(abs.(diff)))
         end

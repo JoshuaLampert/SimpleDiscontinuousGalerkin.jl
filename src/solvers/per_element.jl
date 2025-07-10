@@ -37,8 +37,7 @@ end
 
 grid(solver::PerElementFDSBP, element) = grid(solver.basis, element)
 
-function create_cache(mesh, equations, solver::PerElementFDSBP, initial_condition,
-                      boundary_conditions)
+function create_jacobian_and_node_coordinates(mesh, solver::PerElementFDSBP)
     @assert length(solver.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
     # We need a `Vector{Vector}` to account for potentially different number of nodes for each element
     # compute all mapped nodes
@@ -56,17 +55,14 @@ function create_cache(mesh, equations, solver::PerElementFDSBP, initial_conditio
             x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
         end
     end
-    cache = (; jacobian, node_coordinates = x,
-             create_cache(mesh, equations, solver, solver.volume_integral)...,
-             create_cache(mesh, equations, solver, solver.surface_integral)...)
-    return cache
+    return jacobian, x
 end
 
 # We need different data structure because we have a different number of nodes per element
 # `get_node_coords`, `get_node_vars`, and `set_node_vars!` can be reused because we can
 # access the `Array{RealT, 3}` in the same way as the `VectorOfArray` structure
 # (`v` first, node variable(s) in the middle, `element` last).
-function allocate_coefficients(mesh::AbstractMesh, equations, solver::PerElementFDSBP)
+function allocate_coefficients(mesh, equations, solver::PerElementFDSBP)
     u = [zeros(real(solver), nvariables(equations), nnodes(solver, element))
          for element in eachelement(mesh)]
     return VectorOfArray(u)

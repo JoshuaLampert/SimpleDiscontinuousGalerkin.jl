@@ -1,3 +1,23 @@
+@testitem "utils" begin
+    D = legendre_derivative_operator(-1.0, 1.0, 5)
+    x = 0.5
+    nodes = grid(D)
+    values = sin.(nodes)
+    baryweights = PolynomialBases.barycentric_weights(nodes)
+    f = interpolate(x, values, nodes, baryweights)
+
+    e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
+    @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
+    @test_nowarn isapprox(e_M' * values, f, atol = 1.0e-14)
+
+    D = derivative_operator(MattssonNordström2004(), 1, 2, -1.1, 2.6, 20)
+    nodes = grid(D)
+    values = sin.(nodes)
+
+    e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
+    @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
+end
+
 @testitem "equations" begin
     equations = @test_nowarn LinearAdvectionEquation1D(-2.0)
     @test_nowarn print(equations)
@@ -30,6 +50,7 @@ end
     mesh = Mesh(coordinates_min, coordinates_max, N)
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
+    @test_nowarn show(IOContext(stdout, :compact => false), mesh)
     @test ndims(mesh) == 1
     @test SimpleDiscontinuousGalerkin.nelements(mesh) == N
     @test real(mesh) == Float64
@@ -39,11 +60,26 @@ end
     mesh = InhomogeneousMesh(coordinates_min:0.1:coordinates_max)
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
+    @test_nowarn show(IOContext(stdout, :compact => false), mesh)
     @test ndims(mesh) == 1
     @test SimpleDiscontinuousGalerkin.nelements(mesh) == 10
     @test real(mesh) == Float64
     @test SimpleDiscontinuousGalerkin.xmin(mesh) == coordinates_min
     @test SimpleDiscontinuousGalerkin.xmax(mesh) == coordinates_max
+
+    mesh_left = Mesh(-1.0, 0.1, 5)
+    mesh_right = Mesh(-0.1, 1.0, 5)
+    mesh = OversetGridMesh(mesh_left, mesh_right)
+    @test_nowarn print(mesh)
+    @test_nowarn display(mesh)
+    @test_nowarn show(IOContext(stdout, :compact => false), mesh)
+    @test ndims(mesh) == 1
+    @test SimpleDiscontinuousGalerkin.nelements(mesh) == 10
+    @test real(mesh) == Float64
+    @test SimpleDiscontinuousGalerkin.xmin(mesh) == -1.0
+    @test SimpleDiscontinuousGalerkin.xmax(mesh) == 1.0
+    @test SimpleDiscontinuousGalerkin.left_overlap_element(mesh) == 5
+    @test SimpleDiscontinuousGalerkin.right_overlap_element(mesh) == 1
 end
 
 @testitem "surface integrals" begin
@@ -101,10 +137,12 @@ end
     @test_nowarn print(semi)
     @test_nowarn display(semi)
     @test ndims(semi) == 1
+    @test real(semi) == Float64
     @test SimpleDiscontinuousGalerkin.nvariables(semi) == 1
     @test SimpleDiscontinuousGalerkin.nelements(semi) == 5
     @test SimpleDiscontinuousGalerkin.ndofs(semi) == 20
-    @test real(semi) == Float64
+    @test nnodes(semi, 2) == 4
+    @test eachnode(semi, 2) == 1:4
 
     @test all(isapprox.(grid(semi),
                         [0.0 0.2 0.4 0.6 0.8;
@@ -150,10 +188,14 @@ end
     @test_nowarn plot(semi => sol, plot_initial = true)
     @test_nowarn plot(semi => sol, step = 5)
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
+
     include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
     @test_nowarn plot(analysis_callback)
     @test_nowarn plot(analysis_callback, what = (:errors,))
     @test_nowarn plot(analysis_callback, what = (:integrals, :errors))
+
+    include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"))
+    @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
 end

@@ -39,11 +39,9 @@ Construct a semidiscretization of a PDE.
 """
 function Semidiscretization(mesh, equations, initial_condition, solver;
                             boundary_conditions = boundary_condition_periodic)
-    tmp_scalar = VectorOfArray([zeros(real(solver), nnodes(solver, element))
-                                for element in eachelement(mesh)])
     cache = (;
              create_cache(mesh, equations, solver, initial_condition,
-                          boundary_conditions)..., tmp_scalar)
+                          boundary_conditions)...)
     _boundary_conditions = digest_boundary_conditions(boundary_conditions)
     Semidiscretization{typeof(mesh), typeof(equations), typeof(initial_condition),
                        typeof(_boundary_conditions), typeof(solver), typeof(cache)}(mesh,
@@ -99,7 +97,7 @@ get_tmp_cache_scalar(semi::Semidiscretization) = semi.cache.tmp_scalar
 
 Get the grid of a semidiscretization.
 """
-SummationByPartsOperators.grid(semi::Semidiscretization) = semi.cache.node_coordinates
+grid(semi::Semidiscretization) = semi.cache.node_coordinates
 
 """
     flat_grid(semi)
@@ -123,14 +121,13 @@ function get_variable(u, v, semi::Semidiscretization)
     get_variable(u, v, semi.solver)
 end
 
-function get_jacobian(semi::Semidiscretization, element)
-    get_jacobian(semi.solver, element, semi.cache)
-end
-
 # Here, `func` is a function that takes a vector at one element
 # `u` is a vector of coefficients at all nodes of the element.
-function integrate_on_element(func, u, semi::Semidiscretization, element)
-    return get_jacobian(semi, element) * integrate(func, u, get_basis(semi, element))
+function integrate_on_element(func, u, semi, element)
+    integrate_on_element(func, u, semi, element, semi.cache.jacobian)
+end
+function integrate_on_element(func, u, semi::Semidiscretization, element, jacobian)
+    return jacobian[element] * integrate(func, u, get_basis(semi, element))
 end
 # This method is for integrating a vector quantity for all variables over the entire domain,
 # such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
@@ -141,8 +138,8 @@ function PolynomialBases.integrate(func,
                                    semi::Semidiscretization) where {T}
     integrals = zeros(real(semi), nvariables(semi))
     for v in eachvariable(semi)
-        integrals[v] = sum(integrate_on_element(func, u[v, :, element], semi, element)
-                           for element in eachelement(semi))
+        u_v = VectorOfArray([u[v, :, element] for element in eachelement(semi)])
+        integrals[v] = integrate(func, u_v, semi)
     end
     return integrals
 end
@@ -163,14 +160,29 @@ function integrate_quantity(func, u, semi::Semidiscretization)
     integrate_quantity!(quantity, func, u, semi)
 end
 
-function integrate_quantity!(quantity, func, u, semi::Semidiscretization)
-    for element in eachelement(semi)
-        for i in eachnode(semi, element)
-            quantity[i, element] = func(get_node_vars(u, semi.equations, i, element),
-                                        semi.equations)
+function compute_quantity!(quantity, func, u, mesh, equations, solver)
+    for element in eachelement(mesh)
+        for i in eachnode(solver, element)
+            u_node = get_node_vars(u, equations, i, element)
+            quantity[i, element] = func(u_node, equations)
         end
     end
+end
+
+function integrate_quantity!(quantity, func, u, semi::Semidiscretization)
+    mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
+    compute_quantity!(quantity, func, u, mesh, equations, solver)
     integrate(quantity, semi)
+end
+
+function compute_quantity_timederivative!(quantity, func, du, u, mesh, equations, solver)
+    for element in eachelement(mesh)
+        for i in eachnode(solver, element)
+            u_node = get_node_vars(u, equations, i, element)
+            du_node = get_node_vars(du, equations, i, element)
+            quantity[i, element] = dot(func(u_node, equations), du_node)
+        end
+    end
 end
 
 @inline function mesh_equations_solver_cache(semi::Semidiscretization)
@@ -212,3 +224,5 @@ function semidiscretize(semi::Semidiscretization, tspan)
     iip = true # is-inplace, i.e., we modify a vector when calling rhs!
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
 end
+
+include("semidiscretization_overset_grid.jl")

@@ -11,14 +11,10 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain",
                    mesh::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT}
-    if get(io, :compact, false)
-        show(io, mesh)
-    else
-        println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
-        println(io, "    xmin: ", xmin(mesh))
-        println(io, "    xmax: ", xmax(mesh))
-        print(io, "    nelements: ", nelements(mesh))
-    end
+    println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
+    println(io, "    xmin: ", xmin(mesh))
+    println(io, "    xmax: ", xmax(mesh))
+    print(io, "    nelements: ", nelements(mesh))
 end
 
 """
@@ -113,4 +109,55 @@ end
 function left_element_boundary(mesh::InhomogeneousMesh, element)
     @assert 1<=element<=nelements(mesh) "Element index out of bounds"
     return mesh.coordinates[element]
+end
+
+"""
+    OversetGridMesh{NDIMS, RealT, MeshLeft, MeshRight}
+    OversetGridMesh(mesh_left, mesh_right)
+
+Create an overset grid (Chimera) mesh that combines two meshes, `mesh_left` and `mesh_right`, which have an overlap region.
+"""
+struct OversetGridMesh{NDIMS, RealT, MeshLeft <: AbstractMesh, MeshRight <: AbstractMesh} <:
+       AbstractMesh{NDIMS, RealT}
+    mesh_left::MeshLeft
+    mesh_right::MeshRight
+
+    function OversetGridMesh(mesh_left::MeshLeft,
+                             mesh_right::MeshRight) where {RealT,
+                                                           MeshLeft <:
+                                                           AbstractMesh{1, RealT},
+                                                           MeshRight <:
+                                                           AbstractMesh{1, RealT}}
+        @assert xmin(mesh_left) < xmin(mesh_right) &&
+                xmax(mesh_left) > xmin(mesh_right) &&
+                xmin(mesh_left) < xmax(mesh_right)
+        new{1, RealT, MeshLeft, MeshRight}(mesh_left, mesh_right)
+    end
+end
+
+xmin(mesh::OversetGridMesh) = xmin(mesh.mesh_left)
+xmax(mesh::OversetGridMesh) = xmax(mesh.mesh_right)
+@inline nelements(mesh::OversetGridMesh) = nelements(mesh.mesh_left) +
+                                           nelements(mesh.mesh_right)
+
+function left_overlap_element(mesh::OversetGridMesh)
+    b = xmin(mesh.mesh_right)
+    l_left = findfirst(element -> left_element_boundary(mesh.mesh_left, element) >= b,
+                       1:nelements(mesh.mesh_left))
+    isnothing(l_left) ? l_left = nelements(mesh.mesh_left) : l_left -= 1
+    return l_left
+end
+function right_overlap_element(mesh::OversetGridMesh)
+    c = xmax(mesh.mesh_left)
+    l_right = findfirst(element -> left_element_boundary(mesh.mesh_right, element) >= c,
+                        1:nelements(mesh.mesh_right))
+    isnothing(l_right) ? l_right = nelements(mesh.mesh_right) : l_right -= 1
+    return l_right
+end
+
+function Base.show(io::IO, ::MIME"text/plain",
+                   mesh::OversetGridMesh{NDIMS, RealT}) where {NDIMS, RealT}
+    println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
+    println(io, "    mesh_left: ", mesh.mesh_left)
+    print(io, "    mesh_right: ", mesh.mesh_right)
 end

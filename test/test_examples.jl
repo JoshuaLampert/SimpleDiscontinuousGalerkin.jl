@@ -204,3 +204,48 @@ end
                             entropy_timederivative=-9.210638503565072e-7)
     end
 end
+
+@testitem "linear_advection_overset_grid.jl" setup=[Setup] begin
+    # Not mass conservative because we miss integrating the part from the left boundary of the left
+    # overlap element to b.
+    @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
+                        l2=[2.3825331813104963e-5], linf=[3.095999626845369e-5],
+                        cons_error=[6.721897816142075e-9],
+                        change_mass=-6.721897816142075e-9,
+                        change_entropy=8.533662195886471e-6,
+                        entropy_timederivative=0.09450660830795257)
+
+    dx = (c - a) / N_elements
+    coordinates = collect(a:dx:c)
+    push!(coordinates, b)
+    mesh_left = InhomogeneousMesh(coordinates)
+    # Adding b to the left mesh yields mass conservation again
+    @testset "InhomogeneousMesh" begin
+        @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
+                            mesh_left=mesh_left,
+                            l2=[2.0422480731399535e-5], linf=[3.951360818943428e-5],
+                            cons_error=[2.220446049250313e-16],
+                            change_mass=2.220446049250313e-16,
+                            change_entropy=-1.9940662454587255e-8,
+                            entropy_timederivative=-1.4171278622798766e-8)
+    end
+
+    function initial_condition_Gaussian(x, t, equations::LinearAdvectionEquation1D)
+        x_trans = x - equations.advection_velocity * t
+        return SVector(exp(-(x_trans + 0.5)^2 / 0.1))
+    end
+    initial_condition = initial_condition_Gaussian
+    boundary_conditions = (x_neg = BoundaryConditionDirichlet(initial_condition),
+                           x_pos = boundary_condition_do_nothing)
+    semi = Semidiscretization(mesh, equations, initial_condition, solver;
+                              boundary_conditions)
+    @testset "Boundary conditions" begin
+        @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
+                            semi=semi,
+                            l2=[9.287766266389129e-6], linf=[4.926556788237193e-5],
+                            cons_error=[0.5462913980698885],
+                            change_mass=-0.5462913980698885,
+                            change_entropy=-0.19785618067708552,
+                            entropy_timederivative=-0.006735287186087797)
+    end
+end

@@ -338,15 +338,9 @@ function analyze(quantity, du, u, t, semi::Semidiscretization)
 end
 
 function analyze(::typeof(entropy_timederivative), du, u, t, semi::Semidiscretization)
-    mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
+    mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
     quantity = get_tmp_cache_scalar(semi)
-    for element in eachelement(semi)
-        for i in eachnode(semi, element)
-            u_node = get_node_vars(u, equations, i, element)
-            du_node = get_node_vars(du, equations, i, element)
-            quantity[i, element] = dot(cons2entropy(u_node, equations), du_node)
-        end
-    end
+    compute_quantity_timederivative!(quantity, cons2entropy, du, u, mesh, equations, solver)
     return integrate(quantity, semi)
 end
 
