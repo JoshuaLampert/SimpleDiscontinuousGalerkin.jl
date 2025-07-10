@@ -143,31 +143,19 @@ xmin(mesh::OversetGridMesh) = xmin(mesh.mesh_left)
 xmax(mesh::OversetGridMesh) = xmax(mesh.mesh_right)
 @inline nelements(mesh::OversetGridMesh) = nelements(mesh.mesh_left) +
                                            nelements(mesh.mesh_right)
-function element_spacing(mesh::OversetGridMesh, element)
-    if element <= nelements(mesh.mesh_left)
-        return element_spacing(mesh.mesh_left, element)
-    else
-        return element_spacing(mesh.mesh_right, element - nelements(mesh.mesh_left))
-    end
-end
-function left_element_boundary(mesh::OversetGridMesh, element)
-    if element <= nelements(mesh.mesh_left)
-        return left_element_boundary(mesh.mesh_left, element)
-    else
-        return left_element_boundary(mesh.mesh_right, element - nelements(mesh.mesh_left))
-    end
-end
 
 function left_overlap_element(mesh::OversetGridMesh)
     b = xmin(mesh.mesh_right)
     l_left = findfirst(element -> left_element_boundary(mesh.mesh_left, element) >= b,
-                       1:nelements(mesh.mesh_left)) - 1
+                       1:nelements(mesh.mesh_left))
+    isnothing(l_left) ? l_left = nelements(mesh.mesh_left) : l_left -= 1
     return l_left
 end
 function right_overlap_element(mesh::OversetGridMesh)
     c = xmax(mesh.mesh_left)
     l_right = findfirst(element -> left_element_boundary(mesh.mesh_right, element) >= c,
-                        1:nelements(mesh.mesh_right)) - 1
+                        1:nelements(mesh.mesh_right))
+    isnothing(l_right) ? l_right = nelements(mesh.mesh_right) : l_right -= 1
     return l_right
 end
 
