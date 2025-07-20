@@ -20,6 +20,17 @@ end
                             change_entropy=-4.29859495665319e-7,
                             entropy_timederivative=-6.420623105407586e-7)
     end
+
+    surface_flux = flux_lax_friedrichs
+    @testset "flux_lax_friedrichs as surface flux" begin
+        @test_trixi_include(joinpath(examples_dir(), "linear_advection.jl"),
+                            surface_flux=surface_flux,
+                            l2=[0.00015746414238601946], linf=[0.00042895011704702224],
+                            cons_error=[3.191891195797325e-16],
+                            change_mass=3.191891195797325e-16,
+                            change_entropy=-9.082223089151853e-7,
+                            entropy_timederivative=-9.210638497458845e-7)
+    end
 end
 
 @testitem "linear_advection_Dirichlet_boundary_condition.jl" setup=[Setup] begin

@@ -41,7 +41,7 @@ include("visualization.jl")
 export cons2cons, eachvariable, nvariables
 export mass, entropy
 export LinearAdvectionEquation1D
-export flux, flux_central, flux_godunov
+export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs
 export initial_condition_convergence_test
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,

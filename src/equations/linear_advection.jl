@@ -18,6 +18,12 @@ varnames(::typeof(cons2cons), ::LinearAdvectionEquation1D) = ("u",)
     return a * u
 end
 
+# Calculate maximum wave speed for local Lax-Friedrichs-type dissipation
+@inline function max_abs_speed_naive(u_ll, u_rr,
+                                     equation::LinearAdvectionEquation1D)
+    return abs(equation.advection_velocity)
+end
+
 """
     flux_godunov(u_ll, u_rr, equations::LinearAdvectionEquation1D)
 
