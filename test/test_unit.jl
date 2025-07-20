@@ -30,6 +30,16 @@ end
     @test flux.(u, equations) == [SVector(-2.0), SVector(4.0)]
     @test flux_central.(u, u, equations) == flux.(u, equations)
     @test flux_godunov.(u, u, equations) == flux.(u, equations)
+    @test flux_lax_friedrichs.(u, u, equations) == flux.(u, equations)
+
+    @test_nowarn print(FluxLaxFriedrichs())
+    @test_nowarn display(FluxLaxFriedrichs())
+    @test_nowarn print(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
+    @test_nowarn display(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
+    @test_nowarn print(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_central,
+                                                                       SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs()))
+    @test_nowarn display(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_central,
+                                                                         SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs()))
 end
 
 @testitem "boundary_conditions" begin
