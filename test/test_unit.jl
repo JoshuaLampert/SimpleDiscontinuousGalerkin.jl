@@ -36,9 +36,9 @@ end
     @test_nowarn display(FluxLaxFriedrichs())
     @test_nowarn print(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
     @test_nowarn display(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
-    @test_nowarn print(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_central,
+    @test_nowarn print(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_godunov,
                                                                        SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs()))
-    @test_nowarn display(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_central,
+    @test_nowarn display(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_godunov,
                                                                          SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs()))
 end
 

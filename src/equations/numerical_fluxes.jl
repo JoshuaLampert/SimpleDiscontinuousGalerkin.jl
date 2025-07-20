@@ -86,7 +86,7 @@ Local Lax-Friedrichs (Rusanov) flux with maximum wave speed estimate provided by
 `max_abs_speed`, cf. [`DissipationLocalLaxFriedrichs`](@ref) and
 [`max_abs_speed_naive`](@ref).
 """
-function FluxLaxFriedrichs(max_abs_speed = max_abs_speed_naive)
+function FluxLaxFriedrichs(max_abs_speed = max_abs_speed)
     FluxPlusDissipation(flux_central, DissipationLocalLaxFriedrichs(max_abs_speed))
 end
 
