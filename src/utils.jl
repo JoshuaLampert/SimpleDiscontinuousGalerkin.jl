@@ -33,7 +33,7 @@ end
 """
     examples_dir()
 
-Return the directory where the example files provided with SimpleDiscontinuousGalerkin.jl are located. If SimpleDiscontinuousGalerkin.jl is
+Return the directory where the example files provided by SimpleDiscontinuousGalerkin.jl are located. If SimpleDiscontinuousGalerkin.jl is
 installed as a regular package (with `]add SimpleDiscontinuousGalerkin`), these files are read-only and should *not* be
 modified. To find out which files are available, use, e.g., `readdir`.
 
