@@ -19,6 +19,7 @@
     @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
 
     # convergence test
+    convergence_test(default_example(), 3)
     polydegs = [1, 3, 5]
     for polydeg in polydegs
         eoc_mean_values, _ = convergence_test(default_example(), 3, N_elements = 16,
