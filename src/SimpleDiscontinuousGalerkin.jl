@@ -38,6 +38,7 @@ include("semidiscretization/semidiscretization.jl")
 include("callbacks_step/callbacks_step.jl")
 include("visualization.jl")
 
+export examples_dir, default_example, convergence_test
 export cons2cons, eachvariable, nvariables
 export mass, entropy
 export LinearAdvectionEquation1D

@@ -50,3 +50,10 @@ Pages = ["semidiscretization.jl"]
 Modules = [SimpleDiscontinuousGalerkin]
 Pages = Main.CALLBACKS_STEP_FILES
 ```
+
+## Utilities
+
+```@autodocs
+Modules = [SimpleDiscontinuousGalerkin]
+Pages = ["utils.jl"]
+```

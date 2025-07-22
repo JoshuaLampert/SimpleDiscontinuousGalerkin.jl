@@ -16,7 +16,8 @@ D = derivative_operator(MattssonNordström2004(), 1, 2, -0.2, 0.2, 5)
 solver = FDSBP(D, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
                volume_integral = VolumeIntegralStrongForm())
 
-mesh = Mesh(coordinates_min, coordinates_max, 20)
+N_elements = 20
+mesh = Mesh(coordinates_min, coordinates_max, N_elements)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
 boundary_conditions = (x_neg = BoundaryConditionDirichlet(initial_condition),
