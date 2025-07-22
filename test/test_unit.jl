@@ -1,4 +1,5 @@
 @testitem "utils" begin
+    # Interpolation
     D = legendre_derivative_operator(-1.0, 1.0, 5)
     x = 0.5
     nodes = grid(D)
@@ -16,6 +17,23 @@
 
     e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
     @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
+
+    # convergence test
+    polydegs = [1, 3, 5]
+    for polydeg in polydegs
+        eoc_mean_values, _ = convergence_test(default_example(), 3, N_elements = 16,
+                                              tspan = (0.0, 1.0), polydeg = polydeg,
+                                              abstol = 1e-14, reltol = 1e-14)
+        @test isapprox(eoc_mean_values[:l2][1], polydeg + 1, atol = 0.15)
+        @test isapprox(eoc_mean_values[:linf][1], polydeg + 1, atol = 0.15)
+
+        eoc_mean_values2, _ = convergence_test(default_example(), [16, 32, 64],
+                                               tspan = (0.0, 1.0), polydeg = polydeg,
+                                               abstol = 1e-14, reltol = 1e-14)
+        for kind in (:l2, :linf), variable in (1,)
+            eoc_mean_values[kind][variable] == eoc_mean_values2[kind][variable]
+        end
+    end
 end
 
 @testitem "equations" begin
