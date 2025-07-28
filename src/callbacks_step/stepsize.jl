@@ -60,7 +60,7 @@ end
     @unpack cfl_number = stepsize_callback
 
     # Dispatch based on semidiscretization
-    dt = calculate_dt(u, t, cfl_number, semi)
+    dt = @trixi_timeit timer() "calculate dt" calculate_dt(u, t, cfl_number, semi)
 
     set_proposed_dt!(integrator, dt)
     integrator.opts.dtmax = dt
