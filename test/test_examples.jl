@@ -133,6 +133,12 @@ end
                             change_entropy=-0.0002495788935772403,
                             entropy_timederivative=-9.203964659865171e-7)
     end
+
+    @testset "throw error if adaptive = true" begin
+        @test_throws LoadError trixi_include(joinpath(examples_dir(),
+                                                      "linear_advection_cfl.jl"),
+                                             adaptive = true)
+    end
 end
 
 @testitem "linear_advection_inhomogeneous_mesh.jl" setup=[Setup] begin
