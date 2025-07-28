@@ -20,7 +20,7 @@ using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
-import SciMLBase: ODESolution, u_modified!, get_tmp_cache
+import SciMLBase: ODESolution, u_modified!, get_tmp_cache, set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
@@ -53,6 +53,6 @@ export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
 export Semidiscretization, semidiscretize
-export SummaryCallback, AnalysisCallback
+export SummaryCallback, AnalysisCallback, StepsizeCallback
 export tstops, errors, integrals
 end

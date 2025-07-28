@@ -209,6 +209,12 @@ end
     @test linf[1] == errs.linf_error[end]
 end
 
+@testitem "StepsizeCallback" setup=[Setup] begin
+    stepsize_callback = StepsizeCallback(cfl = 1.0)
+    @test_nowarn print(stepsize_callback)
+    @test_nowarn display(stepsize_callback)
+end
+
 @testitem "visualization" setup=[Setup] begin
     using Plots
     include(joinpath(examples_dir(), "linear_advection.jl"))

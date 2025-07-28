@@ -115,6 +115,26 @@ end
                         entropy_timederivative=-9.210638502454849e-7)
 end
 
+@testitem "linear_advection_cfl.jl" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(),
+                                 "linear_advection_cfl.jl"),
+                        l2=[0.00029528077087911356], linf=[0.0006703908593475028],
+                        change_mass=-4.163336342344337e-17,
+                        change_entropy=-0.0002495788935772403,
+                        entropy_timederivative=-9.203964659865171e-7)
+
+    @testset "linear_advection_cfl with time-varying CFL" begin
+        # Same errors as above
+        @test_trixi_include(joinpath(examples_dir(),
+                                     "linear_advection_cfl.jl"),
+                            cfl=t -> 1.0,
+                            l2=[0.00029528077087911356], linf=[0.0006703908593475028],
+                            change_mass=-4.163336342344337e-17,
+                            change_entropy=-0.0002495788935772403,
+                            entropy_timederivative=-9.203964659865171e-7)
+    end
+end
+
 @testitem "linear_advection_inhomogeneous_mesh.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(),
                                  "linear_advection_inhomogeneous_mesh.jl"),

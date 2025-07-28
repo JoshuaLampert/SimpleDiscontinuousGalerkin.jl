@@ -37,16 +37,16 @@ function Base.show(io::IO, f::FluxPlusDissipation)
 end
 
 """
-    DissipationLocalLaxFriedrichs(max_abs_speed=max_abs_speed_naive)
+    DissipationLocalLaxFriedrichs(max_abs_speed=max_abs_speed)
 
 Create a local Lax-Friedrichs dissipation operator where the maximum absolute wave speed
-is estimated as `max_abs_speed(u_ll, u_rr, equations)`, defaulting to [`max_abs_speed_naive`](@ref).
+is estimated as `max_abs_speed(u_ll, u_rr, equations)`, defaulting to [`max_abs_speed`](@ref).
 """
 struct DissipationLocalLaxFriedrichs{MaxAbsSpeed}
     max_abs_speed::MaxAbsSpeed
 end
 
-DissipationLocalLaxFriedrichs() = DissipationLocalLaxFriedrichs(max_abs_speed_naive)
+DissipationLocalLaxFriedrichs() = DissipationLocalLaxFriedrichs(max_abs_speed)
 
 @inline function (dissipation::DissipationLocalLaxFriedrichs)(u_ll, u_rr, equations)
     λ = dissipation.max_abs_speed(u_ll, u_rr, equations)
@@ -77,10 +77,12 @@ Less diffusive, i.e., overestimating than [`max_abs_speed_naive`](@ref).
     max_abs_speed_naive(u_ll, u_rr, equations)
 end
 
+max_abs_speeds(u_node, equations) = max_abs_speed(u_node, u_node, equations)
+
 const FluxLaxFriedrichs{MaxAbsSpeed} = FluxPlusDissipation{typeof(flux_central),
                                                            DissipationLocalLaxFriedrichs{MaxAbsSpeed}}
 """
-    FluxLaxFriedrichs(max_abs_speed=max_abs_speed_naive)
+    FluxLaxFriedrichs(max_abs_speed=max_abs_speed)
 
 Local Lax-Friedrichs (Rusanov) flux with maximum wave speed estimate provided by
 `max_abs_speed`, cf. [`DissipationLocalLaxFriedrichs`](@ref) and
