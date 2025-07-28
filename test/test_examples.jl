@@ -135,9 +135,8 @@ end
     end
 
     @testset "throw error if adaptive = true" begin
-        @test_throws LoadError trixi_include(joinpath(examples_dir(),
-                                                      "linear_advection_cfl.jl"),
-                                             adaptive = true)
+        @test_throws ArgumentError solve(ode, SSPRK53(), adaptive = true,
+                                         callback = callbacks)
     end
 end
 
