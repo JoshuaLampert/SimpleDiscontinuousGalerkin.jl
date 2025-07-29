@@ -246,9 +246,9 @@ function calc_error_norms(u, t, initial_condition, mesh::OversetGridMesh,
     return l2_error_left + l2_error_right, max(linf_error_left, linf_error_right)
 end
 
-function max_dt(u, t, mesh::OversetGridMesh, equations, dg, cache)
+function max_dt(u, t, mesh::OversetGridMesh, equations, dg, jacobian)
     u_left, u_right = u
-    jacobian_left, jacobian_right = cache.jacobian
+    jacobian_left, jacobian_right = jacobian
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     max_scaled_speed_left = max_dt(u_left, t, mesh_left, equations, dg, jacobian_left)
     max_scaled_speed_right = max_dt(u_right, t, mesh_right, equations, dg, jacobian_right)

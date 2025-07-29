@@ -76,7 +76,7 @@ end
 function calculate_dt(u, t, cfl_number::Real, semi)
     mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
 
-    dt = cfl_number * max_dt(u, t, mesh, equations, solver, cache)
+    dt = cfl_number * max_dt(u, t, mesh, equations, solver, cache.jacobian)
     return dt
 end
 # Case for `cfl_number` as a function of time `t`.
