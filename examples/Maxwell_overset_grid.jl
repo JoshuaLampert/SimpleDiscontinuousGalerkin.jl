@@ -38,8 +38,3 @@ callbacks = CallbackSet(analysis_callback, summary_callback)
 saveat = range(tspan..., length = 100)
 sol = solve(ode, RDPK3SpFSAL49(), abstol = 1.0e-8, reltol = 1.0e-8,
             save_everystep = false, callback = callbacks, saveat = saveat)
-
-errs = errors(analysis_callback)
-ints = integrals(analysis_callback)
-using InteractiveUtils
-clipboard("l2=$(errs.l2_error[:, end])\n,linf=$(errs.linf_error[:, end])\n,cons_error=$(errs.conservation_error[:, end])\n,\nchange_entropy=$(ints.entropy[end] - ints.entropy[1]),\nentropy_timederivative=$(ints.entropy_timederivative[end])")
