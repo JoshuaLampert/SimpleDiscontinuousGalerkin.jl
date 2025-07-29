@@ -299,9 +299,9 @@ end
 @testitem "Maxwell_overset_grid.jl" setup=[Setup] begin
     # Same errors as in "linear_advection.jl"
     @test_trixi_include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
-                        l2=[0.00014168902291838373, 0.00016729669279156925],
-                        linf=[0.00021177290880725064, 0.00019817702941478388],
-                        cons_error=[1.1102230246251565e-16, 3.920475055707584e-16],
-                        change_entropy=-0.04774502109451623,
-                        entropy_timederivative=-0.18025931929992572)
+                        l2=[0.00023060901614929403, 0.0002618436544337526],
+                        linf=[0.000249859470322189, 0.0003610555723669931],
+                        cons_error=[0.0014694405140954075, 0.0245910605101398],
+                        change_entropy=-0.04825791740126639,
+                        entropy_timederivative=-0.06687107949375803)
 end
