@@ -2,7 +2,7 @@ using SimpleDiscontinuousGalerkin
 using OrdinaryDiffEqLowStorageRK
 
 ###############################################################################
-# semidiscretization of the linear advection equation
+# semidiscretization of the Maxwell equation
 
 c = 1.05
 equations = MaxwellEquations1D(c)
