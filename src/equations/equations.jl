@@ -122,3 +122,4 @@ cons2entropy(u, equations::AbstractEquations{1}) = u
 
 include("numerical_fluxes.jl")
 include("linear_advection.jl")
+include("Maxwell.jl")
