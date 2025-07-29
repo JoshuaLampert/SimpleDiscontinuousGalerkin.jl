@@ -27,7 +27,7 @@ For reference, see
 
 - or equation (1) in https://inria.hal.science/hal-01720293/document
 """
-struct MaxwellEquations1D{RealT <: Real} <: AbstractMaxwellEquations{1, 2}
+struct MaxwellEquations1D{RealT <: Real} <: AbstractEquations{1, 2}
     speed_of_light::RealT # c
 
     function MaxwellEquations1D(c::Real = 299_792_458.0)
@@ -49,13 +49,14 @@ A smooth initial condition used for convergence tests.
 """
 function initial_condition_convergence_test(x, t, equations::MaxwellEquations1D)
     c = equations.speed_of_light
-    char_pos = c * t + x
+    char_pos = x - c * t
+    char_min = x + c * t
 
-    sin_char_pos = sinpi(2 * char_pos)
+    w1 = sinpi(2 * char_pos)
+    w2 = sinpi(2 * char_min)
 
-    E = -c * sin_char_pos
-    B = sin_char_pos
-
+    E = (w1 + w2) / 2
+    B = (w1 - w2) / (2 * c)
     return SVector(E, B)
 end
 

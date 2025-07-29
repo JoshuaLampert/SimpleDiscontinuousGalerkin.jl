@@ -42,6 +42,16 @@ it is also as useful.
 """
 @inline cons2cons(u, ::AbstractEquations) = u
 
+"""
+    cons2prim(u, equations)
+
+Return the primitive variables `u` from the conservative variables `u`.
+This is the identity function for scalar equations, but can be more complex for systems of equations.
+"""
+@inline function cons2prim(u, equations::AbstractEquations{1, 1})
+    return u
+end
+
 # Add methods to show some information on systems of equations.
 function Base.show(io::IO, equations::AbstractEquations)
     # Since this is not performance-critical, we can use `@nospecialize` to reduce latency.
@@ -84,14 +94,16 @@ default_analysis_errors(::AbstractEquations) = (:l2_error, :linf_error)
 
 Default analysis integrals used by the [`AnalysisCallback`](@ref).
 """
-default_analysis_integrals(::AbstractEquations) = (mass, entropy, entropy_timederivative)
+default_analysis_integrals(::AbstractEquations) = (entropy, entropy_timederivative)
+
+default_analysis_integrals(::AbstractEquations{1, 1}) = (mass, entropy, entropy_timederivative)
 
 """
     mass(u, equations)
 
 Return the mass of the conservative variables `u` for the given system of equations.
 """
-function mass(u, ::AbstractEquations{1})
+function mass(u, ::AbstractEquations{1, 1})
     return u[1]
 end
 

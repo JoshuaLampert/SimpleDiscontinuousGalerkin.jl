@@ -285,3 +285,23 @@ end
                             entropy_timederivative=-0.006735287186087797)
     end
 end
+
+@testitem "Maxwell_basic.jl" setup=[Setup] begin
+    # Same errors as in "linear_advection.jl"
+    @test_trixi_include(joinpath(examples_dir(), "Maxwell_basic.jl"),
+                        l2=[0.00257703273494339, 0.0024543168904222487],
+                        linf=[0.0067569696440723526, 0.006435209184832202],
+                        cons_error=[3.7470027081099033e-16, 2.2620794126737565e-15],
+                        change_entropy=-0.0001242457567210975,
+                        entropy_timederivative=-0.00024086646033372183)
+end
+
+@testitem "Maxwell_overset_grid.jl" setup=[Setup] begin
+    # Same errors as in "linear_advection.jl"
+    @test_trixi_include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
+                        l2=[0.00014168902291838373, 0.00016729669279156925],
+                        linf=[0.00021177290880725064, 0.00019817702941478388],
+                        cons_error=[1.1102230246251565e-16, 3.920475055707584e-16],
+                        change_entropy=-0.04774502109451623,
+                        entropy_timederivative=-0.18025931929992572)
+end

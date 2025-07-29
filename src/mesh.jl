@@ -151,7 +151,7 @@ function right_overlap_element(mesh::OversetGridMesh)
     c = xmax(mesh.mesh_left)
     l_right = findfirst(element -> left_element_boundary(mesh.mesh_right, element) >= c,
                         1:nelements(mesh.mesh_right))
-    isnothing(l_right) ? l_right = nelements(mesh.mesh_right) : l_right -= 1
+    isnothing(l_right) ? l_right = nelements(mesh.mesh_right) : l_right
     return l_right
 end
 
