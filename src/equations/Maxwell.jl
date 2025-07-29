@@ -38,9 +38,6 @@ end
 function varnames(::typeof(cons2cons), ::MaxwellEquations1D)
     ("E", "B")
 end
-function varnames(::typeof(cons2prim), ::MaxwellEquations1D)
-    ("E", "B")
-end
 
 """
     initial_condition_convergence_test(x, t, equations::MaxwellEquations1D)
@@ -71,6 +68,9 @@ end
     return equations.speed_of_light
 end
 
+@inline function entropy(u, equations::MaxwellEquations1D)
+    E, B = u
+    return 0.5f0 * (E^2 + equations.speed_of_light^2 * B^2)
+end
 # Convert conservative variables to primitive
-@inline cons2prim(u, ::MaxwellEquations1D) = u
 @inline cons2entropy(u, ::MaxwellEquations1D) = u

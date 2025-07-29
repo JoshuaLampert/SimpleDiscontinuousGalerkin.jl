@@ -46,6 +46,7 @@ end
     @test SimpleDiscontinuousGalerkin.get_name(equations) == "LinearAdvectionEquation1D"
     u = [SVector(1.0), SVector(-2.0)]
     @test cons2cons.(u, equations) == u
+    @test cons2entropy.(u, equations) == u
     @test flux.(u, equations) == [SVector(-2.0), SVector(4.0)]
     @test flux_central.(u, u, equations) == flux.(u, equations)
     @test flux_godunov.(u, u, equations) == flux.(u, equations)

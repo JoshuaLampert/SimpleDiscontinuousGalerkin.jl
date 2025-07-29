@@ -10,7 +10,7 @@ equations = MaxwellEquations1D(c)
 initial_condition = initial_condition_convergence_test
 
 # Create DG solver with polynomial degree = 3 and Lax-Friedrichs flux as surface flux
-solver = DGSEM(polydeg = 3, surface_flux = flux_lax_friedrichs)
+solver = DGSEM(polydeg = 3, surface_flux = flux_central)
 
 coordinates_min = -1.0 # minimum coordinate
 coordinates_max = 1.0 # maximum coordinate

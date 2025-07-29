@@ -42,16 +42,6 @@ it is also as useful.
 """
 @inline cons2cons(u, ::AbstractEquations) = u
 
-"""
-    cons2prim(u, equations)
-
-Return the primitive variables `u` from the conservative variables `u`.
-This is the identity function for scalar equations, but can be more complex for systems of equations.
-"""
-@inline function cons2prim(u, equations::AbstractEquations{1, 1})
-    return u
-end
-
 # Add methods to show some information on systems of equations.
 function Base.show(io::IO, equations::AbstractEquations)
     # Since this is not performance-critical, we can use `@nospecialize` to reduce latency.
@@ -114,7 +104,7 @@ end
 
 Return the entropy of the conservative variables `u` for the given system of equations.
 """
-function entropy(u, ::AbstractEquations{1})
+function entropy(u, ::AbstractEquations{1, 1})
     return 0.5 * u[1]^2
 end
 
