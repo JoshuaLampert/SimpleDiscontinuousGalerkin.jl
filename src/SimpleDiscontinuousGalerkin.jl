@@ -39,9 +39,9 @@ include("callbacks_step/callbacks_step.jl")
 include("visualization.jl")
 
 export examples_dir, default_example, convergence_test
-export cons2cons, eachvariable, nvariables
+export cons2cons, cons2entropy, eachvariable, nvariables
 export mass, entropy
-export LinearAdvectionEquation1D
+export LinearAdvectionEquation1D, MaxwellEquations1D
 export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs
 export initial_condition_convergence_test
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing

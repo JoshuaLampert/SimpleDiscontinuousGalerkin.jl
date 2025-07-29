@@ -84,14 +84,18 @@ default_analysis_errors(::AbstractEquations) = (:l2_error, :linf_error)
 
 Default analysis integrals used by the [`AnalysisCallback`](@ref).
 """
-default_analysis_integrals(::AbstractEquations) = (mass, entropy, entropy_timederivative)
+default_analysis_integrals(::AbstractEquations) = (entropy, entropy_timederivative)
+
+function default_analysis_integrals(::AbstractEquations{1, 1})
+    (mass, entropy, entropy_timederivative)
+end
 
 """
     mass(u, equations)
 
 Return the mass of the conservative variables `u` for the given system of equations.
 """
-function mass(u, ::AbstractEquations{1})
+function mass(u, ::AbstractEquations{1, 1})
     return u[1]
 end
 
@@ -100,7 +104,7 @@ end
 
 Return the entropy of the conservative variables `u` for the given system of equations.
 """
-function entropy(u, ::AbstractEquations{1})
+function entropy(u, ::AbstractEquations{1, 1})
     return 0.5 * u[1]^2
 end
 
@@ -122,3 +126,4 @@ cons2entropy(u, equations::AbstractEquations{1}) = u
 
 include("numerical_fluxes.jl")
 include("linear_advection.jl")
+include("Maxwell.jl")
