@@ -298,21 +298,23 @@ end
 end
 
 @testitem "Maxwell_basic.jl" setup=[Setup] begin
-    # Same errors as in "linear_advection.jl"
+    # Not mass conservative because we miss integrating the part from the left boundary of the left
+    # overlap element to b.
     @test_trixi_include(joinpath(examples_dir(), "Maxwell_basic.jl"),
-                        l2=[0.00257703273494339, 0.0024543168904222487],
-                        linf=[0.0067569696440723526, 0.006435209184832202],
-                        cons_error=[3.7470027081099033e-16, 2.2620794126737565e-15],
-                        change_entropy=-0.0001242457567210975,
-                        entropy_timederivative=-0.00024086646033372183)
+                        l2=[0.002295157400147163, 0.001538334261211901],
+                        linf=[0.00491084212854303, 0.0026176927803420458],
+                        cons_error=[1.6653345369377348e-16, 4.579669976578771e-16],
+                        change_entropy=-3.473529797126673e-9,
+                        entropy_timederivative=-0.18015669687179633)
 end
 
 @testitem "Maxwell_overset_grid.jl" setup=[Setup] begin
-    # Same errors as in "linear_advection.jl"
+    # Not mass conservative because we miss integrating the part from the left boundary of the left
+    # overlap element to b.
     @test_trixi_include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
                         l2=[0.00023060901614929403, 0.0002618436544337526],
                         linf=[0.000249859470322189, 0.0003610555723669931],
                         cons_error=[0.0014694405140954075, 0.0245910605101398],
-                        change_entropy=-0.04825791740126639,
+                        change_entropy=0.0032048130928078455,
                         entropy_timederivative=-0.06687107949375803)
 end
