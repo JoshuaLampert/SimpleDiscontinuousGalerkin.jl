@@ -1,44 +1,6 @@
 SemidiscretizationOversetGrid = Semidiscretization{<:OversetGridMesh}
 
-# """
-#     OversetGridPerElementBasis{BasisType}
-
-# Basis, which can hold a different SBP operator for each element and on the left and right part of the mesh.
-# This is used in [`OversetGridPerElementFDSBP`](@ref) to allow for different bases on each element.
-# """
-# struct OversetGridPerElementBasis{BasisType}
-#     bases::Tuple{Vector{BasisType}}
-# end
-
-# @inline Base.real(basis::OversetGridPerElementBasis) = real(first(basis.bases))
-
-# """
-#     OversetGridPerElementFDSBP(bases::Tuple{Vector{BasisType}};
-#                                surface_flux = flux_central,
-#                                surface_integral = SurfaceIntegralWeakForm(surface_flux),
-#                                volume_integral = VolumeIntegralWeakForm()) where BasisType
-
-# Create a discontinuous Galerkin overset grid method using different bases for each element and
-# on the left and right part of the mesh.
-# This is like [`FDSBP`](@ref), but allows for a different SBP operator on each element.
-# See also: [`OversetGridPerElementBasis`](@ref).
-# """
-# const OversetGridPerElementFDSBP = DG{Basis} where {Basis <: OversetGridPerElementBasis}
-# function OversetGridPerElementFDSBP(bases::Tuple{Vector{BasisType}};
-#                                     surface_flux = flux_central,
-#                                     surface_integral = SurfaceIntegralWeakForm(surface_flux),
-#                                     volume_integral = VolumeIntegralWeakForm()) where {BasisType}
-#     return DG{OversetGridPerElementBasis{BasisType}, typeof(surface_integral),
-#               typeof(volume_integral)}(OversetGridPerElementBasis(bases), surface_integral,
-#                                        volume_integral)
-# end
-
-# function Base.summary(io::IO, solver::OversetGridPerElementFDSBP)
-#     print(io, "OversetGridPerElementFDSBP(bases=$(solver.basis.bases))")
-# end
-
 digest_solver(::OversetGridMesh, solver::Union{DGSEM, FDSBP}) = (solver, solver)
-# digest_solver(::OversetGridMesh, solver::OversetGridPerElementFDSBP) = solver
 
 # This allows us to treat a `Tuple` of `Solver`s as a `Solver`.
 function Base.getproperty(solver::Tuple, name::Symbol)

@@ -35,19 +35,6 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
     return nothing
 end
 
-function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralWeakForm,
-                                solver, cache)
-    calc_surface_integral!(du, u, mesh, equations, integral, solver, cache.surface_operator,
-                           cache.surface_flux_values)
-end
-
-function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralStrongForm,
-                                solver, cache)
-    calc_surface_integral!(du, u, mesh, equations, integral, solver,
-                           cache.surface_operator_left, cache.surface_operator_right,
-                           cache.surface_flux_values)
-end
-
 """
     SurfaceIntegralStrongForm(surface_flux=flux_central, surface_flux_boundary=surface_flux)
 
@@ -70,6 +57,13 @@ function SurfaceIntegralStrongForm(surface_flux)
     SurfaceIntegralStrongForm(surface_flux, surface_flux)
 end
 SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
+
+function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralStrongForm,
+                                solver, cache)
+    calc_surface_integral!(du, u, mesh, equations, integral, solver,
+                           cache.surface_operator_left, cache.surface_operator_right,
+                           cache.surface_flux_values)
+end
 
 # This is M^{-1} * B * (f* - f) for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # So basically a SAT.
@@ -174,6 +168,12 @@ function SurfaceIntegralWeakForm(surface_flux::Tuple)
 end
 SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, surface_flux)
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
+
+function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralWeakForm,
+                                solver, cache)
+    calc_surface_integral!(du, u, mesh, equations, integral, solver, cache.surface_operator,
+                           cache.surface_flux_values)
+end
 
 # This is M^{-1} * B * f* for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
