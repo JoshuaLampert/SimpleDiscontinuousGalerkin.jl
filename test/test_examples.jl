@@ -297,14 +297,14 @@ end
                         entropy_timederivative=0.09450669932241434)
 end
 
-@testitem "linear_advection_overset_per_element.jl" setup=[Setup] begin
+@testitem "linear_advection_overset_grid_per_element.jl" setup=[Setup] begin
     # Mass conservative because b is exactly in the left mesh (11 elements).
-    @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_per_element.jl"),
+    @test_trixi_include(joinpath(examples_dir(), "linear_advection_overset_grid_per_element.jl"),
                         l2=[0.000545264165625391], linf=[0.0011864341405010692],
                         cons_error=[5.551115123125783e-16],
                         change_mass=5.551115123125783e-16,
                         change_entropy=-6.198396641010628e-6,
-                        entropy_timederivative=-5.781695199519321e-6u)
+                        entropy_timederivative=-5.781695199519321e-6)
 end
 
 @testitem "Maxwell_basic.jl" setup=[Setup] begin
