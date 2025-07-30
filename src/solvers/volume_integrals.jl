@@ -158,6 +158,14 @@ function VolumeIntegralFluxDifferencingStrongForm()
     VolumeIntegralFluxDifferencingStrongForm(flux_central)
 end
 
+function calc_volume_integral!(du, u, mesh, equations,
+                               integral::Union{VolumeIntegralFluxDifferencingStrongForm,
+                                               VolumeIntegralFluxDifferencing},
+                               solver, cache::NamedTuple)
+    calc_volume_integral!(du, u, mesh, equations,
+                          integral, solver, cache.volume_operator)
+end
+
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::VolumeIntegralFluxDifferencingStrongForm)
     D = Matrix(basis)
