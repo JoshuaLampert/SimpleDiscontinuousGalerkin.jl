@@ -63,11 +63,14 @@ end
 function flat_grid(semi::SemidiscretizationOversetGrid)
     return vec(grid(semi)[1]), vec(grid(semi)[2])
 end
-# To avoid ambiguities
-function flat_grid(::Semidiscretization{M, E, I, B, S}) where {M <: OversetGridMesh, E, I,
-                                                               B, S <: PerElementFDSBP}
-    return vec(grid(semi)[1]), vec(grid(semi)[2])
+
+function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M <: OversetGridMesh, E,
+                                                                   I, B,
+                                                                   S <: Tuple}
+    return collect(Iterators.flatten(parent(grid(semi)[1]))),
+           collect(Iterators.flatten(parent(grid(semi)[2])))
 end
+
 function get_variable(u, v, semi::SemidiscretizationOversetGrid)
     u_left, u_right = u
     solver_left, solver_right = semi.solver
