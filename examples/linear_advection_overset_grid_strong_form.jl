@@ -10,6 +10,7 @@ equations = LinearAdvectionEquation1D(advection_velocity)
 initial_condition = initial_condition_convergence_test
 
 # Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
+surface_flux = flux_godunov
 solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralStrongForm(surface_flux),
                volume_integral = VolumeIntegralStrongForm())
 
