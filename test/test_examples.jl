@@ -286,6 +286,17 @@ end
     end
 end
 
+@testitem "linear_advection_overset_grid_strong_form.jl" setup=[Setup] begin
+    # Same errors as in "linear_advection_overset_grid.jl"
+    @test_trixi_include(joinpath(examples_dir(),
+                                 "linear_advection_overset_grid_strong_form.jl"),
+                        l2=[2.3825331814026118e-5], linf=[3.095999626745449e-5],
+                        cons_error=[6.721899148409705e-9],
+                        change_mass=-6.721899148409705e-9,
+                        change_entropy=8.53366219633056e-6,
+                        entropy_timederivative=0.09450660830795288)
+end
+
 @testitem "linear_advection_overset_grid_cfl.jl" setup=[Setup] begin
     # Not mass conservative because we miss integrating the part from the left boundary of the left
     # overlap element to b.

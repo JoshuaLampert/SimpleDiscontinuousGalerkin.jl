@@ -87,7 +87,6 @@ end
 @inline eachnode(semi::Semidiscretization, element) = eachnode(semi.solver, element)
 @inline ndofs(semi::Semidiscretization) = ndofs(semi.mesh, semi.solver)
 @inline Base.real(semi::Semidiscretization) = real(semi.mesh)
-@inline get_basis(semi, element) = get_basis(semi.solver, element)
 
 get_tmp_cache_scalar(semi::Semidiscretization) = semi.cache.tmp_scalar
 
