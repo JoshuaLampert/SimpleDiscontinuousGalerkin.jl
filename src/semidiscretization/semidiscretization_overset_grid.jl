@@ -233,7 +233,12 @@ end
 # Need to dispatch on type of `u` to avoid method ambiguities.
 function PolynomialBases.integrate(func,
                                    u::VectorOfArray{T, 3, T1},
-                                   semi::SemidiscretizationOversetGrid) where {T, T1}
+                                   semi::SemidiscretizationOversetGrid) where {T,
+                                                                               T1 <:
+                                                                               Vector{VectorOfArray{T,
+                                                                                                    2,
+                                                                                                    Vector{Vector{T}}}}
+                                                                               }
     u_left, u_right = u
     jacobian_left, jacobian_right = semi.cache.jacobian
     solver_left, solver_right = semi.solver
