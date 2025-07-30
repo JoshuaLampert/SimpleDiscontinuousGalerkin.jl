@@ -62,7 +62,7 @@ end
 function create_cache(mesh, equations, solver,
                       integral::Union{VolumeIntegralStrongForm,
                                       VolumeIntegralWeakForm})
-    volume_operator = compute_integral_operator(solver, integral)
+    volume_operator = compute_integral_operator(mesh, solver, integral)
     f_all = allocate_coefficients(mesh, equations, solver)
     return (; volume_operator, f_all)
 end
@@ -72,7 +72,7 @@ function calc_volume_integral!(du, u, mesh, equations,
                                                VolumeIntegralWeakForm},
                                solver, cache)
     calc_volume_integral!(du, u, mesh, equations,
-                          integral, solver, cache, cache.f_all)
+                          integral, solver, cache.volume_operator, cache.f_all)
 end
 
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
@@ -80,8 +80,7 @@ end
 function calc_volume_integral!(du, u, mesh, equations,
                                ::Union{VolumeIntegralStrongForm,
                                        VolumeIntegralWeakForm},
-                               solver, cache, f_all)
-    (; volume_operator) = cache
+                               solver, volume_operator, f_all)
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, solver, element)
         for node in eachnode(solver, element)
@@ -159,6 +158,14 @@ function VolumeIntegralFluxDifferencingStrongForm()
     VolumeIntegralFluxDifferencingStrongForm(flux_central)
 end
 
+function calc_volume_integral!(du, u, mesh, equations,
+                               integral::Union{VolumeIntegralFluxDifferencingStrongForm,
+                                               VolumeIntegralFluxDifferencing},
+                               solver, cache::NamedTuple)
+    calc_volume_integral!(du, u, mesh, equations,
+                          integral, solver, cache.volume_operator)
+end
+
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::VolumeIntegralFluxDifferencingStrongForm)
     D = Matrix(basis)
@@ -179,7 +186,7 @@ end
 function create_cache(mesh, equations, solver,
                       integral::Union{VolumeIntegralFluxDifferencing,
                                       VolumeIntegralFluxDifferencingStrongForm})
-    volume_operator = compute_integral_operator(solver, integral)
+    volume_operator = compute_integral_operator(mesh, solver, integral)
     return (; volume_operator)
 end
 
@@ -188,8 +195,7 @@ end
 function calc_volume_integral!(du, u, mesh, equations,
                                integral::Union{VolumeIntegralFluxDifferencing,
                                                VolumeIntegralFluxDifferencingStrongForm},
-                               solver, cache)
-    (; volume_operator) = cache
+                               solver, volume_operator)
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, solver, element)
         for node in eachnode(solver, element)

@@ -37,6 +37,8 @@ Base.summary(io::IO, solver::DG) = print(io, "DG(" * summary(solver.basis) * ")"
 
 @inline Base.real(solver::DG) = real(solver.basis)
 
+digest_solver(mesh, solver) = solver
+
 # This method is only supported for solvers with a fixed number of nodes per element.
 grid(solver::DG) = grid(solver.basis)
 grid(solver::DG, element) = grid(solver.basis)
@@ -121,8 +123,8 @@ function reset_du!(du)
     du .= zero(du)
 end
 
-function rhs!(du, u, t, mesh::AbstractMesh, equations, initial_condition,
-              boundary_conditions, solver::DG, cache)
+function rhs!(du, u, t, mesh, equations, initial_condition,
+              boundary_conditions, solver, cache)
     @trixi_timeit timer() "reset ∂u/∂t" reset_du!(du)
 
     @trixi_timeit timer() "volume integral" begin

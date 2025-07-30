@@ -234,4 +234,7 @@ end
 
     include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
+
+    include(joinpath(examples_dir(), "linear_advection_overset_grid_per_element.jl"))
+    @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
 end

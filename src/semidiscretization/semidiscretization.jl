@@ -39,17 +39,16 @@ Construct a semidiscretization of a PDE.
 """
 function Semidiscretization(mesh, equations, initial_condition, solver;
                             boundary_conditions = boundary_condition_periodic)
-    cache = (;
-             create_cache(mesh, equations, solver, initial_condition,
-                          boundary_conditions)...)
     _boundary_conditions = digest_boundary_conditions(boundary_conditions)
+    _solver = digest_solver(mesh, solver)
+    cache = (; create_cache(mesh, equations, _solver)...)
     Semidiscretization{typeof(mesh), typeof(equations), typeof(initial_condition),
-                       typeof(_boundary_conditions), typeof(solver), typeof(cache)}(mesh,
-                                                                                    equations,
-                                                                                    initial_condition,
-                                                                                    _boundary_conditions,
-                                                                                    solver,
-                                                                                    cache)
+                       typeof(_boundary_conditions), typeof(_solver), typeof(cache)}(mesh,
+                                                                                     equations,
+                                                                                     initial_condition,
+                                                                                     _boundary_conditions,
+                                                                                     _solver,
+                                                                                     cache)
 end
 
 function Base.show(io::IO, semi::Semidiscretization)
@@ -87,8 +86,7 @@ end
 @inline nnodes(semi::Semidiscretization, element) = nnodes(semi.solver, element)
 @inline eachnode(semi::Semidiscretization, element) = eachnode(semi.solver, element)
 @inline ndofs(semi::Semidiscretization) = ndofs(semi.mesh, semi.solver)
-@inline Base.real(semi::Semidiscretization) = real(semi.solver)
-@inline get_basis(semi, element) = get_basis(semi.solver, element)
+@inline Base.real(semi::Semidiscretization) = real(semi.mesh)
 
 get_tmp_cache_scalar(semi::Semidiscretization) = semi.cache.tmp_scalar
 
@@ -105,9 +103,7 @@ grid(semi::Semidiscretization) = semi.cache.node_coordinates
 Return a vector of the coordinates of all nodes in `semi`, flattened across all elements.
 This is useful for plotting or other operations that require a single vector of coordinates.
 """
-flat_grid(semi) = vec(grid(semi))
-function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M, E, I, B,
-                                                                   S <: PerElementFDSBP}
+function flat_grid(semi::Semidiscretization)
     return collect(Iterators.flatten(parent(grid(semi))))
 end
 
@@ -124,10 +120,10 @@ end
 # Here, `func` is a function that takes a vector at one element
 # `u` is a vector of coefficients at all nodes of the element.
 function integrate_on_element(func, u, semi, element)
-    integrate_on_element(func, u, semi, element, semi.cache.jacobian)
+    integrate_on_element(func, u, semi.solver, element, semi.cache.jacobian)
 end
-function integrate_on_element(func, u, semi::Semidiscretization, element, jacobian)
-    return jacobian[element] * integrate(func, u, get_basis(semi, element))
+function integrate_on_element(func, u, solver, element, jacobian)
+    return jacobian[element] * integrate(func, u, get_basis(solver, element))
 end
 # This method is for integrating a vector quantity for all variables over the entire domain,
 # such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
