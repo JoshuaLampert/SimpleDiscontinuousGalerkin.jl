@@ -7,11 +7,6 @@ function Base.getproperty(solver::Tuple, name::Symbol)
     return getproperty(solver[1], name)
 end
 
-function ndofs(mesh, solver::Tuple)
-    solver_left, solver_right = solver
-    return ndofs(mesh, solver_left) + ndofs(mesh, solver_right)
-end
-
 function ndofs(mesh::OversetGridMesh, solver::Tuple)
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver

@@ -48,7 +48,7 @@ export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
 export eachnode, nnodes, nelements, ndofs, flat_grid, get_variable
-export DGSEM, FDSBP, PerElementFDSBP, OversetGridPerElementFDSBP,
+export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralStrongForm, VolumeIntegralWeakForm,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
