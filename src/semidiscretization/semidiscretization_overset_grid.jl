@@ -213,11 +213,8 @@ end
 # with same basis across elements and `VectorOfArray{T, 4, Vector{VectorOfArray{T, 3, Vector{Matrix{T}}}}}}`
 # for `PerElementFDSBP`).
 function PolynomialBases.integrate(func,
-                                   u::Union{VectorOfArray{T, 4, Vector{Array{T, 3}}},
-                                            VectorOfArray{T, 4,
-                                                          Vector{VectorOfArray{T, 3,
-                                                                               Vector{Matrix{T}}}}}},
-                                   semi::SemidiscretizationOversetGrid) where {T}
+                                   u::VectorOfArray{T, 4, T1},
+                                   semi::SemidiscretizationOversetGrid) where {T, T1}
     u_left, u_right = u
     integrals = zeros(real(semi), nvariables(semi))
     mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
@@ -235,10 +232,8 @@ end
 # This method is for integrating a scalar quantity over the entire domain.
 # Need to dispatch on type of `u` to avoid method ambiguities.
 function PolynomialBases.integrate(func,
-                                   u::VectorOfArray{T, 3,
-                                                    Vector{VectorOfArray{T, 2,
-                                                                         Vector{Vector{T}}}}},
-                                   semi::SemidiscretizationOversetGrid) where {T}
+                                   u::VectorOfArray{T, 3, T1},
+                                   semi::SemidiscretizationOversetGrid) where {T, T1}
     u_left, u_right = u
     jacobian_left, jacobian_right = semi.cache.jacobian
     solver_left, solver_right = semi.solver
