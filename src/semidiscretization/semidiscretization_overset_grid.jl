@@ -3,7 +3,7 @@ SemidiscretizationOversetGrid = Semidiscretization{<:OversetGridMesh}
 digest_solver(::OversetGridMesh, solver::Union{DGSEM, FDSBP}) = (solver, solver)
 
 # This allows us to treat a `Tuple` of `Solver`s as a `Solver`.
-function Base.getproperty(solver::Tuple, name::Symbol)
+function Base.getproperty(solver::Tuple{S1, S2}, name::Symbol) where {S1 <: DG, S2 <: DG}
     return getproperty(solver[1], name)
 end
 
@@ -20,7 +20,6 @@ function compute_integral_operator(mesh, solver::Tuple, integral; kwargs...)
             compute_integral_operator(mesh_right, solver_right, integral; kwargs...))
 end
 
-# TODO: Allow different solvers for left and right mesh (e.g. for `PerElementBasis`)
 function create_jacobian_and_node_coordinates(mesh::OversetGridMesh, solver)
     solver_left, solver_right = solver
     jacobian_left, x_left = create_jacobian_and_node_coordinates(mesh.mesh_left,
