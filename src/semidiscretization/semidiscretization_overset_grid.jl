@@ -20,7 +20,7 @@ function compute_integral_operator(mesh, solver::Tuple, integral; kwargs...)
             compute_integral_operator(mesh_right, solver_right, integral; kwargs...))
 end
 
-function create_jacobian_and_node_coordinates(mesh::OversetGridMesh, solver)
+function create_jacobian_and_node_coordinates(mesh::OversetGridMesh, solver::Tuple)
     solver_left, solver_right = solver
     jacobian_left, x_left = create_jacobian_and_node_coordinates(mesh.mesh_left,
                                                                  solver_left)
@@ -36,7 +36,7 @@ function create_tmp_scalar(mesh::OversetGridMesh, solver)
     return VectorOfArray([tmp_scalar_left, tmp_scalar_right])
 end
 
-function allocate_coefficients(mesh::OversetGridMesh, equations, solver)
+function allocate_coefficients(mesh::OversetGridMesh, equations, solver::Tuple)
     solver_left, solver_right = solver
     u_left = allocate_coefficients(mesh.mesh_left, equations, solver_left)
     u_right = allocate_coefficients(mesh.mesh_right, equations, solver_right)
@@ -55,12 +55,6 @@ function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, sol
 end
 
 function flat_grid(semi::SemidiscretizationOversetGrid)
-    return vec(grid(semi)[1]), vec(grid(semi)[2])
-end
-
-function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M <: OversetGridMesh, E,
-                                                                   I, B,
-                                                                   S <: Tuple}
     return collect(Iterators.flatten(parent(grid(semi)[1]))),
            collect(Iterators.flatten(parent(grid(semi)[2])))
 end

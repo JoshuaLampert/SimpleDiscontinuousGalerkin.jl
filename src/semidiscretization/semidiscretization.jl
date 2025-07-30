@@ -87,10 +87,7 @@ end
 @inline eachnode(semi::Semidiscretization, element) = eachnode(semi.solver, element)
 @inline ndofs(semi::Semidiscretization) = ndofs(semi.mesh, semi.solver)
 @inline Base.real(semi::Semidiscretization) = real(semi.mesh)
-@inline function get_basis(semi, element)
-    println(typeof(semi.solver))
-    get_basis(semi.solver, element)
-end
+@inline get_basis(semi, element) = get_basis(semi.solver, element)
 
 get_tmp_cache_scalar(semi::Semidiscretization) = semi.cache.tmp_scalar
 
@@ -107,9 +104,7 @@ grid(semi::Semidiscretization) = semi.cache.node_coordinates
 Return a vector of the coordinates of all nodes in `semi`, flattened across all elements.
 This is useful for plotting or other operations that require a single vector of coordinates.
 """
-flat_grid(semi) = vec(grid(semi))
-function flat_grid(semi::Semidiscretization{M, E, I, B, S}) where {M, E, I, B,
-                                                                   S <: PerElementFDSBP}
+function flat_grid(semi::Semidiscretization)
     return collect(Iterators.flatten(parent(grid(semi))))
 end
 
