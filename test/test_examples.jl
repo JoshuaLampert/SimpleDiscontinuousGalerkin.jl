@@ -320,8 +320,6 @@ end
 end
 
 @testitem "Maxwell_basic.jl" setup=[Setup] begin
-    # Not mass conservative because we miss integrating the part from the left boundary of the left
-    # overlap element to b.
     @test_trixi_include(joinpath(examples_dir(), "Maxwell_basic.jl"),
                         l2=[0.002295157400147163, 0.001538334261211901],
                         linf=[0.00491084212854303, 0.0026176927803420458],
