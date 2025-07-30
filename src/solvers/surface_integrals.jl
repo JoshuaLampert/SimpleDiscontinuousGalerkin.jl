@@ -35,8 +35,16 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
     return nothing
 end
 
-function calc_surface_integral!(du, u, mesh, equations, integral, solver, cache)
-    calc_surface_integral!(du, u, mesh, equations, integral, solver, cache,
+function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralWeakForm,
+                                solver, cache)
+    calc_surface_integral!(du, u, mesh, equations, integral, solver, cache.surface_operator,
+                           cache.surface_flux_values)
+end
+
+function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralStrongForm,
+                                solver, cache)
+    calc_surface_integral!(du, u, mesh, equations, integral, solver,
+                           cache.surface_operator_left, cache.surface_operator_right,
                            cache.surface_flux_values)
 end
 
@@ -80,8 +88,8 @@ function create_cache_surface_flux_values(mesh, equations, solver)
 end
 
 function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongForm)
-    surface_operator_left = compute_integral_operator(solver, integral; left = true)
-    surface_operator_right = compute_integral_operator(solver, integral; left = false)
+    surface_operator_left = compute_integral_operator(mesh, solver, integral; left = true)
+    surface_operator_right = compute_integral_operator(mesh, solver, integral; left = false)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
     return (; surface_operator_left, surface_operator_right, surface_flux_values)
@@ -90,9 +98,8 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralStrongForm, solver, cache,
-                                surface_flux_values)
-    (; surface_operator_left, surface_operator_right) = cache
+                                ::SurfaceIntegralStrongForm, solver, surface_operator_left,
+                                surface_operator_right, surface_flux_values)
     for element in eachelement(mesh)
         f_L = flux(u[:, 1, element], equations)
         # TODO: We cannot use `u[:, end, element]` here because for `PerElementFDSBP` `u` is a
@@ -180,7 +187,7 @@ function compute_integral_operator(basis::AbstractDerivativeOperator,
 end
 
 function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm)
-    surface_operator = compute_integral_operator(solver, integral)
+    surface_operator = compute_integral_operator(mesh, solver, integral)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
     return (; surface_operator, surface_flux_values)
@@ -189,9 +196,8 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralWeakForm, solver, cache,
+                                ::SurfaceIntegralWeakForm, solver, surface_operator,
                                 surface_flux_values)
-    (; surface_operator) = cache
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, solver, element)
         for v in eachvariable(equations)

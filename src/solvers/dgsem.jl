@@ -74,12 +74,13 @@ function create_tmp_scalar(mesh, solver)
                           for element in eachelement(mesh)])
 end
 
-function create_cache(mesh, equations, solver, initial_condition, boundary_conditions)
+function create_cache(mesh, equations, solver)
     jacobian, x = create_jacobian_and_node_coordinates(mesh, solver)
     tmp_scalar = create_tmp_scalar(mesh, solver)
+    cache_volume_integral = create_cache(mesh, equations, solver, solver.volume_integral)
+    cache_surface_integral = create_cache(mesh, equations, solver, solver.surface_integral)
     cache = (; jacobian, node_coordinates = x, tmp_scalar,
-             create_cache(mesh, equations, solver, solver.volume_integral)...,
-             create_cache(mesh, equations, solver, solver.surface_integral)...)
+             cache_volume_integral..., cache_surface_integral...)
     return cache
 end
 

@@ -91,11 +91,11 @@ function AnalysisCallback(mesh, equations::AbstractEquations, solver;
     end
     analysis_callback = AnalysisCallback(0.0, 0.0, interval, analysis_errors,
                                          Tuple(analysis_integrals),
-                                         SVector(ntuple(_ -> zero(real(solver)),
+                                         SVector(ntuple(_ -> zero(real(mesh)),
                                                         Val(nvariables(equations)))),
                                          Vector{Float64}(),
-                                         Vector{Matrix{real(solver)}}(),
-                                         Vector{Vector{real(solver)}}(),
+                                         Vector{Matrix{real(mesh)}}(),
+                                         Vector{Vector{real(mesh)}}(),
                                          io)
 
     DiscreteCallback(condition, analysis_callback,
