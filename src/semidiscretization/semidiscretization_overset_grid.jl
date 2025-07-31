@@ -8,13 +8,6 @@ function ndofs(mesh::OversetGridMesh, solver::Tuple)
     return ndofs(mesh_left, solver_left) + ndofs(mesh_right, solver_right)
 end
 
-function compute_integral_operator(mesh, solver::Tuple, integral; kwargs...)
-    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
-    solver_left, solver_right = solver
-    return (compute_integral_operator(mesh_left, solver_left, integral; kwargs...),
-            compute_integral_operator(mesh_right, solver_right, integral; kwargs...))
-end
-
 function allocate_coefficients(mesh::OversetGridMesh, equations, solver::Tuple)
     solver_left, solver_right = solver
     u_left = allocate_coefficients(mesh.mesh_left, equations, solver_left)
