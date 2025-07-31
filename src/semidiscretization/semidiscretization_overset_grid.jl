@@ -71,13 +71,29 @@ function calc_volume_integral!(du, u, mesh::OversetGridMesh, equations,
                                solver, cache)
     u_left, u_right = u
     du_left, du_right = du
-    f_all_left, f_all_right = cache.f_all
-    volume_operator_left, volume_operator_right = cache.volume_operator
+    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
-    calc_volume_integral!(du_left, u_left, mesh.mesh_left, equations,
+    volume_operator_left, volume_operator_right = cache.volume_operator
+    f_all_left, f_all_right = cache.f_all
+    calc_volume_integral!(du_left, u_left, mesh_left, equations,
                           integral, solver_left, volume_operator_left, f_all_left)
-    calc_volume_integral!(du_right, u_right, mesh.mesh_right, equations,
+    calc_volume_integral!(du_right, u_right, mesh_right, equations,
                           integral, solver_right, volume_operator_right, f_all_right)
+end
+
+function calc_volume_integral!(du, u, mesh::OversetGridMesh, equations,
+                               integral::Union{VolumeIntegralFluxDifferencing,
+                                               VolumeIntegralFluxDifferencingStrongForm},
+                               solver, cache::NamedTuple)
+    u_left, u_right = u
+    du_left, du_right = du
+    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
+    solver_left, solver_right = solver
+    volume_operator_left, volume_operator_right = cache.volume_operator
+    calc_volume_integral!(du_left, u_left, mesh_left, equations,
+                          integral, solver_left, volume_operator_left)
+    calc_volume_integral!(du_right, u_right, mesh_right, equations,
+                          integral, solver_right, volume_operator_right)
 end
 
 function create_cache_surface_flux_values(mesh::OversetGridMesh, equations, solver)
