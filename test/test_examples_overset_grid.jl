@@ -54,6 +54,7 @@ end
                         entropy_timederivative=0.09450660830795288)
 
     @testset "VolumeIntegralFluxDifferencing" begin
+        # Same errors as in "linear_advection_overset_grid.jl"
         @test_trixi_include(joinpath(examples_dir(),
                                      "linear_advection_overset_grid_strong_form.jl"),
                             surface_integral=SurfaceIntegralWeakForm(flux_godunov),
@@ -66,6 +67,7 @@ end
     end
 
     @testset "VolumeIntegralFluxDifferencingStrongForm" begin
+        # Same errors as in "linear_advection_overset_grid.jl"
         @test_trixi_include(joinpath(examples_dir(),
                                      "linear_advection_overset_grid_strong_form.jl"),
                             surface_integral=SurfaceIntegralWeakForm(flux_godunov),
