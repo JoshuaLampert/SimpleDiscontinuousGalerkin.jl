@@ -88,7 +88,7 @@ end
 @inline ndofs(semi::Semidiscretization) = ndofs(semi.mesh, semi.solver)
 @inline Base.real(semi::Semidiscretization) = real(semi.mesh)
 
-get_tmp_cache_scalar(semi::Semidiscretization) = semi.cache.tmp_scalar
+get_tmp_cache_scalar(cache) = cache.tmp_scalar
 
 """
     grid(semi)
@@ -150,7 +150,7 @@ end
 
 # Here, `func` is a function that takes a vector at one node and the equations, e.g., `mass` or `entropy`.
 function integrate_quantity(func, u, semi::Semidiscretization)
-    quantity = get_tmp_cache_scalar(semi)
+    quantity = get_tmp_cache_scalar(semi.cache)
     integrate_quantity!(quantity, func, u, semi)
 end
 

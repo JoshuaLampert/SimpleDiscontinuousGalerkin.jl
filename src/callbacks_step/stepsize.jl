@@ -76,18 +76,18 @@ end
 function calculate_dt(u, t, cfl_number::Real, semi)
     mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
 
-    dt = cfl_number * max_dt(u, t, mesh, equations, solver, cache.jacobian)
+    dt = cfl_number * max_dt(u, t, mesh, equations, solver, cache)
     return dt
 end
 # Case for `cfl_number` as a function of time `t`.
 function calculate_dt(u, t, cfl_number, semi)
     mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
 
-    dt = cfl_number(t) * max_dt(u, t, mesh, equations, solver, cache.jacobian)
+    dt = cfl_number(t) * max_dt(u, t, mesh, equations, solver, cache)
     return dt
 end
 
-function max_dt(u, t, mesh, equations, dg, jacobian)
+function max_dt(u, t, mesh, equations, dg, cache)
     # to avoid a division by zero if the speed vanishes everywhere,
     # e.g. for steady-state linear advection
     max_scaled_speed = nextfloat(zero(t))
@@ -103,7 +103,7 @@ function max_dt(u, t, mesh, equations, dg, jacobian)
         # in contrast to Trixi.jl, it is not always on the reference element [-1, 1].
         basis = get_basis(dg, element)
         dx_basis = last(grid(basis)) - first(grid(basis))
-        inv_jacobian = 1 / (dx_basis * jacobian[element])
+        inv_jacobian = 1 / (dx_basis * cache.jacobian[element])
         max_scaled_speed = max(max_scaled_speed, inv_jacobian * max_lambda1)
     end
 

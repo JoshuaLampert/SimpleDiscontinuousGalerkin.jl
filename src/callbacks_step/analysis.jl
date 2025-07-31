@@ -338,8 +338,8 @@ function analyze(quantity, du, u, t, semi::Semidiscretization)
 end
 
 function analyze(::typeof(entropy_timederivative), du, u, t, semi::Semidiscretization)
-    mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
-    quantity = get_tmp_cache_scalar(semi)
+    mesh, equations, solver, cache = mesh_equations_solver_cache(semi)
+    quantity = get_tmp_cache_scalar(cache)
     compute_quantity_timederivative!(quantity, cons2entropy, du, u, mesh, equations, solver)
     return integrate(quantity, semi)
 end

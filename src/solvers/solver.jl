@@ -31,15 +31,8 @@ end
 
 function calc_error_norms(u, t, initial_condition, mesh, equations,
                           solver, cache)
-    calc_error_norms(u, t, initial_condition, mesh, equations,
-                     solver, cache, cache.jacobian, cache.node_coordinates)
-end
-
-function calc_error_norms(u, t, initial_condition, mesh, equations,
-                          solver, cache, jacobian, node_coordinates)
     u_exact = similar(u)
-    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache,
-                          node_coordinates)
+    compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)
     l2_error = zeros(real(solver), nvariables(equations))
     linf_error = zeros(real(solver), nvariables(equations))
     for v in eachvariable(equations)
@@ -51,7 +44,7 @@ function calc_error_norms(u, t, initial_condition, mesh, equations,
             for i in eachnode(solver, element)
                 diff[i] = u[v, i, element] - u_exact[v, i, element]
             end
-            l2_error[v] += jacobian[element] *
+            l2_error[v] += cache.jacobian[element] *
                            integrate(abs2, diff, get_basis(solver, element))
             linf_error[v] = max(linf_error[v], maximum(abs.(diff)))
         end
