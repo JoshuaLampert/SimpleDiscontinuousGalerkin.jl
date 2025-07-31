@@ -140,7 +140,7 @@ end
 # This method is for integrating a scalar quantity over the entire domain.
 function PolynomialBases.integrate(func, u, semi::Semidiscretization)
     return sum(integrate_on_element(func, u.u[element], get_basis(semi.solver, element),
-                                    element)
+                                    element, semi.cache.jacobian)
                for element in eachelement(semi))
 end
 
