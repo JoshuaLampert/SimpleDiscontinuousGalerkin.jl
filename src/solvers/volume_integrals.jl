@@ -67,20 +67,13 @@ function create_cache(mesh, equations, solver,
     return (; volume_operator, f_all)
 end
 
-function calc_volume_integral!(du, u, mesh, equations,
-                               integral::Union{VolumeIntegralStrongForm,
-                                               VolumeIntegralWeakForm},
-                               solver, cache)
-    calc_volume_integral!(du, u, mesh, equations,
-                          integral, solver, cache.volume_operator, cache.f_all)
-end
-
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_volume_integral!(du, u, mesh, equations,
                                ::Union{VolumeIntegralStrongForm,
                                        VolumeIntegralWeakForm},
-                               solver, volume_operator, f_all)
+                               solver, cache)
+    (; volume_operator, f_all) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, solver, element)
         for node in eachnode(solver, element)
@@ -158,14 +151,6 @@ function VolumeIntegralFluxDifferencingStrongForm()
     VolumeIntegralFluxDifferencingStrongForm(flux_central)
 end
 
-function calc_volume_integral!(du, u, mesh, equations,
-                               integral::Union{VolumeIntegralFluxDifferencingStrongForm,
-                                               VolumeIntegralFluxDifferencing},
-                               solver, cache::NamedTuple)
-    calc_volume_integral!(du, u, mesh, equations,
-                          integral, solver, cache.volume_operator)
-end
-
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::VolumeIntegralFluxDifferencingStrongForm)
     D = Matrix(basis)
@@ -195,7 +180,8 @@ end
 function calc_volume_integral!(du, u, mesh, equations,
                                integral::Union{VolumeIntegralFluxDifferencing,
                                                VolumeIntegralFluxDifferencingStrongForm},
-                               solver, volume_operator)
+                               solver, cache)
+    (; volume_operator) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, solver, element)
         for node in eachnode(solver, element)
