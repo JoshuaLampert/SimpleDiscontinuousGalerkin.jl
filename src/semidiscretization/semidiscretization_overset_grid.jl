@@ -208,7 +208,6 @@ function PolynomialBases.integrate(func,
     mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
     solver_left, solver_right = semi.solver
     l_left = left_overlap_element(semi.mesh)
-    l_right = right_overlap_element(semi.mesh)
     # TODO: This integrates the left domain only until the left boundary of the left overlap element,
     # i.e., we miss the integral from the left boundary of the left overlap element to b.
     # TODO: Which part should be integrated in the overlap region? This uses the right mesh,
@@ -216,11 +215,11 @@ function PolynomialBases.integrate(func,
     integral_left = sum(integrate_on_element(func, u_left.u[element],
                                              get_basis(solver_left, element), element,
                                              jacobian_left)
-                        for element in 1:nelements(mesh_left))
+                        for element in 1:l_left)
     integral_right = sum(integrate_on_element(func, u_right.u[element],
                                               get_basis(solver_right, element),
                                               element, jacobian_right)
-                         for element in l_right:nelements(mesh_right))
+                         for element in 1:nelements(mesh_right))
     return integral_left + integral_right
 end
 
