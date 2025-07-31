@@ -260,12 +260,15 @@ function PolynomialBases.integrate(func,
     solver_left, solver_right = semi.solver
     l_left = left_overlap_element(semi.mesh)
     # TODO: This integrates the left domain only until the left boundary of the left overlap element,
-    # i.e., we miss the integral from the left boundary of the left overlap element to b. Which part
-    # should be integrated in the overlap region?
-    integral_left = sum(integrate_on_element(func, u_left.u[element], solver_left, element,
+    # i.e., we miss the integral from the left boundary of the left overlap element to b.
+    # TODO: Which part should be integrated in the overlap region? This uses the right mesh,
+    # which is not correct for negative velocities.
+    integral_left = sum(integrate_on_element(func, u_left.u[element],
+                                             get_basis(solver_left, element), element,
                                              jacobian_left)
                         for element in 1:l_left)
-    integral_right = sum(integrate_on_element(func, u_right.u[element], solver_right,
+    integral_right = sum(integrate_on_element(func, u_right.u[element],
+                                              get_basis(solver_right, element),
                                               element, jacobian_right)
                          for element in 1:nelements(semi.mesh.mesh_right))
     return integral_left + integral_right

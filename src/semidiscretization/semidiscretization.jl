@@ -119,11 +119,8 @@ end
 
 # Here, `func` is a function that takes a vector at one element
 # `u` is a vector of coefficients at all nodes of the element.
-function integrate_on_element(func, u, semi, element)
-    integrate_on_element(func, u, semi.solver, element, semi.cache.jacobian)
-end
-function integrate_on_element(func, u, solver, element, jacobian)
-    return jacobian[element] * integrate(func, u, get_basis(solver, element))
+function integrate_on_element(func, u, D, element, jacobian)
+    return jacobian[element] * integrate(func, u, D)
 end
 # This method is for integrating a vector quantity for all variables over the entire domain,
 # such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
@@ -142,7 +139,8 @@ end
 
 # This method is for integrating a scalar quantity over the entire domain.
 function PolynomialBases.integrate(func, u, semi::Semidiscretization)
-    return sum(integrate_on_element(func, u.u[element], semi, element)
+    return sum(integrate_on_element(func, u.u[element], get_basis(semi.solver, element),
+                                    element)
                for element in eachelement(semi))
 end
 
