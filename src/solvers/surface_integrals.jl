@@ -58,13 +58,6 @@ function SurfaceIntegralStrongForm(surface_flux)
 end
 SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
-function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralStrongForm,
-                                solver, cache)
-    calc_surface_integral!(du, u, mesh, equations, integral, solver,
-                           cache.surface_operator_left, cache.surface_operator_right,
-                           cache.surface_flux_values)
-end
-
 # This is M^{-1} * B * (f* - f) for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # So basically a SAT.
 # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
@@ -92,8 +85,8 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralStrongForm, solver, surface_operator_left,
-                                surface_operator_right, surface_flux_values)
+                                ::SurfaceIntegralStrongForm, solver, cache)
+    (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
         f_L = flux(u[:, 1, element], equations)
         # TODO: We cannot use `u[:, end, element]` here because for `PerElementFDSBP` `u` is a
@@ -169,12 +162,6 @@ end
 SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, surface_flux)
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
-function calc_surface_integral!(du, u, mesh, equations, integral::SurfaceIntegralWeakForm,
-                                solver, cache)
-    calc_surface_integral!(du, u, mesh, equations, integral, solver, cache.surface_operator,
-                           cache.surface_flux_values)
-end
-
 # This is M^{-1} * B * f* for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
 function compute_integral_operator(basis::AbstractDerivativeOperator,
@@ -196,8 +183,8 @@ end
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralWeakForm, solver, surface_operator,
-                                surface_flux_values)
+                                ::SurfaceIntegralWeakForm, solver, cache)
+    (; surface_operator, surface_flux_values) = cache
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, solver, element)
         for v in eachvariable(equations)
