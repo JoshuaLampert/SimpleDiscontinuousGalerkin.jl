@@ -70,7 +70,7 @@ end
         # Same errors as in "linear_advection_overset_grid.jl"
         @test_trixi_include(joinpath(examples_dir(),
                                      "linear_advection_overset_grid_strong_form.jl"),
-                            surface_integral=SurfaceIntegralWeakForm(flux_godunov),
+                            surface_integral=SurfaceIntegralStrongForm(flux_godunov),
                             volume_integral=VolumeIntegralFluxDifferencingStrongForm(flux_central),
                             l2=[2.3825331813872226e-5], linf=[3.095999626678836e-5],
                             cons_error=[6.72189803818668e-9],
