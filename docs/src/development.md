@@ -51,3 +51,19 @@ The resulting `.html` files can then be found in `docs/build/` and you can look 
 For pull requests from the main repository (i.e. not from a fork), the documentation is automatically built and can
 be previewed under `https://JoshuaLampert.github.io/SimpleDiscontinuousGalerkin.jl/previews/PRXXX/` where `XXX` is the number
 of the pull request.
+
+## Testing
+
+In the test suite of SimpleDiscontinuousGalerkin.jl, the results of the examples are tested against reference solutions.
+This means that if you add an example and verified it works as expected, you should put the reference solution
+into the corresponding test. To obtain the reference solution and automatically copy it into the clipboard, you can run
+
+```julia
+errs = errors(analysis_callback)
+ints = integrals(analysis_callback)
+using InteractiveUtils
+clipboard("l2=$(errs.l2_error[:, end])\n, linf=$(errs.linf_error[:, end])\n, cons_error=$(errs.conservation_error[:, end])\n, change_mass=$(ints.mass[end] - ints.mass[1]),\nchange_entropy=$(ints.entropy[end] - ints.entropy[1]), \nentropy_timederivative=$(ints.entropy_timederivative[end])")
+```
+
+Note that some of the quantities are only computed if they are included in the `analysis_callback`, which means that you
+might need to adjust the above command depending on which quantities you want to test for.

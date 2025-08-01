@@ -105,7 +105,7 @@ end
 Return the entropy of the conservative variables `u` for the given system of equations.
 """
 function entropy(u, ::AbstractEquations{1, 1})
-    return 0.5 * u[1]^2
+    return 0.5f0 * u[1]^2
 end
 
 """
@@ -122,8 +122,9 @@ function entropy_timederivative end
 Return the entropy variables from the conservative variables `u` for the given system of equations.
 The entropy variables are defined as the derivative of the entropy with respect to the conservative variables.
 """
-cons2entropy(u, equations::AbstractEquations{1}) = u
+cons2entropy(u, equations::AbstractEquations{1, 1}) = u
 
 include("numerical_fluxes.jl")
 include("linear_advection.jl")
+include("Burgers.jl")
 include("Maxwell.jl")
