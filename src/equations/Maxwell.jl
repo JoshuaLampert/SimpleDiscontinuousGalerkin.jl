@@ -72,5 +72,8 @@ end
     E, B = u
     return 0.5f0 * (E^2 + equations.speed_of_light^2 * B^2)
 end
-# Convert conservative variables to primitive
-@inline cons2entropy(u, ::MaxwellEquations1D) = u
+# Convert conservative variables to entropy variables
+@inline function cons2entropy(u, equations::MaxwellEquations1D)
+    E, B = u
+    return SVector(E, equations.speed_of_light^2 * B)
+end

@@ -51,6 +51,9 @@ end
     @test flux_central.(u, u, equations) == flux.(u, equations)
     @test flux_godunov.(u, u, equations) == flux.(u, equations)
     @test flux_lax_friedrichs.(u, u, equations) == flux.(u, equations)
+    @test flux_godunov.(u, u, BurgersEquation1D()) == flux.(u, BurgersEquation1D())
+    @test flux_lax_friedrichs.(u, u, BurgersEquation1D()) == flux.(u, BurgersEquation1D())
+    @test flux_ec.(u, u, BurgersEquation1D()) == flux.(u, BurgersEquation1D())
 
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())

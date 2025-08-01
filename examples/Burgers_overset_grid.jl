@@ -2,21 +2,25 @@ using SimpleDiscontinuousGalerkin
 using OrdinaryDiffEqLowStorageRK
 
 ###############################################################################
-# semidiscretization of the Maxwell equation
+# semidiscretization of the Burgers equation
 
-c = 1.05
-equations = MaxwellEquations1D(c)
+equations = BurgersEquation1D()
 
 initial_condition = initial_condition_convergence_test
 
 # Create DG solver with polynomial degree = 3 and Lax-Friedrichs flux as surface flux
-solver = DGSEM(polydeg = 3, surface_flux = flux_lax_friedrichs)
+solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(flux_lax_friedrichs),
+               volume_integral = VolumeIntegralFluxDifferencing(flux_ec))
 
-coordinates_min = -1.0 # minimum coordinate
-coordinates_max = 1.0 # maximum coordinate
+a = -1.0
+b = -0.1
+c = 0.1
+d = 1.0
 
-N_elements = 10 # number of elements
-mesh = Mesh(coordinates_min, coordinates_max, N_elements)
+N_elements = 11 # number of elements
+mesh_left = Mesh(a, c, N_elements)
+mesh_right = Mesh(b, d, N_elements)
+mesh = OversetGridMesh(mesh_left, mesh_right)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
 semi = Semidiscretization(mesh, equations, initial_condition, solver)
