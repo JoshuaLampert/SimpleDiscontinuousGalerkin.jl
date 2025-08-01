@@ -107,7 +107,7 @@ function element_spacing(mesh::InhomogeneousMesh, element)
     mesh.coordinates[element + 1] - mesh.coordinates[element]
 end
 function left_element_boundary(mesh::InhomogeneousMesh, element)
-    @assert 1<=element<=nelements(mesh) "Element index out of bounds"
+    @assert 1<=element<=nelements(mesh) + 1 "Element index out of bounds"
     return mesh.coordinates[element]
 end
 
