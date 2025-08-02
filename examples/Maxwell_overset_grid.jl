@@ -8,8 +8,8 @@ equations = MaxwellEquations1D(1.05)
 
 initial_condition = initial_condition_convergence_test
 
-# Create DG solver with polynomial degree = 3 and Lax-Friedrichs flux as surface flux
-solver = DGSEM(polydeg = 3, surface_flux = flux_lax_friedrichs)
+# Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
+solver = DGSEM(polydeg = 3, surface_flux = flux_godunov)
 
 a = -1.0
 b = -0.1

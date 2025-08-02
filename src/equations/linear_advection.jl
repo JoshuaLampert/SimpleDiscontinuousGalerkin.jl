@@ -13,6 +13,16 @@ end
 
 varnames(::typeof(cons2cons), ::LinearAdvectionEquation1D) = ("u",)
 
+"""
+    initial_condition_convergence_test(x, t, equations::LinearAdvectionEquation1D)
+
+A smooth initial condition used for convergence tests.
+"""
+function initial_condition_convergence_test(x, t, equations::LinearAdvectionEquation1D)
+    x_trans = x - equations.advection_velocity * t
+    return SVector(sinpi(x_trans))
+end
+
 @inline function flux(u, equation::LinearAdvectionEquation1D)
     a = equation.advection_velocity
     return a * u
@@ -40,9 +50,4 @@ function flux_godunov(u_ll, u_rr, equation::LinearAdvectionEquation1D)
     else
         return SVector(a * u_R)
     end
-end
-
-function initial_condition_convergence_test(x, t, equations::LinearAdvectionEquation1D)
-    x_trans = x - equations.advection_velocity * t
-    return SVector(sinpi(x_trans))
 end

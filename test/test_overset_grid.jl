@@ -106,11 +106,11 @@ end
     # Not mass conservative because we miss integrating the part from the left boundary of the left
     # overlap element to b.
     @test_trixi_include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
-                        l2=[0.00023060901614929403, 0.0002618436544337526],
-                        linf=[0.000249859470322189, 0.0003610555723669931],
-                        cons_error=[0.0014694405140954075, 0.0245910605101398],
-                        change_entropy=0.0032048130928078455,
-                        entropy_timederivative=0.12743862294720784)
+                        l2=[0.00023060901614886724, 0.00026184365443377735],
+                        linf=[0.0002498594703230772, 0.00036105557236677105],
+                        cons_error=[0.001469440514095803, 0.024591060510140168],
+                        change_entropy=0.0032048130928074015,
+                        entropy_timederivative=0.12743862294720792)
 end
 
 @testitem "Burgers_overset_grid.jl" setup=[Setup] begin
