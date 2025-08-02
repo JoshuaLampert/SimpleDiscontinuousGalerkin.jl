@@ -57,9 +57,10 @@ end
     @test flux_lax_friedrichs.(u, u, equations_burgers) == flux.(u, equations_burgers)
     @test flux_ec.(u, u, equations_burgers) == flux.(u, equations_burgers)
 
+    u_2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
     equations_maxwell = @test_nowarn MaxwellEquations1D(3.12)
-    @test flux_godunov.(u, u, equations_maxwell) == flux.(u, equations_maxwell)
-    @test flux_lax_friedrichs.(u, u, equations_maxwell) == flux.(u, equations_maxwell)
+    @test flux_godunov.(u_2, u_2, equations_maxwell) == flux.(u_2, equations_maxwell)
+    @test flux_lax_friedrichs.(u_2, u_2, equations_maxwell) == flux.(u_2, equations_maxwell)
 
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())
