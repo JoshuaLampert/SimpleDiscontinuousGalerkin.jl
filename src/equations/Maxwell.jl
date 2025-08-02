@@ -68,6 +68,20 @@ end
     return equations.speed_of_light
 end
 
+"""
+    flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
+
+Godunov (upwind) flux for the 1D Maxwell equations.
+"""
+function flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
+    E_ll, B_ll = u_ll
+    E_rr, B_rr = u_rr
+
+    c = equations.speed_of_light
+    return SVector(0.5f0 * (c^2 * (B_ll + B_rr) - (E_rr - E_ll) * c),
+                   0.5f0 * ((E_ll + E_rr) - (B_rr - B_ll) * c))
+end
+
 @inline function entropy(u, equations::MaxwellEquations1D)
     E, B = u
     return 0.5f0 * (E^2 + equations.speed_of_light^2 * B^2)
