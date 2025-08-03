@@ -85,9 +85,7 @@ function create_cache(mesh, equations, solver)
 end
 
 function apply_jacobian!(du, mesh, equations, solver, cache)
-    apply_jacobian!(du, mesh, equations, solver, cache, cache.jacobian)
-end
-function apply_jacobian!(du, mesh, equations, solver, cache, jacobian)
+    jacobian = cache.jacobian
     for element in eachelement(mesh)
         for i in eachnode(solver, element)
             for v in eachvariable(equations)

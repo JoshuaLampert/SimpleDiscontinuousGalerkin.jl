@@ -7,8 +7,9 @@ using OrdinaryDiffEqLowStorageRK
 equations = BurgersEquation1D()
 
 initial_condition = initial_condition_convergence_test
+source_terms = source_terms_convergence_test
 
-# Create DG solver with polynomial degree = 3 and Lax-Friedrichs flux as surface flux
+# Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
 solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(flux_godunov),
                volume_integral = VolumeIntegralFluxDifferencing(flux_ec))
 
@@ -19,7 +20,8 @@ N_elements = 10 # number of elements
 mesh = Mesh(coordinates_min, coordinates_max, N_elements)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, solver)
+semi = Semidiscretization(mesh, equations, initial_condition, solver,
+                          source_terms = source_terms)
 
 ###############################################################################
 # ODE solvers, callbacks etc.

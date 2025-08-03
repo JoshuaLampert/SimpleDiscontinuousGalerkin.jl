@@ -50,7 +50,7 @@ function create_cache(mesh::OversetGridMesh, equations, solver)
 end
 
 function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
-              boundary_conditions, solver, cache)
+              boundary_conditions, source_terms, solver, cache)
     du_left, du_right = du
     u_left, u_right = u
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
@@ -95,10 +95,15 @@ function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
     end
 
     @trixi_timeit timer() "Jacobian" begin
-        apply_jacobian!(du_left, mesh_left, equations,
-                        solver_left, cache_left)
-        apply_jacobian!(du_right, mesh_right, equations,
-                        solver_right, cache_right)
+        apply_jacobian!(du_left, mesh_left, equations, solver_left, cache_left)
+        apply_jacobian!(du_right, mesh_right, equations, solver_right, cache_right)
+    end
+
+    @trixi_timeit timer() "source terms" begin
+        calc_sources!(du_left, u_left, t, source_terms, mesh_left, equations,
+                      solver_left, cache_left)
+        calc_sources!(du_right, u_right, t, source_terms, mesh_right, equations,
+                      solver_right, cache_right)
     end
 end
 

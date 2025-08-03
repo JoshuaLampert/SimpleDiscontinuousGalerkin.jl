@@ -113,12 +113,23 @@ end
                         entropy_timederivative=0.12743862294720792)
 end
 
-@testitem "Burgers_overset_grid.jl" setup=[Setup] begin
+@testitem "Burgers_overset_grid.jl without source terms" setup=[Setup] begin
     # Mass conservative because we choose 11 elements meaning b is exactly an interface.
     @test_trixi_include(joinpath(examples_dir(), "Burgers_overset_grid.jl"),
+                        source_terms=nothing,
                         l2=[1.0898127073451138], linf=[0.7933574712125537],
                         cons_error=[6.159517340620368e-13],
                         change_mass=-6.159517340620368e-13,
                         change_entropy=-0.43769950084048936,
                         entropy_timederivative=-0.08354232871802136)
+end
+
+@testitem "Burgers_overset_grid.jl" setup=[Setup] begin
+    # Mass conservative because we choose 11 elements meaning b is exactly an interface.
+    @test_trixi_include(joinpath(examples_dir(), "Burgers_overset_grid.jl"),
+                        l2=[0.00036782718958315656], linf=[0.0007339228201976855],
+                        cons_error=[9.636735853746359e-14],
+                        change_mass=-9.636735853746359e-14,
+                        change_entropy=-2.5824226002058026e-6,
+                        entropy_timederivative=-1.3823791347178371e-5)
 end

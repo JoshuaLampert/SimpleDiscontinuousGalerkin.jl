@@ -22,10 +22,29 @@ function initial_condition_convergence_test(x, t, equation::BurgersEquation1D)
     A = 1
     L = 1
     f = 1.0f0 / L
-    omega = 2 * f
-    scalar = c + A * sinpi(omega * (x - t))
+    omega = 2 * convert(RealT, pi) * f
+    scalar = c + A * sin(omega * (x - t))
 
     return SVector(scalar)
+end
+
+"""
+    source_terms_convergence_test(u, x, t, equations::BurgersEquation1D)
+
+Source terms used for convergence tests in combination with
+[`initial_condition_convergence_test`](@ref).
+"""
+@inline function source_terms_convergence_test(u, x, t, equations::BurgersEquation1D)
+    # Same settings as in `initial_condition`
+    RealT = eltype(x)
+    c = 2
+    A = 1
+    L = 1
+    f = 1.0f0 / L
+    omega = 2 * convert(RealT, pi) * f
+    du = omega * A * cos(omega * (x - t)) * (c - 1 + A * sin(omega * (x - t)))
+
+    return SVector(du)
 end
 
 # Calculate 1D flux for a single point
