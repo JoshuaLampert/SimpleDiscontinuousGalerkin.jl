@@ -119,7 +119,7 @@ function reset_du!(du)
 end
 
 function rhs!(du, u, t, mesh, equations, initial_condition,
-              boundary_conditions, solver, cache)
+              boundary_conditions, source_terms, solver, cache)
     @trixi_timeit timer() "reset ∂u/∂t" reset_du!(du)
 
     @trixi_timeit timer() "volume integral" begin
@@ -143,6 +143,10 @@ function rhs!(du, u, t, mesh, equations, initial_condition,
     end
 
     @trixi_timeit timer() "Jacobian" apply_jacobian!(du, mesh, equations, solver, cache)
+
+    @trixi_timeit timer() "source terms" begin
+        calc_sources!(du, u, t, source_terms, mesh, equations, solver, cache)
+    end
 
     return nothing
 end

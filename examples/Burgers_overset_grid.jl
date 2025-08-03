@@ -7,6 +7,7 @@ using OrdinaryDiffEqLowStorageRK
 equations = BurgersEquation1D()
 
 initial_condition = initial_condition_convergence_test
+source_terms = source_terms_convergence_test
 
 # Create DG solver with polynomial degree = 3 and Lax-Friedrichs flux as surface flux
 solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(flux_lax_friedrichs),
@@ -23,7 +24,8 @@ mesh_right = Mesh(b, d, N_elements)
 mesh = OversetGridMesh(mesh_left, mesh_right)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, solver)
+semi = Semidiscretization(mesh, equations, initial_condition, solver,
+                          source_terms = source_terms)
 
 ###############################################################################
 # ODE solvers, callbacks etc.

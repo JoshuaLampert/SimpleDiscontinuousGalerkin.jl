@@ -52,3 +52,25 @@ function calc_error_norms(u, t, initial_condition, mesh, equations,
     end
     return l2_error, linf_error
 end
+
+function calc_sources!(du, u, t, source_terms::Nothing, mesh, equations, solver, cache)
+    return nothing
+end
+
+function calc_sources!(du, u, t, source_terms, mesh, equations, solver, cache)
+    node_coordinates = cache.node_coordinates
+
+    for element in eachelement(mesh)
+        for i in eachnode(solver, element)
+            u_local = get_node_vars(u, equations, i, element)
+            x_local = get_node_coords(node_coordinates, equations, solver,
+                                      i, element)
+            du_local = source_terms(u_local, x_local, t, equations)
+            for v in eachvariable(equations)
+                du[v, i, element] = du[v, i, element] + du_local[v]
+            end
+        end
+    end
+
+    return nothing
+end
