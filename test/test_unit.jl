@@ -204,6 +204,32 @@ end
                                      [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
+@testitem "Jacobian" begin
+    using LinearAlgebra: eigvals
+    include(joinpath(examples_dir(), "linear_advection.jl"))
+    J = @test_nowarn jacobian_fd(semi)
+    @test size(J) == (ndofs(semi), ndofs(semi))
+    # This is stable
+    @test maximum(real, eigvals(J)) < 0.0
+
+    include(joinpath(examples_dir(), "linear_advection.jl"), surface_flux = flux_central)
+    J = @test_nowarn jacobian_fd(semi)
+    # This is conservative
+    @test maximum(abs.(real.(eigvals(J)))) < 1e-7
+
+    include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
+    J = @test_nowarn jacobian_fd(semi)
+    @test size(J) == (ndofs(semi), ndofs(semi))
+    # There are two unstable eigenvalues
+    @test count(real.(eigvals(J)) .> 1e-7) == 2
+
+    include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"))
+    J = @test_nowarn jacobian_fd(semi)
+    @test size(J) == (ndofs(semi), ndofs(semi))
+    # This is has some eigenvalues with slightly positive real part
+    @test maximum(real, eigvals(J)) < 1e-3
+end
+
 @testitem "SummaryCallback" begin
     summary_callback = SummaryCallback()
     @test_nowarn print(summary_callback)
