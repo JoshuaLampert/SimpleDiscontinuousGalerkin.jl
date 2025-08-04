@@ -2,10 +2,11 @@ SemidiscretizationOversetGrid = Semidiscretization{<:OversetGridMesh}
 
 digest_solver(::OversetGridMesh, solver::Union{DGSEM, FDSBP}) = (solver, solver)
 
-function ndofs(mesh::OversetGridMesh, solver::Tuple)
+function ndofs(equations, mesh::OversetGridMesh, solver::Tuple)
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
-    return ndofs(mesh_left, solver_left) + ndofs(mesh_right, solver_right)
+    return ndofs(equations, mesh_left, solver_left) +
+           ndofs(equations, mesh_right, solver_right)
 end
 
 function allocate_coefficients(mesh::OversetGridMesh, equations, solver::Tuple)
@@ -40,6 +41,64 @@ function get_variable(u, v, semi::SemidiscretizationOversetGrid)
     solver_left, solver_right = semi.solver
     return get_variable(u_left, v, solver_left), get_variable(u_right, v, solver_right)
 end
+
+function Iterators.flatten(semi::SemidiscretizationOversetGrid, u::VectorOfArray)
+    solver_left, solver_right = semi.solver
+    u_left, u_right = u
+    u_left_flattened = Iterators.flatten(solver_left, u_left)
+    u_right_flattened = Iterators.flatten(solver_right, u_right)
+    return [collect(u_left_flattened); collect(u_right_flattened)]
+end
+
+# function jacobian_fd(semi::SemidiscretizationOversetGrid;
+#                      t0 = zero(real(semi)),
+#                      u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
+#     # copy the initial state since it will be modified in the following
+#     u_ode = copy(u0_ode)
+#     du0_ode = similar(u_ode)
+#     dup_ode = similar(u_ode)
+#     dum_ode = similar(u_ode)
+
+#     # compute residual of linearization state
+#     rhs!(du0_ode, u_ode, semi, t0)
+
+#     # initialize Jacobian matrix
+#     J = zeros(eltype(u_ode), ndofs(semi), ndofs(semi))
+
+#     idx = 0
+#     # use second order finite difference to estimate Jacobian matrix
+#     meshes = [semi.mesh.mesh_left, semi.mesh.mesh_right]
+#     for nmesh in 1:2
+#         for element in eachelement(meshes[nmesh])
+#             for node in eachnode(semi.solver[nmesh], element)
+#                 for v in eachvariable(semi.equations)
+#                     idx += 1
+#                     # determine size of fluctuation
+#                     epsilon = sqrt(eps(typeof(u0_ode[v, node, element, nmesh])))
+
+#                     # plus fluctuation
+#                     u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh] +
+#                                                      epsilon
+#                     rhs!(dup_ode, u_ode, semi, t0)
+
+#                     # minus fluctuation
+#                     u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh] -
+#                                                      epsilon
+#                     rhs!(dum_ode, u_ode, semi, t0)
+
+#                     # restore linearization state
+#                     u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh]
+
+#                     # central second order finite difference
+#                     Ji_ode = (dup_ode .- dum_ode) ./ (2 * epsilon)
+#                     Ji = flatten(semi, Ji_ode)
+#                     @. J[:, idx] = Ji
+#                 end
+#             end
+#         end
+#     end
+#     return J
+# end
 
 function create_cache(mesh::OversetGridMesh, equations, solver)
     solver_left, solver_right = solver

@@ -54,8 +54,8 @@ In particular, not the nodes themselves are returned.
 # This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(solver::DG) = length(grid(solver))
 @inline nnodes(solver::DG, element) = length(grid(solver, element))
-@inline function ndofs(mesh::AbstractMesh, solver::DG)
-    sum(nnodes(solver, element) for element in eachelement(mesh))
+@inline function ndofs(equation, mesh::AbstractMesh, solver::DG)
+    sum(nnodes(solver, element) for element in eachelement(mesh)) * nvariables(equation)
 end
 
 @inline function get_node_coords(x, equations, ::DG, indices...)
@@ -93,6 +93,10 @@ at one time step as a vector at every node across all elements.
 """
 function get_variable(u, v, ::DG)
     return vec(u[v, :, :])
+end
+
+function Iterators.flatten(::DG, u)
+    return Iterators.flatten(u)
 end
 
 function allocate_coefficients(mesh, equations, solver, cache)

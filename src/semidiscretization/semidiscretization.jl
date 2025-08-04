@@ -94,7 +94,7 @@ end
 @inline eachelement(semi::Semidiscretization) = eachelement(semi.mesh)
 @inline nnodes(semi::Semidiscretization, element) = nnodes(semi.solver, element)
 @inline eachnode(semi::Semidiscretization, element) = eachnode(semi.solver, element)
-@inline ndofs(semi::Semidiscretization) = ndofs(semi.mesh, semi.solver)
+@inline ndofs(semi::Semidiscretization) = ndofs(semi.equations, semi.mesh, semi.solver)
 @inline Base.real(semi::Semidiscretization) = real(semi.mesh)
 
 get_tmp_cache_scalar(cache) = cache.tmp_scalar
@@ -226,6 +226,62 @@ function semidiscretize(semi::Semidiscretization, tspan)
     u0 = compute_coefficients(semi.initial_condition, first(tspan), semi)
     iip = true # is-inplace, i.e., we modify a vector when calling rhs!
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
+end
+
+function Iterators.flatten(semi::Semidiscretization, u)
+    return collect(Iterators.flatten(semi.solver, u))
+end
+
+"""
+    jacobian_fd(semi;
+                t0=zero(real(semi)),
+                u0_ode=compute_coefficients(t0, semi))
+
+Uses the right-hand side operator of the semidiscretization `semi`
+and simple second order finite difference to compute the Jacobian `J`
+of the semidiscretization `semi` at state `u0_ode`.
+"""
+function jacobian_fd(semi;
+                     t0 = zero(real(semi)),
+                     u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
+    # copy the initial state since it will be modified in the following
+    u_ode = copy(u0_ode)
+    du0_ode = similar(u_ode)
+    dup_ode = similar(u_ode)
+    dum_ode = similar(u_ode)
+
+    # compute residual of linearization state
+    rhs!(du0_ode, u_ode, semi, t0)
+
+    # initialize Jacobian matrix
+    J = zeros(eltype(u_ode), ndofs(semi), ndofs(semi))
+
+    i = 0
+    # use second order finite difference to estimate Jacobian matrix
+    # This Iterators notation allows to use the same code for both
+    # usual DG and overset grid DG methods.
+    for idx in Iterators.product(Base.OneTo.(size(u0_ode))...)
+        i += 1
+        # determine size of fluctuation
+        epsilon = sqrt(eps(typeof(u0_ode[idx...])))
+
+        # plus fluctuation
+        u_ode[idx...] = u0_ode[idx...] + epsilon
+        rhs!(dup_ode, u_ode, semi, t0)
+
+        # minus fluctuation
+        u_ode[idx...] = u0_ode[idx...] - epsilon
+        rhs!(dum_ode, u_ode, semi, t0)
+
+        # restore linearization state
+        u_ode[idx...] = u0_ode[idx...]
+
+        # central second order finite difference
+        Ji_ode = (dup_ode .- dum_ode) ./ (2 * epsilon)
+        Ji = Iterators.flatten(semi, Ji_ode)
+        @. J[:, i] = Ji
+    end
+    return J
 end
 
 include("semidiscretization_overset_grid.jl")
