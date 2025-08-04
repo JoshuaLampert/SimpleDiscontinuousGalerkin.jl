@@ -212,7 +212,7 @@ end
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
 
-    include(joinpath(examples_dir(), "linear_advection.jl"), surface_flux = flux_central)
+    trixi_include(joinpath(examples_dir(), "linear_advection.jl"), surface_flux = flux_central)
     J = @test_nowarn jacobian_fd(semi)
     # This is conservative
     @test maximum(abs.(real.(eigvals(J)))) < 1e-7
