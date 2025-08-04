@@ -228,6 +228,9 @@ function semidiscretize(semi::Semidiscretization, tspan)
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
 end
 
+# In contrast to `Iterators.flatten`, this `collect`s the result and returns a vector.
+# We do this because it would be hard to define a non-allocating `flatten`
+# for `SemidiscretizationOversetGrid`
 function Iterators.flatten(semi::Semidiscretization, u)
     return collect(Iterators.flatten(semi.solver, u))
 end
