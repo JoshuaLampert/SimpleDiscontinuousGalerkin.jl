@@ -5,6 +5,7 @@ function calc_interface_flux!(surface_flux_values, u, mesh,
     for element in 2:(nelements(mesh) - 1)
         N_element = nnodes(solver, element)
         N_element_m1 = nnodes(solver, element - 1)
+        # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
         # left interface
         u_ll = get_node_vars(u, equations, N_element_m1, element - 1)
         u_rr = get_node_vars(u, equations, 1, element)
@@ -23,6 +24,7 @@ end
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mesh,
                              equations, integral::AbstractSurfaceIntegral, solver)
     (; x_neg, x_pos) = boundary_conditions
+    # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
     u_rr = get_node_vars(u, equations, 1, 1)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
@@ -88,6 +90,7 @@ function calc_surface_integral!(du, u, mesh, equations,
                                 ::SurfaceIntegralStrongForm, solver, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
+        # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
         f_L = flux(u[:, 1, element], equations)
         # TODO: We cannot use `u[:, end, element]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined

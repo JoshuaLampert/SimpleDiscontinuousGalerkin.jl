@@ -17,7 +17,7 @@ b = -0.1
 c = 0.1
 d = 1.0
 
-N_elements = 10 # number of elements
+N_elements = 11 # number of elements
 mesh_left = Mesh(a, c, N_elements)
 mesh_right = Mesh(b, d, N_elements)
 mesh = OversetGridMesh(mesh_left, mesh_right)

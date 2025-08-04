@@ -15,7 +15,7 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 module SimpleDiscontinuousGalerkin
 
 import LinearAlgebra: Diagonal, diag, dot
-using PolynomialBases: PolynomialBases
+using PolynomialBases: PolynomialBases, interpolate
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray

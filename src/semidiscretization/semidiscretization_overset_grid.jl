@@ -136,10 +136,9 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     xlr_R = left_element_boundary(mesh_right, l_right + 1)
     c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
     u_rr = zeros(real(solver_right), nvariables(equations))
-    e_M_right = interpolation_operator(c_mapped, D)
     for v in eachvariable(equations)
         values = u_right[v, :, l_right]
-        u_rr[v] = e_M_right' * values
+        u_rr[v] = interpolate(c_mapped, values, D)
     end
     f = integral_left.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_left, f, equations, 2, nelements(mesh_left))
@@ -152,10 +151,9 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     xll_R = left_element_boundary(mesh_left, l_left + 1)
     b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
     u_ll = zeros(real(solver_left), nvariables(equations))
-    e_M_left = interpolation_operator(b_mapped, D)
     for v in eachvariable(equations)
         values = u_left[v, :, l_left]
-        u_ll[v] = e_M_left' * values
+        u_ll[v] = interpolate(b_mapped, values, D)
     end
     u_rr = get_node_vars(u_right, equations, 1, 1)
     f = integral_right.surface_flux_boundary(u_ll, u_rr, equations)
