@@ -226,7 +226,7 @@ end
     @test count(real.(eigvals(J)) .> 1e-7) == 2
 
     trixi_include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
-                   tspan = (0.0, 0.01))
+                  tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     @test size(J) == (ndofs(semi), ndofs(semi))
     # This is has some eigenvalues with slightly positive real part
