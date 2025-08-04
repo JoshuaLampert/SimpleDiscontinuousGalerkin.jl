@@ -206,25 +206,27 @@ end
 
 @testitem "Jacobian" begin
     using LinearAlgebra: eigvals
-    include(joinpath(examples_dir(), "linear_advection.jl"))
+    trixi_include(joinpath(examples_dir(), "linear_advection.jl"), tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     @test size(J) == (ndofs(semi), ndofs(semi))
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
 
     trixi_include(joinpath(examples_dir(), "linear_advection.jl"),
-                  surface_flux = flux_central)
+                  tspan = (0.0, 0.01), surface_flux = flux_central)
     J = @test_nowarn jacobian_fd(semi)
     # This is conservative
     @test maximum(abs.(real.(eigvals(J)))) < 1e-7
 
-    include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
+    trixi_include(joinpath(examples_dir(), "linear_advection_per_element.jl"),
+                  tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     @test size(J) == (ndofs(semi), ndofs(semi))
     # There are two unstable eigenvalues
     @test count(real.(eigvals(J)) .> 1e-7) == 2
 
-    include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"))
+    trixi_include(joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
+                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     @test size(J) == (ndofs(semi), ndofs(semi))
     # This is has some eigenvalues with slightly positive real part
