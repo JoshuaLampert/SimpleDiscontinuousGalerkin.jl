@@ -19,18 +19,20 @@
     @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
 
     # convergence test
-    convergence_test(default_example(), 3)
+    convergence_test(default_example(), 3, interval = 1000)
     polydegs = [1, 3, 5]
     for polydeg in polydegs
         eoc_mean_values, _ = convergence_test(default_example(), 3, N_elements = 16,
                                               tspan = (0.0, 1.0), polydeg = polydeg,
-                                              abstol = 1e-14, reltol = 1e-14)
+                                              abstol = 1e-14, reltol = 1e-14,
+                                              interval = 1000)
         @test isapprox(eoc_mean_values[:l2][1], polydeg + 1, atol = 0.15)
         @test isapprox(eoc_mean_values[:linf][1], polydeg + 1, atol = 0.15)
 
         eoc_mean_values2, _ = convergence_test(default_example(), [16, 32, 64],
                                                tspan = (0.0, 1.0), polydeg = polydeg,
-                                               abstol = 1e-14, reltol = 1e-14)
+                                               abstol = 1e-14, reltol = 1e-14,
+                                               interval = 1000)
         for kind in (:l2, :linf), variable in (1,)
             eoc_mean_values[kind][variable] == eoc_mean_values2[kind][variable]
         end
@@ -44,23 +46,69 @@ end
     @test ndims(equations) == 1
     @test SimpleDiscontinuousGalerkin.nvariables(equations) == 1
     @test SimpleDiscontinuousGalerkin.get_name(equations) == "LinearAdvectionEquation1D"
-    u = [SVector(1.0), SVector(-2.0)]
-    @test cons2cons.(u, equations) == u
-    @test cons2entropy.(u, equations) == u
-    @test flux.(u, equations) == [SVector(-2.0), SVector(4.0)]
-    @test flux_central.(u, u, equations) == flux.(u, equations)
-    @test flux_godunov.(u, u, equations) == flux.(u, equations)
-    @test flux_lax_friedrichs.(u, u, equations) == flux.(u, equations)
 
-    equations_burgers = @test_nowarn BurgersEquation1D()
-    @test flux_godunov.(u, u, equations_burgers) == flux.(u, equations_burgers)
-    @test flux_lax_friedrichs.(u, u, equations_burgers) == flux.(u, equations_burgers)
-    @test flux_ec.(u, u, equations_burgers) == flux.(u, equations_burgers)
+    u1 = [SVector(1.0), SVector(-2.0)]
+    for conversion in (cons2cons, cons2prim)
+        @test length(varnames(conversion, equations)) ==
+              length(conversion(first(u1), equations))
+    end
+    @test cons2cons.(u1, equations) == u1
+    @test cons2entropy.(u1, equations) == u1
+    @test prim2cons.(cons2prim.(u1, equations), equations) == u1
+    @test flux.(u1, equations) == [SVector(-2.0), SVector(4.0)]
+    @test flux_central.(u1, u1, equations) == flux.(u1, equations)
+    @test flux_godunov.(u1, u1, equations) == flux.(u1, equations)
+    @test flux_lax_friedrichs.(u1, u1, equations) == flux.(u1, equations)
 
-    u_2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
-    equations_maxwell = @test_nowarn MaxwellEquations1D(3.12)
-    @test flux_godunov.(u_2, u_2, equations_maxwell) == flux.(u_2, equations_maxwell)
-    @test flux_lax_friedrichs.(u_2, u_2, equations_maxwell) == flux.(u_2, equations_maxwell)
+    equations = @test_nowarn BurgersEquation1D()
+    for conversion in (cons2cons, cons2prim)
+        @test length(varnames(conversion, equations)) ==
+              length(conversion(first(u1), equations))
+    end
+    @test cons2cons.(u1, equations) == u1
+    @test cons2entropy.(u1, equations) == u1
+    @test prim2cons.(cons2prim.(u1, equations), equations) == u1
+    @test flux_godunov.(u1, u1, equations) == flux.(u1, equations)
+    @test flux_lax_friedrichs.(u1, u1, equations) == flux.(u1, equations)
+    @test flux_ec.(u1, u1, equations) == flux.(u1, equations)
+
+    u2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
+    equations = @test_nowarn MaxwellEquations1D(3.12)
+    for conversion in (cons2cons, cons2prim)
+        @test length(varnames(conversion, equations)) ==
+              length(conversion(first(u2), equations))
+    end
+    @test cons2cons.(u2, equations) == u2
+    @test all(isapprox.(cons2entropy.(u2, equations),
+                        [SVector(1.0, 19.4688), SVector(-2.0, -29.2032)]))
+    @test prim2cons.(cons2prim.(u2, equations), equations) == u2
+    @test flux_godunov.(u2, u2, equations) == flux.(u2, equations)
+    @test flux_lax_friedrichs.(u2, u2, equations) == flux.(u2, equations)
+
+    u3 = [SVector(1.0, 2.0, 4.0), SVector(2.0, 3.0, 3.0)]
+    equations = @test_nowarn CompressibleEulerEquations1D(1.4)
+    for conversion in (cons2cons, cons2prim)
+        @test length(varnames(conversion, equations)) ==
+              length(conversion(first(u3), equations))
+    end
+    @test cons2cons.(u3, equations) == u3
+    @test all(isapprox.(cons2entropy.(u3, equations),
+                        [
+                            SVector(1.5578588782855252, 2.5, -1.25),
+                            SVector(1.4359471427746477, 10.0, -6.666666666666668)
+                        ]))
+    @test prim2cons.(cons2prim.(u3, equations), equations) == u3
+    @test density.(u3, equations) == [1.0, 2.0]
+    @test velocity.(u3, equations) == [2.0, 1.5]
+    @test all(isapprox.(pressure.(u3, equations), [0.8, 0.3]))
+    @test all(isapprox.(density_pressure.(u3, equations), [0.8, 0.6]))
+    @test all(isapprox.(entropy_thermodynamic.(u3, equations),
+                        [-0.22314355131421, -2.1743788571098595]))
+    @test all(isapprox.(entropy_math.(u3, equations),
+                        [0.557858878285525, 10.871894285549299]))
+    @test energy_total.(u3, equations) == [4.0, 3.0]
+    @test all(isapprox.(flux_lax_friedrichs.(u3, u3, equations), flux.(u3, equations)))
+    @test all(isapprox.(flux_ranocha.(u3, u3, equations), flux.(u3, equations)))
 
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())
@@ -231,7 +279,7 @@ end
     @test count(real.(eigvals(J)) .> 1e-7) == 10
     @test maximum(real, eigvals(J)) < 1e-3
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
+    trixi_include(@__MODULE__, joinpath(examples_dir(), "maxwell_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This has some eigenvalues with slightly positive real part

@@ -10,6 +10,7 @@ in one space dimension.
 struct BurgersEquation1D <: AbstractEquations{1, 1} end
 
 varnames(::typeof(cons2cons), ::BurgersEquation1D) = ("scalar",)
+varnames(::typeof(cons2prim), ::BurgersEquation1D) = ("scalar",)
 
 """
     initial_condition_convergence_test(x, t, equations::BurgersEquation1D)
