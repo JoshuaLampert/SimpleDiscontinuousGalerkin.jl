@@ -18,6 +18,28 @@
                         entropy_timederivative=3.304866663320083e-8)
 end
 
+@testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+                        initial_condition=initial_condition_density_wave,
+                        source_terms=nothing,
+                        l2=[
+                            0.012043278452772381,
+                            0.0012043278452770788,
+                            6.021639226103159e-5
+                        ],
+                        linf=[
+                            0.0227222927108105,
+                            0.0022722292710732755,
+                            0.00011361146551536194
+                        ],
+                        cons_error=[
+                            7.394085344003543e-14,
+                            1.6542323066914832e-14,
+                            3.907985046680551e-12
+                        ], change_entropy=-1.6749982220787274e-5,
+                        entropy_timederivative=-1.418715274603688e-5)
+end
+
 @testitem "compressible_euler_basic.jl with initial_condition_weak_blast_wave.jl and flux_kennedy_gruber" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_weak_blast_wave,
