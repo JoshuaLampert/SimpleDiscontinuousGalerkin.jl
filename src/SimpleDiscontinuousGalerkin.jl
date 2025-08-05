@@ -45,9 +45,9 @@ export mass, entropy, density, velocity, pressure, density_pressure, entropy_the
 export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
        CompressibleEulerEquations1D
 export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs, flux_ec,
-       flux_ranocha
+       flux_ranocha, flux_kennedy_gruber
 export initial_condition_convergence_test, source_terms_convergence_test,
-       initial_condition_density_wave
+       initial_condition_density_wave, initial_condition_weak_blast_wave
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet

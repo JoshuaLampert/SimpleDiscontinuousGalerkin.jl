@@ -10,8 +10,9 @@ initial_condition = initial_condition_convergence_test
 source_terms = source_terms_convergence_test
 
 # Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
+volume_flux = flux_ranocha
 solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(flux_lax_friedrichs),
-               volume_integral = VolumeIntegralFluxDifferencing(flux_ranocha))
+               volume_integral = VolumeIntegralFluxDifferencing(volume_flux))
 
 coordinates_min = -1.0 # minimum coordinate
 coordinates_max = 1.0 # maximum coordinate

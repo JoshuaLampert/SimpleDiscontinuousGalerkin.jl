@@ -132,7 +132,9 @@ function initial_condition_weak_blast_wave(x, t,
     # From Hennemann & Gassner JCP paper 2020 (Sec. 6.3)
     # Set up polar coordinates
     RealT = eltype(x)
-    inicenter = 0
+    # We often have an interface at x = 0, so we shift the center
+    # to avoid having a discontinuity at an interface.
+    inicenter = 0.001
     x_norm = x - inicenter
     r = abs(x_norm)
     # The following code is equivalent to
