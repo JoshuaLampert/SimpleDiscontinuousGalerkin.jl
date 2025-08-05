@@ -39,7 +39,7 @@ include("callbacks_step/callbacks_step.jl")
 include("visualization.jl")
 
 export examples_dir, default_example, convergence_test
-export cons2cons, cons2entropy, cons2prim, prim2cons, eachvariable, nvariables
+export cons2cons, cons2entropy, cons2prim, prim2cons, eachvariable, nvariables, varnames
 export mass, entropy, density, velocity, pressure, density_pressure, entropy_thermodynamic,
        entropy_math, energy_total
 export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
