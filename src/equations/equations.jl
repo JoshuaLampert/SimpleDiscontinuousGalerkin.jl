@@ -49,6 +49,13 @@ Return the primitive variables from the conservative variables `u`.
 """
 @inline cons2prim(u, ::AbstractEquations{1, 1}) = u
 
+"""
+    prim2cons(q, equations)
+
+Return the conservative variables from the primitive variables `q`.
+"""
+@inline prim2cons(q, ::AbstractEquations{1, 1}) = q
+
 # Add methods to show some information on systems of equations.
 function Base.show(io::IO, equations::AbstractEquations)
     # Since this is not performance-critical, we can use `@nospecialize` to reduce latency.

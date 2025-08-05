@@ -40,6 +40,30 @@ end
 varnames(::typeof(cons2prim), ::CompressibleEulerEquations1D) = ("rho", "v1", "p")
 
 """
+    initial_condition_density_wave(x, t, equations::CompressibleEulerEquations1D)
+
+A sine wave in the density with constant velocity and pressure; reduces the
+compressible Euler equations to the linear advection equations.
+This setup is the test case for stability of EC fluxes from the paper
+- Gregor J. Gassner, Magnus Svärd, Florian J. Hindenlang (2020)
+  Stability issues of entropy-stable and/or split-form high-order schemes
+  [arXiv: 2007.09026](https://arxiv.org/abs/2007.09026)
+with the following parameters
+- domain [-1, 1]
+- mesh = 4x4
+- polydeg = 5
+"""
+function initial_condition_density_wave(x, t, equations::CompressibleEulerEquations1D)
+    RealT = eltype(x)
+    v1 = convert(RealT, 0.1)
+    rho = 1 + convert(RealT, 0.98) * sinpi(2 * (x - t * v1))
+    rho_v1 = rho * v1
+    p = 20
+    rho_e = p / (equations.gamma - 1) + 0.5f0 * rho * v1^2
+    return SVector(rho, rho_v1, rho_e)
+end
+
+"""
     initial_condition_convergence_test(x, t, equations::CompressibleEulerEquations1D)
 
 A smooth initial condition used for convergence tests in combination with

@@ -82,6 +82,7 @@ function flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
 end
 
 @inline cons2prim(u, ::MaxwellEquations1D) = u
+@inline prim2cons(q, ::MaxwellEquations1D) = q
 
 @inline function entropy(u, equations::MaxwellEquations1D)
     E, B = u
