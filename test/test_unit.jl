@@ -46,11 +46,10 @@ end
     @test SimpleDiscontinuousGalerkin.get_name(equations) == "LinearAdvectionEquation1D"
 
     u1 = [SVector(1.0), SVector(-2.0)]
-    for conversion in (cons2cons, cons2entropy)
+    for conversion in (cons2cons, cons2prim)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u1), equations))
     end
-    @test length(varnames(prim2cons, equations)) == length(first(u1))
     @test cons2cons.(u1, equations) == u1
     @test cons2entropy.(u1, equations) == u1
     @test prim2cons.(cons2prim.(u1, equations), equations) == u1
@@ -60,11 +59,10 @@ end
     @test flux_lax_friedrichs.(u1, u1, equations) == flux.(u1, equations)
 
     equations = @test_nowarn BurgersEquation1D()
-    for conversion in (cons2cons, cons2entropy)
+    for conversion in (cons2cons, cons2prim)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u1), equations))
     end
-    @test length(varnames(prim2cons, equations)) == length(first(u1))
     @test cons2cons.(u1, equations) == u1
     @test cons2entropy.(u1, equations) == u1
     @test prim2cons.(cons2prim.(u1, equations), equations) == u1
@@ -74,11 +72,10 @@ end
 
     u2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
     equations = @test_nowarn MaxwellEquations1D(3.12)
-    for conversion in (cons2cons, cons2entropy)
+    for conversion in (cons2cons, cons2prim)
         @test length(varnames(conversion, equations)) ==
-              length(conversion(first(u1), equations))
+              length(conversion(first(u2), equations))
     end
-    @test length(varnames(prim2cons, equations)) == length(first(u1))
     @test cons2cons.(u2, equations) == u2
     @test all(isapprox.(cons2entropy.(u2, equations),
                         [SVector(1.0, 19.4688), SVector(-2.0, -29.2032)]))
@@ -88,11 +85,10 @@ end
 
     u3 = [SVector(1.0, 2.0, 4.0), SVector(2.0, 3.0, 3.0)]
     equations = @test_nowarn CompressibleEulerEquations1D(1.4)
-    for conversion in (cons2cons, cons2entropy)
+    for conversion in (cons2cons, cons2prim)
         @test length(varnames(conversion, equations)) ==
-              length(conversion(first(u1), equations))
+              length(conversion(first(u3), equations))
     end
-    @test length(varnames(prim2cons, equations)) == length(first(u1))
     @test cons2cons.(u3, equations) == u3
     @test all(isapprox.(cons2entropy.(u3, equations),
                         [
