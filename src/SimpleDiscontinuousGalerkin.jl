@@ -52,7 +52,7 @@ export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralStrongForm, VolumeIntegralWeakForm,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
-export Semidiscretization, semidiscretize
+export Semidiscretization, semidiscretize, jacobian_fd
 export SummaryCallback, AnalysisCallback, StepsizeCallback
 export tstops, errors, integrals
 end

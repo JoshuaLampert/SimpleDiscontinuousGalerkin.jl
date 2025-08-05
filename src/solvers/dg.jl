@@ -54,6 +54,8 @@ In particular, not the nodes themselves are returned.
 # This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(solver::DG) = length(grid(solver))
 @inline nnodes(solver::DG, element) = length(grid(solver, element))
+# This is the number of DOFs per variable. See a discussion in
+# https://github.com/trixi-framework/Trixi.jl/issues/1667
 @inline function ndofs(mesh::AbstractMesh, solver::DG)
     sum(nnodes(solver, element) for element in eachelement(mesh))
 end
@@ -93,6 +95,10 @@ at one time step as a vector at every node across all elements.
 """
 function get_variable(u, v, ::DG)
     return vec(u[v, :, :])
+end
+
+function Iterators.flatten(::DG, u)
+    return Iterators.flatten(u)
 end
 
 function allocate_coefficients(mesh, equations, solver, cache)

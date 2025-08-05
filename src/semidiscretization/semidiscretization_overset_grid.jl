@@ -41,6 +41,16 @@ function get_variable(u, v, semi::SemidiscretizationOversetGrid)
     return get_variable(u_left, v, solver_left), get_variable(u_right, v, solver_right)
 end
 
+# In contrast to `Iterators.flatten`, this `collect`s the result and returns a vector.
+# We do this because it would be hard to define this method in a non-allocating way.
+function Iterators.flatten(semi::SemidiscretizationOversetGrid, u::VectorOfArray)
+    solver_left, solver_right = semi.solver
+    u_left, u_right = u
+    u_left_flattened = Iterators.flatten(solver_left, u_left)
+    u_right_flattened = Iterators.flatten(solver_right, u_right)
+    return [collect(u_left_flattened); collect(u_right_flattened)]
+end
+
 function create_cache(mesh::OversetGridMesh, equations, solver)
     solver_left, solver_right = solver
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right

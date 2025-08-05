@@ -80,7 +80,7 @@ element_spacing(mesh::AbstractMesh, element) = element_spacing(mesh)
 Return the left boundary coordinate of the element `element` in the mesh.
 """
 function left_element_boundary(mesh::AbstractMesh, element)
-    @assert 1<=element<=nelements(mesh) "Element index out of bounds"
+    @assert 1<=element<=nelements(mesh)+1 "Element index out of bounds"
     dx = element_spacing(mesh)
     return xmin(mesh) + (element - 1) * dx
 end

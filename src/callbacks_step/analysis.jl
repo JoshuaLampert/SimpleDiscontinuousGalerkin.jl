@@ -237,7 +237,7 @@ function (analysis_callback::AnalysisCallback)(io, du, u, integrator, semi)
         println(io,
                 " sim. time:      " * @sprintf("%10.8e (%5.3f%%)", t, sim_time_percentage))
         println(io,
-                " #DOF:           " * @sprintf("% 14d", ndofs(semi)) *
+                " #DOFs per field:" * @sprintf("% 14d", ndofs(semi)) *
                 "               " *
                 " alloc'd memory: " * @sprintf("%14.3f MiB", memory_use))
         println(io,

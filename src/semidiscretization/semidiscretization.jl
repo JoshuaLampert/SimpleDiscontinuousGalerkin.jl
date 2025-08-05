@@ -228,4 +228,64 @@ function semidiscretize(semi::Semidiscretization, tspan)
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
 end
 
+# In contrast to `Iterators.flatten`, this `collect`s the result and returns a vector.
+# We do this because it would be hard to define a non-allocating `flatten`
+# for `SemidiscretizationOversetGrid`
+function Iterators.flatten(semi::Semidiscretization, u)
+    return collect(Iterators.flatten(semi.solver, u))
+end
+
+"""
+    jacobian_fd(semi;
+                t0=zero(real(semi)),
+                u0_ode=compute_coefficients(t0, semi))
+
+Uses the right-hand side operator of the semidiscretization `semi`
+and simple second order finite difference to compute the Jacobian `J`
+of the semidiscretization `semi` at state `u0_ode`.
+"""
+function jacobian_fd(semi;
+                     t0 = zero(real(semi)),
+                     u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
+    # copy the initial state since it will be modified in the following
+    u_ode = copy(u0_ode)
+    du0_ode = similar(u_ode)
+    dup_ode = similar(u_ode)
+    dum_ode = similar(u_ode)
+
+    # compute residual of linearization state
+    rhs!(du0_ode, u_ode, semi, t0)
+
+    # initialize Jacobian matrix
+    total_ndofs = ndofs(semi) * nvariables(semi.equations)
+    J = zeros(eltype(u_ode), total_ndofs, total_ndofs)
+
+    i = 0
+    # use second order finite difference to estimate Jacobian matrix
+    # This Iterators notation allows to use the same code for both
+    # usual DG and overset grid DG methods.
+    for idx in Iterators.product(Base.OneTo.(size(u0_ode))...)
+        i += 1
+        # determine size of fluctuation
+        epsilon = sqrt(eps(typeof(u0_ode[idx...])))
+
+        # plus fluctuation
+        u_ode[idx...] = u0_ode[idx...] + epsilon
+        rhs!(dup_ode, u_ode, semi, t0)
+
+        # minus fluctuation
+        u_ode[idx...] = u0_ode[idx...] - epsilon
+        rhs!(dum_ode, u_ode, semi, t0)
+
+        # restore linearization state
+        u_ode[idx...] = u0_ode[idx...]
+
+        # central second order finite difference
+        Ji_ode = (dup_ode .- dum_ode) ./ (2 * epsilon)
+        Ji = Iterators.flatten(semi, Ji_ode)
+        @. J[:, i] = Ji
+    end
+    return J
+end
+
 include("semidiscretization_overset_grid.jl")
