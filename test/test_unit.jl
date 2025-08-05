@@ -238,7 +238,7 @@ end
     @test count(real.(eigvals(J)) .> 1e-7) == 10
     @test maximum(real, eigvals(J)) < 1e-3
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
+    trixi_include(@__MODULE__, joinpath(examples_dir(), "maxwell_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This has some eigenvalues with slightly positive real part
