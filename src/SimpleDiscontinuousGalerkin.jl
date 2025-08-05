@@ -41,8 +41,10 @@ include("visualization.jl")
 export examples_dir, default_example, convergence_test
 export cons2cons, cons2entropy, eachvariable, nvariables
 export mass, entropy
-export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D, CompressibleEulerEquations1D
-export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs, flux_ec, flux_ranocha
+export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
+       CompressibleEulerEquations1D
+export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs, flux_ec,
+       flux_ranocha
 export initial_condition_convergence_test, source_terms_convergence_test
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
