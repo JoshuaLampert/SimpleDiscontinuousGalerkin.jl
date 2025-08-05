@@ -62,6 +62,13 @@ end
     @test flux_godunov.(u_2, u_2, equations_maxwell) == flux.(u_2, equations_maxwell)
     @test flux_lax_friedrichs.(u_2, u_2, equations_maxwell) == flux.(u_2, equations_maxwell)
 
+    u_3 = [SVector(1.0, 2.0, -2.0), SVector(-2.0, -3.0, 3.0)]
+    equations_compressible_euler = @test_nowarn CompressibleEulerEquations1D(1.4)
+    @test flux_lax_friedrichs.(u_3, u_3, equations_compressible_euler) ==
+          flux.(u_3, equations_compressible_euler)
+    @test flux_ranocha.(u_3, u_3, equations_compressible_euler) ==
+          flux.(u_3, equations_compressible_euler)
+
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())
     @test_nowarn print(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
