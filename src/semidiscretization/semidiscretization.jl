@@ -94,7 +94,7 @@ end
 @inline eachelement(semi::Semidiscretization) = eachelement(semi.mesh)
 @inline nnodes(semi::Semidiscretization, element) = nnodes(semi.solver, element)
 @inline eachnode(semi::Semidiscretization, element) = eachnode(semi.solver, element)
-@inline ndofs(semi::Semidiscretization) = ndofs(semi.equations, semi.mesh, semi.solver)
+@inline ndofs(semi::Semidiscretization) = ndofs(semi.mesh, semi.solver)
 @inline Base.real(semi::Semidiscretization) = real(semi.mesh)
 
 get_tmp_cache_scalar(cache) = cache.tmp_scalar
@@ -257,7 +257,8 @@ function jacobian_fd(semi;
     rhs!(du0_ode, u_ode, semi, t0)
 
     # initialize Jacobian matrix
-    J = zeros(eltype(u_ode), ndofs(semi), ndofs(semi))
+    total_ndofs = ndofs(semi) * nvariables(semi.equations)
+    J = zeros(eltype(u_ode), total_ndofs, total_ndofs)
 
     i = 0
     # use second order finite difference to estimate Jacobian matrix
