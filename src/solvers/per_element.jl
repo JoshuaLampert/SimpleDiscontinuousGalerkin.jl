@@ -71,7 +71,3 @@ end
 function get_variable(u, v, ::PerElementFDSBP)
     return collect(Iterators.flatten(getindex.(parent(u), v, :)))
 end
-
-function Iterators.flatten(::PerElementFDSBP, u)
-    return Iterators.flatten(parent(u))
-end
