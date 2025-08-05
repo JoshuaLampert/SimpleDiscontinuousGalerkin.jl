@@ -162,38 +162,6 @@ function initial_condition_weak_blast_wave(x, t,
     return prim2cons(SVector(rho, v1, p), equations)
 end
 
-"""
-    initial_condition_eoc_test_coupled_euler_gravity(x, t, equations::CompressibleEulerEquations1D)
-
-One dimensional variant of the setup used for convergence tests of the Euler equations
-with self-gravity from
-- Michael Schlottke-Lakemper, Andrew R. Winters, Hendrik Ranocha, Gregor J. Gassner (2020)
-  A purely hyperbolic discontinuous Galerkin approach for self-gravitating gas dynamics
-  [arXiv: 2008.10593](https://arxiv.org/abs/2008.10593)
-!!! note
-    There is no additional source term necessary for the manufactured solution in one
-    spatial dimension. Thus, [`source_terms_eoc_test_coupled_euler_gravity`](@ref) is not
-    present there.
-"""
-function initial_condition_eoc_test_coupled_euler_gravity(x, t,
-                                                          equations::CompressibleEulerEquations1D)
-    # OBS! this assumes that γ = 2 other manufactured source terms are incorrect
-    if equations.gamma != 2
-        error("adiabatic constant must be 2 for the coupling convergence test")
-    end
-    RealT = eltype(x)
-    c = 2
-    A = convert(RealT, 0.1)
-    ini = c + A * sinpi(x - t)
-    G = 1 # gravitational constant
-
-    rho = ini
-    v1 = 1
-    p = 2 * ini^2 * G / convert(RealT, pi) # * 2 / ndims, but ndims==1 here
-
-    return prim2cons(SVector(rho, v1, p), equations)
-end
-
 # Calculate 1D flux for a single point
 @inline function flux(u, equations::CompressibleEulerEquations1D)
     rho, rho_v1, rho_e = u
