@@ -133,3 +133,25 @@ end
                         change_entropy=-2.5824226002058026e-6,
                         entropy_timederivative=-1.3823791347178371e-5)
 end
+
+@testitem "compressible_euler_overset_grid.jl" setup=[Setup] begin
+    # Not mass conservative because we miss integrating the part from the left boundary of the left
+    # overlap element to b.
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_overset_grid.jl"),
+                        l2=[
+                            9.018763743420028e-6,
+                            2.9398892374950745e-6,
+                            1.7972218598452348e-5
+                        ],
+                        linf=[
+                            1.4000563695937274e-5,
+                            4.487164357191986e-6,
+                            2.7333799352824428e-5
+                        ],
+                        cons_error=[
+                            0.0030839333952679127,
+                            0.0030833509112886404,
+                            0.012334658540751775
+                        ], change_entropy=-0.0011189284128700905,
+                        entropy_timederivative=-0.010368365489186054)
+end
