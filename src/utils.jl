@@ -30,6 +30,38 @@ function interpolation_operator(x,
     return e_M
 end
 
+@inline ln_mean(x::Real, y::Real) = ln_mean(promote(x, y)...)
+
+@inline function ln_mean(x::RealT, y::RealT) where {RealT <: Real}
+    epsilon_f2 = convert(RealT, 1.0e-4)
+    f2 = (x * (x - 2 * y) + y * y) / (x * (x + 2 * y) + y * y) # f2 = f^2
+    if f2 < epsilon_f2
+        return (x + y) / @evalpoly(f2,
+                         2,
+                         convert(RealT, 2 / 3),
+                         convert(RealT, 2 / 5),
+                         convert(RealT, 2 / 7))
+    else
+        return (y - x) / log(y / x)
+    end
+end
+
+@inline inv_ln_mean(x::Real, y::Real) = inv_ln_mean(promote(x, y)...)
+
+@inline function inv_ln_mean(x::RealT, y::RealT) where {RealT <: Real}
+    epsilon_f2 = convert(RealT, 1.0e-4)
+    f2 = (x * (x - 2 * y) + y * y) / (x * (x + 2 * y) + y * y) # f2 = f^2
+    if f2 < epsilon_f2
+        return @evalpoly(f2,
+                         2,
+                         convert(RealT, 2 / 3),
+                         convert(RealT, 2 / 5),
+                         convert(RealT, 2 / 7)) / (x + y)
+    else
+        return log(y / x) / (y - x)
+    end
+end
+
 """
     examples_dir()
 

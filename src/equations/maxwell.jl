@@ -35,9 +35,8 @@ struct MaxwellEquations1D{RealT <: Real} <: AbstractEquations{1, 2}
     end
 end
 
-function varnames(::typeof(cons2cons), ::MaxwellEquations1D)
-    ("E", "B")
-end
+varnames(::typeof(cons2cons), ::MaxwellEquations1D) = ("E", "B")
+varnames(::typeof(cons2prim), ::MaxwellEquations1D) = ("E", "B")
 
 """
     initial_condition_convergence_test(x, t, equations::MaxwellEquations1D)
@@ -81,6 +80,8 @@ function flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
     return SVector(0.5f0 * (c^2 * (B_L + B_R) - (E_R - E_L) * c),
                    0.5f0 * ((E_L + E_R) - (B_R - B_L) * c))
 end
+
+@inline cons2prim(u, ::MaxwellEquations1D) = u
 
 @inline function entropy(u, equations::MaxwellEquations1D)
     E, B = u

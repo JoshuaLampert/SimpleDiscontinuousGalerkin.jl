@@ -12,6 +12,7 @@ struct LinearAdvectionEquation1D{RealT <: Real} <: AbstractEquations{1, 1}
 end
 
 varnames(::typeof(cons2cons), ::LinearAdvectionEquation1D) = ("u",)
+varnames(::typeof(cons2prim), ::LinearAdvectionEquation1D) = ("u",)
 
 """
     initial_condition_convergence_test(x, t, equations::LinearAdvectionEquation1D)

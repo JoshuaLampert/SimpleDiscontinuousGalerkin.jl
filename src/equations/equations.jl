@@ -42,6 +42,13 @@ it is also as useful.
 """
 @inline cons2cons(u, ::AbstractEquations) = u
 
+"""
+    cons2prim(u, equations)
+
+Return the primitive variables from the conservative variables `u`.
+"""
+@inline cons2prim(u, ::AbstractEquations{1, 1}) = u
+
 # Add methods to show some information on systems of equations.
 function Base.show(io::IO, equations::AbstractEquations)
     # Since this is not performance-critical, we can use `@nospecialize` to reduce latency.
@@ -126,5 +133,6 @@ cons2entropy(u, equations::AbstractEquations{1, 1}) = u
 
 include("numerical_fluxes.jl")
 include("linear_advection.jl")
-include("Burgers.jl")
-include("Maxwell.jl")
+include("burgers.jl")
+include("maxwell.jl")
+include("compressible_euler.jl")
