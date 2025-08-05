@@ -117,6 +117,7 @@ end
     # Mass conservative because we choose 11 elements meaning b is exactly an interface.
     @test_trixi_include(joinpath(examples_dir(), "burgers_overset_grid.jl"),
                         source_terms=nothing,
+                        interval=200,
                         l2=[1.0898127073451138], linf=[0.7933574712125537],
                         cons_error=[6.159517340620368e-13],
                         change_mass=-6.159517340620368e-13,

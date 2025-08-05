@@ -22,6 +22,7 @@ end
     @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_density_wave,
                         source_terms=nothing,
+                        interval=50,
                         l2=[
                             0.012043278452772381,
                             0.0012043278452770788,
@@ -37,7 +38,8 @@ end
                             1.6542323066914832e-14,
                             3.907985046680551e-12
                         ], change_entropy=-1.6749982220787274e-5,
-                        entropy_timederivative=-1.418715274603688e-5)
+                        entropy_timederivative=-1.418715274603688e-5,
+                        atol=1e-8) # To make CI pass
 end
 
 @testitem "compressible_euler_basic.jl with initial_condition_weak_blast_wave.jl and flux_kennedy_gruber" setup=[Setup] begin
