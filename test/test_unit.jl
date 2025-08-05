@@ -19,18 +19,20 @@
     @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
 
     # convergence test
-    convergence_test(default_example(), 3)
+    convergence_test(default_example(), 3, interval = 1000)
     polydegs = [1, 3, 5]
     for polydeg in polydegs
         eoc_mean_values, _ = convergence_test(default_example(), 3, N_elements = 16,
                                               tspan = (0.0, 1.0), polydeg = polydeg,
-                                              abstol = 1e-14, reltol = 1e-14)
+                                              abstol = 1e-14, reltol = 1e-14,
+                                              interval = 1000)
         @test isapprox(eoc_mean_values[:l2][1], polydeg + 1, atol = 0.15)
         @test isapprox(eoc_mean_values[:linf][1], polydeg + 1, atol = 0.15)
 
         eoc_mean_values2, _ = convergence_test(default_example(), [16, 32, 64],
                                                tspan = (0.0, 1.0), polydeg = polydeg,
-                                               abstol = 1e-14, reltol = 1e-14)
+                                               abstol = 1e-14, reltol = 1e-14,
+                                               interval = 1000)
         for kind in (:l2, :linf), variable in (1,)
             eoc_mean_values[kind][variable] == eoc_mean_values2[kind][variable]
         end
