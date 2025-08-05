@@ -41,14 +41,74 @@ function get_variable(u, v, semi::SemidiscretizationOversetGrid)
     return get_variable(u_left, v, solver_left), get_variable(u_right, v, solver_right)
 end
 
-# In contrast to `Iterators.flatten`, this `collect`s the result and returns a vector.
-# We do this because it would be hard to define this method in a non-allocating way.
-function Iterators.flatten(semi::SemidiscretizationOversetGrid, u::VectorOfArray)
-    solver_left, solver_right = semi.solver
-    u_left, u_right = u
-    u_left_flattened = Iterators.flatten(solver_left, u_left)
-    u_right_flattened = Iterators.flatten(solver_right, u_right)
-    return [collect(u_left_flattened); collect(u_right_flattened)]
+# We need to explicitly loop over every component because `u` is a `VectorOfArray` with
+# potentially different number of nodes per element and there is the issue in RecursiveArrayTools.jl
+# https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+function central_difference!(Ji, dup, dum, epsilon, semi::SemidiscretizationOversetGrid)
+    meshes = (semi.mesh.mesh_left, semi.mesh.mesh_right)
+    j = 0
+    for nmesh in 1:2
+        for element in eachelement(meshes[nmesh])
+            for node in eachnode(semi.solver[nmesh], element)
+                for v in eachvariable(semi.equations)
+                    j += 1
+                    Ji[j] = (dup[v, node, element, nmesh] - dum[v, node, element, nmesh]) /
+                            (2 * epsilon)
+                end
+            end
+        end
+    end
+end
+
+function jacobian_fd(semi::SemidiscretizationOversetGrid;
+                     t0 = zero(real(semi)),
+                     u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
+    # copy the initial state since it will be modified in the following
+    u_ode = copy(u0_ode)
+    du0_ode = similar(u_ode)
+    dup_ode = similar(u_ode)
+    dum_ode = similar(u_ode)
+
+    # compute residual of linearization state
+    rhs!(du0_ode, u_ode, semi, t0)
+
+    # initialize Jacobian matrix
+    total_ndofs = ndofs(semi) * nvariables(semi.equations)
+    J = zeros(eltype(u_ode), total_ndofs, total_ndofs)
+    Ji = zeros(eltype(u_ode), total_ndofs)
+
+    i = 0
+    # use second order finite difference to estimate Jacobian matrix
+    meshes = [semi.mesh.mesh_left, semi.mesh.mesh_right]
+    for nmesh in 1:2
+        for element in eachelement(meshes[nmesh])
+            for node in eachnode(semi.solver[nmesh], element)
+                for v in eachvariable(semi.equations)
+                    i += 1
+                    # determine size of fluctuation
+                    epsilon = sqrt(eps(typeof(u0_ode[v, node, element, nmesh])))
+
+                    # plus fluctuation
+                    u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh] +
+                                                     epsilon
+                    rhs!(dup_ode, u_ode, semi, t0)
+
+                    # minus fluctuation
+                    u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh] -
+                                                     epsilon
+                    rhs!(dum_ode, u_ode, semi, t0)
+
+                    # restore linearization state
+                    u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh]
+
+                    # central second order finite difference
+                    central_difference!(Ji, dup_ode, dum_ode, epsilon, semi)
+                    @. J[:, i] = Ji
+                end
+            end
+        end
+    end
+    return J
 end
 
 function create_cache(mesh::OversetGridMesh, equations, solver)
