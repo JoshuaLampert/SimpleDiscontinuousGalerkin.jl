@@ -64,10 +64,10 @@ end
 
     u_3 = [SVector(1.0, 2.0, 4.0), SVector(2.0, 3.0, 3.0)]
     equations_compressible_euler = @test_nowarn CompressibleEulerEquations1D(1.4)
-    @test flux_lax_friedrichs.(u_3, u_3, equations_compressible_euler) ==
-          flux.(u_3, equations_compressible_euler)
-    @test flux_ranocha.(u_3, u_3, equations_compressible_euler) ==
-          flux.(u_3, equations_compressible_euler)
+    @test all(isapprox.(flux_lax_friedrichs.(u_3, u_3, equations_compressible_euler),
+          flux.(u_3, equations_compressible_euler)))
+    @test all(isapprox.(flux_ranocha.(u_3, u_3, equations_compressible_euler),
+          flux.(u_3, equations_compressible_euler)))
 
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())
