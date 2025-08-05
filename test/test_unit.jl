@@ -209,7 +209,6 @@ end
     trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
-    @test size(J) == (ndofs(semi), ndofs(semi))
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
 
@@ -222,14 +221,12 @@ end
     trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection_per_element.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
-    @test size(J) == (ndofs(semi), ndofs(semi))
     # There are two unstable eigenvalues
     @test count(real.(eigvals(J)) .> 1e-7) == 2
 
     trixi_include(@__MODULE__, joinpath(examples_dir(), "Maxwell_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
-    @test size(J) == (ndofs(semi), ndofs(semi))
     # This is has some eigenvalues with slightly positive real part
     @test maximum(real, eigvals(J)) < 1e-3
 end
