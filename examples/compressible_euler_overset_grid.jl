@@ -9,9 +9,11 @@ equations = CompressibleEulerEquations1D(1.4)
 initial_condition = initial_condition_convergence_test
 source_terms = source_terms_convergence_test
 
-# Create DG solver with polynomial degree = 3 and Godunov flux as surface flux
-solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(flux_lax_friedrichs),
-               volume_integral = VolumeIntegralFluxDifferencing(flux_ranocha))
+# Create DG solver with polynomial degree = 3 and Lax-Friedrichs flux as surface flux
+surface_flux = flux_lax_friedrichs
+volume_flux = flux_ranocha
+solver = DGSEM(polydeg = 3, surface_integral = SurfaceIntegralWeakForm(surface_flux),
+               volume_integral = VolumeIntegralFluxDifferencing(volume_flux))
 
 a = -1.0
 b = -0.1

@@ -42,6 +42,30 @@ end
                         atol=1e-8) # To make CI pass
 end
 
+@testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl and flux_godunov" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+                        initial_condition=initial_condition_density_wave,
+                        source_terms=nothing,
+                        surface_flux=flux_godunov,
+                        interval=50,
+                        l2=[
+                            0.006842388438912919,
+                            0.0006842309974553353,
+                            3.382179575461028e-5
+                        ],
+                        linf=[
+                            0.021832146895580107,
+                            0.0021832043288498026,
+                            0.0001090312647491487
+                        ],
+                        cons_error=[
+                            4.9960036108132044e-14,
+                            1.9456658506555868e-14,
+                            2.4726887204451486e-12
+                        ], change_entropy=-0.0007395988732046277,
+                        entropy_timederivative=-0.0003131350857813464)
+end
+
 @testitem "compressible_euler_basic.jl with initial_condition_weak_blast_wave.jl and flux_kennedy_gruber" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_weak_blast_wave,
