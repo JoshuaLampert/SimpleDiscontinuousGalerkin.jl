@@ -20,6 +20,7 @@ using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
+using Roots: find_zero, AlefeldPotraShi
 import SciMLBase: ODESolution, u_modified!, get_tmp_cache, set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector

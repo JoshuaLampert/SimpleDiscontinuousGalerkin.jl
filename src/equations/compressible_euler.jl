@@ -233,6 +233,92 @@ See also
     return SVector(f1, f2, f3)
 end
 
+# Based on https://gist.github.com/ketch/08ce0845da0c8f3fa9ff
+@inline function flux_godunov(u_ll, u_rr, equations::CompressibleEulerEquations1D)
+    rho_ll, v1_ll, p_ll = cons2prim(u_ll, equations)
+    rho_rr, v1_rr, p_rr = cons2prim(u_rr, equations)
+
+    gamma = equations.gamma
+
+    c_ll = sqrt(gamma * p_ll / rho_ll)
+    c_rr = sqrt(gamma * p_rr / rho_rr)
+
+    alpha = (gamma - 1) / (2 * gamma)
+    beta = (gamma + 1) / (gamma - 1)
+
+    function phi_l(p)
+        # Hugoniot locus 1
+        if p >= p_ll
+            v1_ll +
+            2 * c_ll / sqrt(2 * gamma * (gamma - 1.0)) *
+            ((1 - p / p_ll) / sqrt(1 + beta * p / p_ll))
+        else # Integral curve 1
+            v1_ll +
+            2 * c_ll / (gamma - 1.0) * (1 - (p / p_ll)^alpha)
+        end
+    end
+    function phi_r(p)
+        # Hugoniot locus 3
+        if p >= p_rr
+            v1_rr -
+            2 * c_rr / sqrt(2 * gamma * (gamma - 1.0)) *
+            ((1 - p / p_rr) / sqrt(1 + beta * p / p_rr))
+        else # Integral curve 3
+            v1_rr -
+            2 * c_rr / (gamma - 1.0) * (1 - (p / p_rr)^alpha)
+        end
+    end
+
+    phi(p) = phi_l(p) - phi_r(p)
+    p_star = find_zero(phi, (0.5f0 * min(p_ll, p_rr), 1.5f0 * max(p_ll, p_rr)),
+                       AlefeldPotraShi())
+    v1_star = phi_l(p_star)
+
+    rho_ll_star = (p_star / p_ll)^(1.0 / gamma) * rho_ll
+    rho_rr_star = (p_star / p_rr)^(1.0 / gamma) * rho_rr
+
+    w3 = v1_star
+    if p_star > p_ll
+        w1 = (rho_ll * v1_ll - rho_ll_star * v1_star) / (rho_ll - rho_ll_star)
+        w2 = w1
+    else
+        c_ll_star = sqrt(gamma * p_star / rho_ll_star)
+        w1 = v1_ll - c_ll
+        w2 = v1_star - c_ll_star
+    end
+    if p_star > p_rr
+        w5 = (rho_rr * v1_rr - rho_rr_star * v1_star) / (rho_rr - rho_rr_star)
+        w4 = w5
+    else
+        c_rr_star = sqrt(gamma * p_star / rho_rr_star)
+        w4 = v1_star + c_rr_star
+        w5 = v1_rr + c_rr
+    end
+
+    xi = 0.0 # x/t, but Godunov flux uses the exact Riemann solution at x/t = 0
+    v1_1 = ((gamma - 1.0) * v1_ll + 2 * (c_ll + xi)) / (gamma + 1.0)
+    v1_3 = ((gamma - 1.0) * v1_rr - 2 * (c_rr - xi)) / (gamma + 1.0)
+    rho_1 = (rho_ll^gamma * (v1_1 - xi)^2 / (gamma * p_ll))^equations.inv_gamma_minus_one
+    rho_3 = (rho_rr^gamma * (xi - v1_3)^2 / (gamma * p_rr))^equations.inv_gamma_minus_one
+    p_1 = p_ll * (rho_1 / rho_ll)^gamma
+    p_3 = p_rr * (rho_3 / rho_rr)^gamma
+
+    if xi <= w1
+        prim_out = SVector(rho_ll, v1_ll, p_ll)
+    elseif w1 < xi <= w2
+        prim_out = SVector(rho_1, v1_1, p_1)
+    elseif w2 < xi <= w3
+        prim_out = SVector(rho_ll_star, v1_star, p_star)
+    elseif w3 < xi <= w4
+        prim_out = SVector(rho_rr_star, v1_star, p_star)
+    elseif w4 < xi <= w5
+        prim_out = SVector(rho_3, v1_3, p_3)
+    else # xi > w5
+        prim_out = SVector(rho_rr, v1_rr, p_rr)
+    end
+    return flux(prim2cons(prim_out, equations), equations)
+end
+
 # Less "cautious", i.e., less overestimating `λ_max` compared to `max_abs_speed_naive`
 @inline function max_abs_speed(u_ll, u_rr, equations::CompressibleEulerEquations1D)
     rho_ll, rho_v1_ll, rho_e_ll = u_ll
