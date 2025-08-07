@@ -91,6 +91,7 @@ function max_dt(u, t, mesh, equations, dg, cache)
     # to avoid a division by zero if the speed vanishes everywhere,
     # e.g. for steady-state linear advection
     max_scaled_speed = nextfloat(zero(t))
+    max_nnodes = 0
 
     for element in eachelement(mesh)
         max_lambda1 = zero(max_scaled_speed)
@@ -105,7 +106,8 @@ function max_dt(u, t, mesh, equations, dg, cache)
         dx_basis = last(grid(basis)) - first(grid(basis))
         inv_jacobian = 1 / (dx_basis * cache.jacobian[element])
         max_scaled_speed = max(max_scaled_speed, inv_jacobian * max_lambda1)
+        max_nnodes = max(max_nnodes, nnodes(dg, element))
     end
 
-    return 1 / (nnodes(dg) * max_scaled_speed)
+    return 1 / (max_nnodes * max_scaled_speed)
 end
