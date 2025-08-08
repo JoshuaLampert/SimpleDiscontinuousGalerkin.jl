@@ -102,3 +102,29 @@ end
 See [`FluxLaxFriedrichs`](@ref).
 """
 const flux_lax_friedrichs = FluxLaxFriedrichs()
+
+"""
+    ExactRiemannSolver(equations)
+
+An exact Riemann solver for the given `equations`.
+"""
+struct ExactRiemannSolver{Equations}
+    u_ll::SVector
+    u_rr::SVector
+    equations::Equations
+
+    function ExactRiemannSolver(u_ll::SVector{NVARS}, u_rr::SVector{NVARS},
+                                equations::AbstractEquations{1, NVARS}) where {NVARS}
+        new{typeof(equations)}(u_ll, u_rr, equations)
+    end
+end
+
+function (riemann_solver::ExactRiemannSolver)(x, t)
+    riemann_solver(x / t)
+end
+
+function flux_godunov(u_ll, u_rr, equations)
+    riemann_solver = ExactRiemannSolver(u_ll, u_rr, equations)
+    godunov_state = riemann_solver(zero(eltype(u_ll)))
+    return flux(godunov_state, equations)
+end

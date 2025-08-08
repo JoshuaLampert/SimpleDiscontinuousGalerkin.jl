@@ -47,6 +47,7 @@ export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
        CompressibleEulerEquations1D
 export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs, flux_ec,
        flux_ranocha, flux_kennedy_gruber
+export ExactRiemannSolver
 export initial_condition_convergence_test, source_terms_convergence_test,
        initial_condition_density_wave, initial_condition_weak_blast_wave
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
