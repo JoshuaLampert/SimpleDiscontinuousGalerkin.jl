@@ -18,6 +18,27 @@
                         entropy_timederivative=3.304866663320083e-8)
 end
 
+@testitem "compressible_euler_basic.jl with flux_hll" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+                        surface_flux=flux_hll,
+                        l2=[
+                            2.0273835088360883e-5,
+                            1.5087972038113301e-5,
+                            5.8729911141980284e-5
+                        ],
+                        linf=[
+                            4.764287293657077e-5,
+                            4.5057813065074726e-5,
+                            0.00015040034055591178
+                        ],
+                        cons_error=[
+                            2.708944180085382e-14,
+                            2.708944180085382e-14,
+                            5.3290705182007514e-14
+                        ], change_entropy=3.407981097325319e-8,
+                        entropy_timederivative=3.162079266830209e-8)
+end
+
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_density_wave,

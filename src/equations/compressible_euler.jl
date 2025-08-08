@@ -319,7 +319,6 @@ end
     return flux(prim2cons(prim_out, equations), equations)
 end
 
-# Less "cautious", i.e., less overestimating `λ_max` compared to `max_abs_speed_naive`
 @inline function max_abs_speed(u_ll, u_rr, equations::CompressibleEulerEquations1D)
     rho_ll, rho_v1_ll, rho_e_ll = u_ll
     rho_rr, rho_v1_rr, rho_e_rr = u_rr
@@ -335,6 +334,20 @@ end
     c_rr = sqrt(equations.gamma * p_rr / rho_rr)
 
     return max(v_mag_ll + c_ll, v_mag_rr + c_rr)
+end
+
+# For the HLL flux
+@inline function min_max_speed_davis(u_ll, u_rr, equations::CompressibleEulerEquations1D)
+    rho_ll, v1_ll, p_ll = cons2prim(u_ll, equations)
+    rho_rr, v1_rr, p_rr = cons2prim(u_rr, equations)
+
+    c_ll = sqrt(equations.gamma * p_ll / rho_ll)
+    c_rr = sqrt(equations.gamma * p_rr / rho_rr)
+
+    λ_min = min(v1_ll - c_ll, v1_rr - c_rr)
+    λ_max = max(v1_ll + c_ll, v1_rr + c_rr)
+
+    return λ_min, λ_max
 end
 
 # Convert conservative variables to primitive

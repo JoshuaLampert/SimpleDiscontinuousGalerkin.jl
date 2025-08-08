@@ -108,10 +108,13 @@ end
                         [0.557858878285525, 10.871894285549299]))
     @test energy_total.(u3, equations) == [4.0, 3.0]
     @test all(isapprox.(flux_lax_friedrichs.(u3, u3, equations), flux.(u3, equations)))
+    @test all(isapprox.(flux_hll.(u3, u3, equations), flux.(u3, equations)))
     @test all(isapprox.(flux_ranocha.(u3, u3, equations), flux.(u3, equations)))
 
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())
+    @test_nowarn print(FluxHLL())
+    @test_nowarn display(FluxHLL())
     @test_nowarn print(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
     @test_nowarn display(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
     @test_nowarn print(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_godunov,

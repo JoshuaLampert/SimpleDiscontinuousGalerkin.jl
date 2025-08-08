@@ -63,7 +63,7 @@ end
 end
 
 # Calculate maximum wave speed for local Lax-Friedrichs-type dissipation
-@inline function max_abs_speed_naive(u_ll, u_rr, equations::MaxwellEquations1D)
+@inline function max_abs_speed(u_ll, u_rr, equations::MaxwellEquations1D)
     return equations.speed_of_light
 end
 
