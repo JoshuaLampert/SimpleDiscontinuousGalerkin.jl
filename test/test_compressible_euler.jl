@@ -63,6 +63,30 @@ end
                         atol=1e-8) # To make CI pass
 end
 
+@testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl and flux_hll" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+                        surface_flux=flux_hll,
+                        initial_condition=initial_condition_density_wave,
+                        source_terms=nothing,
+                        interval=50,
+                        l2=[
+                            0.012037372763788965,
+                            0.0012037372763792071,
+                            6.0186863813198274e-5
+                        ],
+                        linf=[
+                            0.022718034138625498,
+                            0.0022718034138544813,
+                            0.00011359017277356998
+                        ],
+                        cons_error=[
+                            7.527312106958561e-14,
+                            1.6542323066914832e-14,
+                            3.765876499528531e-12
+                        ], change_entropy=-1.696940963391569e-5,
+                        entropy_timederivative=-1.4441696482736521e-5)
+end
+
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl and flux_godunov" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_density_wave,
