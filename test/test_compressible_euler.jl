@@ -18,6 +18,27 @@
                         entropy_timederivative=3.304866663320083e-8)
 end
 
+@testitem "compressible_euler_basic.jl with flux_hll" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+                        surface_flux=flux_hll,
+                        l2=[
+                            2.0273835088360883e-5,
+                            1.5087972038113301e-5,
+                            5.8729911141980284e-5
+                        ],
+                        linf=[
+                            4.764287293657077e-5,
+                            4.5057813065074726e-5,
+                            0.00015040034055591178
+                        ],
+                        cons_error=[
+                            2.708944180085382e-14,
+                            2.708944180085382e-14,
+                            5.3290705182007514e-14
+                        ], change_entropy=3.407981097325319e-8,
+                        entropy_timederivative=3.162079266830209e-8)
+end
+
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_density_wave,
@@ -39,6 +60,31 @@ end
                             3.907985046680551e-12
                         ], change_entropy=-1.6749982220787274e-5,
                         entropy_timederivative=-1.418715274603688e-5,
+                        atol=1e-8) # To make CI pass
+end
+
+@testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl and flux_hll" setup=[Setup] begin
+    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+                        surface_flux=flux_hll,
+                        initial_condition=initial_condition_density_wave,
+                        source_terms=nothing,
+                        interval=50,
+                        l2=[
+                            0.012037372763788965,
+                            0.0012037372763792071,
+                            6.0186863813198274e-5
+                        ],
+                        linf=[
+                            0.022718034138625498,
+                            0.0022718034138544813,
+                            0.00011359017277356998
+                        ],
+                        cons_error=[
+                            7.527312106958561e-14,
+                            1.6542323066914832e-14,
+                            3.765876499528531e-12
+                        ], change_entropy=-1.696940963391569e-5,
+                        entropy_timederivative=-1.4441696482736521e-5,
                         atol=1e-8) # To make CI pass
 end
 
