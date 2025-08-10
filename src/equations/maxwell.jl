@@ -93,3 +93,16 @@ end
     E, B = u
     return SVector(E, equations.speed_of_light^2 * B)
 end
+
+function electric_field(u, equations::MaxwellEquations1D)
+    return first(u)
+end
+function magnetic_field(u, equations::MaxwellEquations1D)
+    return last(u)
+end
+pretty_form_utf(::typeof(electric_field)) = "∫E"
+pretty_form_utf(::typeof(magnetic_field)) = "∫B"
+
+function default_analysis_integrals(::MaxwellEquations1D)
+    return (electric_field, magnetic_field, entropy, entropy_timederivative)
+end
