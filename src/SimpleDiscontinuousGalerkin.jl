@@ -41,8 +41,8 @@ include("visualization.jl")
 
 export examples_dir, default_example, convergence_test
 export cons2cons, cons2entropy, cons2prim, prim2cons, eachvariable, nvariables, varnames
-export mass, entropy, density, velocity, pressure, density_pressure, entropy_thermodynamic,
-       entropy_math, energy_total
+export mass, entropy, electric_field, magnetic_field, density, velocity, pressure,
+       density_pressure, entropy_thermodynamic, entropy_math, energy_total
 export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
        CompressibleEulerEquations1D
 export FluxLaxFriedrichs, FluxHLL, flux, flux_central, flux_godunov, flux_lax_friedrichs,
