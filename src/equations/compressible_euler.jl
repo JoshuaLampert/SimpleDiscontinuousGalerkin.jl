@@ -391,6 +391,11 @@ end
     return rho
 end
 
+@inline function momentum(u, equations::CompressibleEulerEquations1D)
+    rho_v1 = u[2]
+    return rho_v1
+end
+
 @inline function velocity(u, equations::CompressibleEulerEquations1D)
     rho = u[1]
     v1 = u[2] / rho
@@ -436,3 +441,11 @@ end
 
 # Calculate total energy for a conservative state `cons`
 @inline energy_total(cons, ::CompressibleEulerEquations1D) = cons[3]
+
+pretty_form_utf(::typeof(density)) = "∫ρ"
+pretty_form_utf(::typeof(momentum)) = "∫ρv"
+pretty_form_utf(::typeof(energy_total)) = "∫ρe"
+
+function default_analysis_integrals(::CompressibleEulerEquations1D)
+    return (density, momentum, energy_total, entropy, entropy_timederivative)
+end
