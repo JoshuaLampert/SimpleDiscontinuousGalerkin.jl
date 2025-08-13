@@ -100,6 +100,7 @@ end
 function magnetic_field(u, equations::MaxwellEquations1D)
     return last(u)
 end
+
 pretty_form_utf(::typeof(electric_field)) = "∫E"
 pretty_form_utf(::typeof(magnetic_field)) = "∫B"
 

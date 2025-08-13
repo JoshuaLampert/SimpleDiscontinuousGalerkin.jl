@@ -102,6 +102,7 @@ end
     @test prim2cons.(cons2prim.(u3, equations), equations) == u3
     @test density.(u3, equations) == [1.0, 2.0]
     @test velocity.(u3, equations) == [2.0, 1.5]
+    @test momentum.(u3, equations) == [2.0, 3.0]
     @test all(isapprox.(pressure.(u3, equations), [0.8, 0.3]))
     @test all(isapprox.(density_pressure.(u3, equations), [0.8, 0.6]))
     @test all(isapprox.(entropy_thermodynamic.(u3, equations),
