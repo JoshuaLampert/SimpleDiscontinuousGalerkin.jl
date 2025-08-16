@@ -86,7 +86,8 @@ end
 @testitem "linear_advection_overset_grid_cfl.jl" setup=[Setup] begin
     # Not mass conservative because we miss integrating the part from the left boundary of the left
     # overlap element to b.
-    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid_cfl.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_overset_grid_cfl.jl"),
                         l2=[2.381442225978849e-5], linf=[3.098598080530923e-5],
                         cons_error=[2.1519649284762465e-8],
                         change_mass=-2.1519649284762465e-8,

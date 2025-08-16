@@ -94,7 +94,8 @@ end
 
 @testitem "linear_advection_flux_differencing.jl" setup=[Setup] begin
     # Same errors as in "linear_advection.jl"
-    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_flux_differencing.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_flux_differencing.jl"),
                         l2=[0.00015746414238611707], linf=[0.0004289501170472443],
                         change_mass=4.2327252813834093e-16,
                         change_entropy=-9.08222309914386e-7,
@@ -173,7 +174,8 @@ end
                              volume_integral = VolumeIntegralStrongForm())
     @testset "Strong form" begin
         # Same errors as above
-        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
+        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                     "linear_advection_per_element.jl"),
                             solver=solver,
                             l2=[0.0033676357851732484], linf=[0.009084487338805292],
                             cons_error=[5.204170427930421e-16],
@@ -187,7 +189,8 @@ end
                              volume_integral = VolumeIntegralFluxDifferencing())
     @testset "Flux differencing" begin
         # Same errors as above
-        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
+        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                     "linear_advection_per_element.jl"),
                             solver=solver,
                             l2=[0.0033676357851732484], linf=[0.009084487338805292],
                             cons_error=[3.95516952522712e-16],
@@ -201,7 +204,8 @@ end
                              volume_integral = VolumeIntegralFluxDifferencingStrongForm())
     @testset "Flux differencing, strong form" begin
         # Same errors as above
-        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
+        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                     "linear_advection_per_element.jl"),
                             solver=solver,
                             l2=[0.0033676357851732484], linf=[0.009084487338805292],
                             cons_error=[8.604228440844963e-16],
@@ -213,7 +217,8 @@ end
     Ds = [legendre_derivative_operator(-1.0, 1.0, 4) for element in eachelement(mesh)]
     @testset "Same operators on each element" begin
         # Same errors as in "linear_advection.jl"
-        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
+        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                     "linear_advection_per_element.jl"),
                             Ds=Ds,
                             l2=[0.0001574641423857773], linf=[0.00042895011704657815],
                             cons_error=[6.453171330633722e-16],
@@ -227,7 +232,8 @@ end
     mesh = InhomogeneousMesh(collect(coordinates_min:dx:coordinates_max))
     @testset "Same operators on each element and InhomogeneousMesh" begin
         # Same errors as in "linear_advection.jl"
-        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
+        @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                     "linear_advection_per_element.jl"),
                             Ds=Ds, mesh=mesh,
                             l2=[0.0001574641423857773], linf=[0.00042895011704657815],
                             cons_error=[2.706168622523819e-16],
