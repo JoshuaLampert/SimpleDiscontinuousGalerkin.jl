@@ -126,7 +126,7 @@ end
             quantity = cb.affect!.analysis_integrals[i]
             @series begin
                 subplot --> subplot
-                label := pretty_form_utf(quantity) * " " * label_extension
+                label --> pretty_form_utf(quantity) * " " * label_extension
                 title --> "change of invariants"
                 xguide --> "t"
                 yguide --> "change of invariants"

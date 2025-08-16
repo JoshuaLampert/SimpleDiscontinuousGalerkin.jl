@@ -58,24 +58,12 @@ function Base.show(io::IO, d::DissipationLocalLaxFriedrichs)
 end
 
 """
-    max_abs_speed_naive(u_ll, u_rr, equations)
-
-Simple and fast estimate of the maximal wave speed of the Riemann problem with left and right states
-`u_ll, u_rr`, based only on the local wave speeds associated to `u_ll` and `u_rr`.
-"""
-function max_abs_speed_naive end
-
-"""
     max_abs_speed(u_ll, u_rr, equations)
 
 Simple and fast estimate of the maximal wave speed of the Riemann problem with left and right states
 `u_ll, u_rr`, based only on the local wave speeds associated to `u_ll` and `u_rr`.
-Less diffusive, i.e., overestimating than [`max_abs_speed_naive`](@ref).
 """
-@inline function max_abs_speed(u_ll, u_rr, equations)
-    # Use naive version as "backup" if no specialized version for the equations at hand is available
-    max_abs_speed_naive(u_ll, u_rr, equations)
-end
+function max_abs_speed end
 
 max_abs_speeds(u_node, equations) = max_abs_speed(u_node, u_node, equations)
 
@@ -86,7 +74,7 @@ const FluxLaxFriedrichs{MaxAbsSpeed} = FluxPlusDissipation{typeof(flux_central),
 
 Local Lax-Friedrichs (Rusanov) flux with maximum wave speed estimate provided by
 `max_abs_speed`, cf. [`DissipationLocalLaxFriedrichs`](@ref) and
-[`max_abs_speed_naive`](@ref).
+[`max_abs_speed`](@ref).
 """
 function FluxLaxFriedrichs(max_abs_speed = max_abs_speed)
     FluxPlusDissipation(flux_central, DissipationLocalLaxFriedrichs(max_abs_speed))
@@ -102,6 +90,70 @@ end
 See [`FluxLaxFriedrichs`](@ref).
 """
 const flux_lax_friedrichs = FluxLaxFriedrichs()
+
+"""
+    FluxHLL(min_max_speed=min_max_speed_davis)
+
+Create an HLL (Harten, Lax, van Leer) numerical flux where the minimum and maximum
+wave speeds are estimated as
+`λ_min, λ_max = min_max_speed(u_ll, u_rr, orientation_or_normal_direction, equations)`,
+defaulting to [`min_max_speed_davis`](@ref).
+Original paper:
+- Amiram Harten, Peter D. Lax, Bram van Leer (1983)
+  On Upstream Differencing and Godunov-Type Schemes for Hyperbolic Conservation Laws
+  [DOI: 10.1137/1025002](https://doi.org/10.1137/1025002)
+"""
+struct FluxHLL{MinMaxSpeed}
+    min_max_speed::MinMaxSpeed
+end
+
+FluxHLL() = FluxHLL(min_max_speed_davis)
+
+"""
+    min_max_speed_davis(u_ll, u_rr, equations)
+
+Simple and fast estimates of the minimal and maximal wave speed of the Riemann problem with
+left and right states `u_ll, u_rr`, usually based only on the local wave speeds associated to
+`u_ll` and `u_rr`.
+
+- S.F. Davis (1988)
+  Simplified Second-Order Godunov-Type Methods
+  [DOI: 10.1137/0909030](https://doi.org/10.1137/0909030)
+
+See eq. (10.38) from
+- Eleuterio F. Toro (2009)
+  Riemann Solvers and Numerical Methods for Fluid Dynamics: A Practical Introduction
+  [DOI: 10.1007/b79761](https://doi.org/10.1007/b79761)
+See also [`FluxHLL`](@ref), [`min_max_speed_davis`](@ref).
+"""
+function min_max_speed_davis end
+
+@inline function (numflux::FluxHLL)(u_ll, u_rr, equations)
+    λ_min, λ_max = numflux.min_max_speed(u_ll, u_rr, equations)
+
+    if λ_min >= 0 && λ_max >= 0
+        return flux(u_ll, equations)
+    elseif λ_max <= 0 && λ_min <= 0
+        return flux(u_rr, equations)
+    else
+        f_ll = flux(u_ll, equations)
+        f_rr = flux(u_rr, equations)
+        inv_λ_max_minus_λ_min = inv(λ_max - λ_min)
+        factor_ll = λ_max * inv_λ_max_minus_λ_min
+        factor_rr = λ_min * inv_λ_max_minus_λ_min
+        factor_diss = λ_min * λ_max * inv_λ_max_minus_λ_min
+        return factor_ll * f_ll - factor_rr * f_rr + factor_diss * (u_rr - u_ll)
+    end
+end
+
+Base.show(io::IO, numflux::FluxHLL) = print(io, "FluxHLL(", numflux.min_max_speed, ")")
+
+"""
+    flux_hll
+
+See [`FluxHLL`](@ref).
+"""
+const flux_hll = FluxHLL()
 
 """
     ExactRiemannSolver(equations)

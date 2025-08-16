@@ -82,6 +82,8 @@ end
     @test all(isapprox.(cons2entropy.(u2, equations),
                         [SVector(1.0, 19.4688), SVector(-2.0, -29.2032)]))
     @test prim2cons.(cons2prim.(u2, equations), equations) == u2
+    @test electric_field.(u2, equations) == [1.0, -2.0]
+    @test magnetic_field.(u2, equations) == [2.0, -3.0]
     @test flux_godunov.(u2, u2, equations) == flux.(u2, equations)
     @test flux_lax_friedrichs.(u2, u2, equations) == flux.(u2, equations)
 
@@ -100,6 +102,7 @@ end
     @test prim2cons.(cons2prim.(u3, equations), equations) == u3
     @test density.(u3, equations) == [1.0, 2.0]
     @test velocity.(u3, equations) == [2.0, 1.5]
+    @test momentum.(u3, equations) == [2.0, 3.0]
     @test all(isapprox.(pressure.(u3, equations), [0.8, 0.3]))
     @test all(isapprox.(density_pressure.(u3, equations), [0.8, 0.6]))
     @test all(isapprox.(entropy_thermodynamic.(u3, equations),
@@ -108,10 +111,14 @@ end
                         [0.557858878285525, 10.871894285549299]))
     @test energy_total.(u3, equations) == [4.0, 3.0]
     @test all(isapprox.(flux_lax_friedrichs.(u3, u3, equations), flux.(u3, equations)))
+    @test all(isapprox.(flux_hll.(u3, u3, equations), flux.(u3, equations)))
     @test all(isapprox.(flux_ranocha.(u3, u3, equations), flux.(u3, equations)))
+    @test all(isapprox.(flux_godunov.(u3, u3, equations), flux.(u3, equations)))
 
     @test_nowarn print(FluxLaxFriedrichs())
     @test_nowarn display(FluxLaxFriedrichs())
+    @test_nowarn print(FluxHLL())
+    @test_nowarn display(FluxHLL())
     @test_nowarn print(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
     @test_nowarn display(SimpleDiscontinuousGalerkin.DissipationLocalLaxFriedrichs())
     @test_nowarn print(SimpleDiscontinuousGalerkin.FluxPlusDissipation(flux_godunov,
