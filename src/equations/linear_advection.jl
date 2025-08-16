@@ -34,18 +34,30 @@ end
     return abs(equation.advection_velocity)
 end
 
-"""
-    flux_godunov(u_ll, u_rr, equations::LinearAdvectionEquation1D)
+# """
+#     flux_godunov(u_ll, u_rr, equations::LinearAdvectionEquation1D)
 
-Godunov (upwind) flux for the 1D linear scalar advection equation.
-Essentially first order upwind, see e.g. https://math.stackexchange.com/a/4355076/805029 .
-"""
-function flux_godunov(u_ll, u_rr, equation::LinearAdvectionEquation1D)
-    u_L = u_ll[1]
-    u_R = u_rr[1]
+# Godunov (upwind) flux for the 1D linear scalar advection equation.
+# Essentially first order upwind, see e.g. https://math.stackexchange.com/a/4355076/805029 .
+# """
+# function flux_godunov(u_ll, u_rr, equation::LinearAdvectionEquation1D)
+#     u_L = u_ll[1]
+#     u_R = u_rr[1]
 
-    a = equation.advection_velocity
-    if a >= 0
+#     a = equation.advection_velocity
+#     if a >= 0
+#         return SVector(a * u_L)
+#     else
+#         return SVector(a * u_R)
+#     end
+# end
+
+function (riemann_solver::RiemannSolver)(prob::RiemannProblem{LinearAdvectionEquation1D{RealT}}, xi) where {RealT}
+    u_L = prob.u_ll[1]
+    u_R = prob.u_rr[1]
+
+    a = prob.equations.advection_velocity
+    if a >= xi
         return SVector(a * u_L)
     else
         return SVector(a * u_R)

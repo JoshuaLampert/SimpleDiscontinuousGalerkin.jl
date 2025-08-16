@@ -156,27 +156,61 @@ See [`FluxHLL`](@ref).
 const flux_hll = FluxHLL()
 
 """
-    ExactRiemannSolver(equations)
+    RiemannProblem(u_ll, u_rr, equations)
 
-An exact Riemann solver for the given `equations`.
+Create a Riemann problem with left and right states `u_ll` and `u_rr` for the given `equations`,
+which can be solved with a [`RiemannSolver`](@ref). This is used for the [`flux_godunov`](@ref)
+numerical flux.
 """
-struct ExactRiemannSolver{Equations}
+struct RiemannProblem{Equations}
     u_ll::SVector
     u_rr::SVector
     equations::Equations
 
-    function ExactRiemannSolver(u_ll::SVector{NVARS}, u_rr::SVector{NVARS},
-                                equations::AbstractEquations{1, NVARS}) where {NVARS}
-        new{typeof(equations)}(u_ll, u_rr, equations)
+    function RiemannProblem(u_ll, u_rr,
+                            equations::AbstractEquations{1, NVARS}) where {NVARS}
+        new{typeof(equations)}(SVector{NVARS}(u_ll), SVector{NVARS}(u_rr), equations)
     end
 end
 
-function (riemann_solver::ExactRiemannSolver)(x, t)
-    riemann_solver(x / t)
+"""
+    RiemannSolver()
+
+An exact Riemann solver.
+"""
+struct RiemannSolver end
+
+function (riemann_solver::RiemannSolver)(prob::RiemannProblem, x, t)
+    riemann_solver(prob, x / t)
 end
 
+struct RiemannSolverSolution{NVARS, RealT}
+    solution::Vector{Vector{SVector{NVARS, RealT}}}
+end
+
+function SciMLBase.solve(prob::RiemannProblem{<:AbstractEquations{1, NVARS}},
+                         x::AbstractVector{RealT}, t) where {NVARS, RealT}
+    riemann_solver = RiemannSolver()
+    sol = Vector{Vector{SVector{NVARS}}}(undef, length(t))
+    for (i, ti) in enumerate(t)
+        sol[i] = Vector{SVector{NVARS}}(undef, length(x))
+        for (j, xi) in enumerate(x)
+            state = riemann_solver(prob, xi, ti)
+            sol[i][j] = state
+        end
+    end
+    return RiemannSolverSolution{NVARS, RealT}(sol)
+end
+
+"""
+    flux_godunov(u_ll, u_rr, equations)
+
+Numerical flux using the [`RiemannSolver`](@ref) to solve Riemann problems
+with left and right states `u_ll` and `u_rr` for the given `equations` exactly.
+"""
 function flux_godunov(u_ll, u_rr, equations)
-    riemann_solver = ExactRiemannSolver(u_ll, u_rr, equations)
-    godunov_state = riemann_solver(zero(eltype(u_ll)))
+    prob = RiemannProblem(u_ll, u_rr, equations)
+    riemann_solver = RiemannSolver()
+    godunov_state = riemann_solver(prob, zero(eltype(u_ll)))
     return flux(godunov_state, equations)
 end

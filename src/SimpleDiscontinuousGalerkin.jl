@@ -21,7 +21,7 @@ using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
 using Roots: find_zero, AlefeldPotraShi
-import SciMLBase: ODESolution, u_modified!, get_tmp_cache, set_proposed_dt!
+import SciMLBase: ODESolution, solve, u_modified!, get_tmp_cache, set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
@@ -47,7 +47,7 @@ export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
        CompressibleEulerEquations1D
 export FluxLaxFriedrichs, FluxHLL, flux, flux_central, flux_godunov, flux_lax_friedrichs,
        flux_ec, flux_hll, flux_ranocha, flux_kennedy_gruber
-export ExactRiemannSolver
+export RiemannProblem, RiemannSolver
 export initial_condition_convergence_test, source_terms_convergence_test,
        initial_condition_density_wave, initial_condition_weak_blast_wave
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
@@ -61,4 +61,5 @@ export DGSEM, FDSBP, PerElementFDSBP,
 export Semidiscretization, semidiscretize, jacobian_fd
 export SummaryCallback, AnalysisCallback, StepsizeCallback
 export tstops, errors, integrals
+export solve
 end
