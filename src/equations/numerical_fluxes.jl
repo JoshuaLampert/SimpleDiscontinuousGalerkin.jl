@@ -154,3 +154,65 @@ Base.show(io::IO, numflux::FluxHLL) = print(io, "FluxHLL(", numflux.min_max_spee
 See [`FluxHLL`](@ref).
 """
 const flux_hll = FluxHLL()
+
+"""
+    RiemannProblem(u_ll, u_rr)
+
+Create a Riemann problem with left and right states `u_ll` and `u_rr`,
+which can be solved with a [`RiemannSolver`](@ref). This is used for the [`flux_godunov`](@ref)
+numerical flux.
+"""
+struct RiemannProblem{UType}
+    u_ll::UType
+    u_rr::UType
+end
+
+"""
+    RiemannSolver(equations)
+
+An exact Riemann solver for `equations`. See also [`RiemannProblem`](@ref).
+"""
+struct RiemannSolver{Equations}
+    equations::Equations
+end
+
+function (riemann_solver::RiemannSolver)(prob::RiemannProblem, x, t)
+    riemann_solver(prob, x / t)
+end
+
+"""
+    RiemannSolverSolution
+
+A solution of a Riemann problem, which is a vector of states at different times.
+Is returned when `solve`ing a [`RiemannProblem`](@ref) with a [`RiemannSolver`](@ref).
+"""
+struct RiemannSolverSolution{NVARS, RealT}
+    solution::Vector{Vector{SVector{NVARS, RealT}}}
+end
+
+function SciMLBase.solve(prob::RiemannProblem,
+                         riemann_solver::RiemannSolver{<:AbstractEquations{1, NVARS}},
+                         x::AbstractVector{RealT}, t) where {NVARS, RealT}
+    sol = Vector{Vector{SVector{NVARS}}}(undef, length(t))
+    for (i, ti) in enumerate(t)
+        sol[i] = Vector{SVector{NVARS}}(undef, length(x))
+        for (j, xi) in enumerate(x)
+            state = riemann_solver(prob, xi, ti)
+            sol[i][j] = state
+        end
+    end
+    return RiemannSolverSolution{NVARS, RealT}(sol)
+end
+
+"""
+    flux_godunov(u_ll, u_rr, equations)
+
+Numerical flux using the [`RiemannSolver`](@ref) to solve Riemann problems
+with left and right states `u_ll` and `u_rr` for the given `equations` exactly.
+"""
+function flux_godunov(u_ll, u_rr, equations)
+    prob = RiemannProblem(u_ll, u_rr)
+    riemann_solver = RiemannSolver(equations)
+    godunov_state = riemann_solver(prob, zero(eltype(u_ll)))
+    return flux(godunov_state, equations)
+end

@@ -1,5 +1,5 @@
 @testitem "compressible_euler_basic.jl" setup=[Setup] begin
-    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_basic.jl"),
                         l2=[
                             2.9956346259676573e-5,
                             1.8489334163606683e-5,
@@ -19,7 +19,7 @@
 end
 
 @testitem "compressible_euler_basic.jl with flux_hll" setup=[Setup] begin
-    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_basic.jl"),
                         surface_flux=flux_hll,
                         l2=[
                             2.0273835088360883e-5,
@@ -40,7 +40,7 @@ end
 end
 
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl" setup=[Setup] begin
-    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_density_wave,
                         source_terms=nothing,
                         interval=50,
@@ -64,7 +64,7 @@ end
 end
 
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl and flux_hll" setup=[Setup] begin
-    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_basic.jl"),
                         surface_flux=flux_hll,
                         initial_condition=initial_condition_density_wave,
                         source_terms=nothing,
@@ -89,7 +89,7 @@ end
 end
 
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl and flux_godunov" setup=[Setup] begin
-    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_density_wave,
                         source_terms=nothing,
                         surface_flux=flux_godunov,
@@ -114,7 +114,7 @@ end
 end
 
 @testitem "compressible_euler_basic.jl with initial_condition_weak_blast_wave.jl and flux_kennedy_gruber" setup=[Setup] begin
-    @test_trixi_include(joinpath(examples_dir(), "compressible_euler_basic.jl"),
+    @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_basic.jl"),
                         initial_condition=initial_condition_weak_blast_wave,
                         source_terms=nothing,
                         volume_flux=flux_kennedy_gruber,
