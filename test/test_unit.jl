@@ -259,34 +259,34 @@ end
                                      [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
-@testitem "Jacobian" begin
+@testitem "Jacobian" setup=[Setup] begin
     using LinearAlgebra: eigvals
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01), surface_flux = flux_central)
     J = @test_nowarn jacobian_fd(semi)
     # This is conservative
     @test maximum(abs.(real.(eigvals(J)))) < 1e-7
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection_per_element.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This is stable
     @test maximum(real, eigvals(J)) < 1e-7
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This has some eigenvalues with slightly positive real part
     @test count(real.(eigvals(J)) .> 1e-7) == 10
     @test maximum(real, eigvals(J)) < 1e-3
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "maxwell_overset_grid.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "maxwell_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This has some eigenvalues with slightly positive real part
@@ -301,7 +301,7 @@ end
 end
 
 @testitem "AnalysisCallback" setup=[Setup] begin
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01))
     @test_nowarn print(analysis_callback)
     @test_nowarn display(analysis_callback)
@@ -319,23 +319,23 @@ end
 
 @testitem "visualization" setup=[Setup] begin
     using Plots
-    include(joinpath(examples_dir(), "linear_advection.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     @test_nowarn plot(semi => sol)
     @test_nowarn plot(semi => sol, plot_initial = true)
     @test_nowarn plot(semi => sol, step = 5)
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
 
-    include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
     @test_nowarn plot(analysis_callback)
     @test_nowarn plot(analysis_callback, what = (:errors,))
     @test_nowarn plot(analysis_callback, what = (:integrals, :errors))
 
-    include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
 
-    include(joinpath(examples_dir(), "linear_advection_overset_grid_per_element.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid_per_element.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
 end
