@@ -136,7 +136,7 @@ function rhs!(du, u, t, mesh, equations, initial_condition,
 
     @trixi_timeit timer() "boundary flux" begin
         calc_boundary_flux!(cache.surface_flux_values, u, t, boundary_conditions, mesh,
-                            equations, solver.surface_integral, solver)
+                            equations, solver.surface_integral, solver, cache)
     end
 
     @trixi_timeit timer() "surface integral" begin
