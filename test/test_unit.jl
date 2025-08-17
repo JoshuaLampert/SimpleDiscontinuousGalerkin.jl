@@ -331,6 +331,8 @@ end
     using Plots
     @test_nowarn plot(sol)
     @test_nowarn plot(sol; step = 10)
+
+    include(joinpath(EXAMPLES_DIR_BURGERS, "exact_riemann_solver.jl"))
 end
 
 @testitem "visualization" setup=[Setup] begin

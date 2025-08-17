@@ -76,16 +76,20 @@ function flux_ec(u_ll, u_rr, equation::BurgersEquation1D)
     return SVector((u_L^2 + u_L * u_R + u_R^2) / 6)
 end
 
-"""
-    flux_godunov(u_ll, u_rr, equations::BurgersEquation1D)
+function (riemann_solver::RiemannSolver{BurgersEquation1D})(prob::RiemannProblem, xi)
+    u_ll = prob.u_ll
+    u_rr = prob.u_rr
 
-Godunov (upwind) numerical flux for the inviscid Burgers' equation.
-See https://metaphor.ethz.ch/x/2019/hs/401-4671-00L/literature/mishra_hyperbolic_pdes.pdf ,
-section 4.1.5 and especially equation (4.16).
-"""
-function flux_godunov(u_ll, u_rr, equation::BurgersEquation1D)
-    u_L = u_ll[1]
-    u_R = u_rr[1]
-
-    return SVector(0.5f0 * max(max(u_L, 0)^2, min(u_R, 0)^2))
+    if u_ll[1] >= u_rr[1] # shock
+        s = 0.5f0 * (u_ll[1] + u_rr[1])
+        return xi < s ? u_ll : u_rr
+    else # rarefaction wave
+        if xi <= u_ll[1]
+            return u_ll
+        elseif xi >= u_rr[1]
+            return u_rr
+        else
+            return xi
+        end
+    end
 end

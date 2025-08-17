@@ -37,9 +37,5 @@ end
 function (riemann_solver::RiemannSolver{LinearAdvectionEquation1D{RealT}})(prob::RiemannProblem,
                                                                            xi) where {RealT}
     a = riemann_solver.equations.advection_velocity
-    if a >= xi
-        return prob.u_ll
-    else
-        return prob.u_rr
-    end
+    return a >= xi ? prob.u_ll : prob.u_rr
 end

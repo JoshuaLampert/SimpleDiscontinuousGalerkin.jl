@@ -245,6 +245,6 @@ with left and right states `u_ll` and `u_rr` for the given `equations` exactly.
 function flux_godunov(u_ll, u_rr, equations)
     prob = RiemannProblem(u_ll, u_rr)
     riemann_solver = RiemannSolver(equations)
-    godunov_state = riemann_solver(prob, zero(eltype(u_ll)))
+    godunov_state = riemann_solver(prob, 0)
     return flux(godunov_state, equations)
 end
