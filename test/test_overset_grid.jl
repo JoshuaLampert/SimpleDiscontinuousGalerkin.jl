@@ -97,7 +97,7 @@ end
 
 @testitem "linear_advection_overset_grid_per_element.jl" setup=[Setup] begin
     # Mass conservative because b is exactly in the left mesh (11 elements).
-    @test_trixi_include(joinpath(eEXAMPLES_DIR_ADVECTION,
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_overset_grid_per_element.jl"),
                         l2=[0.0007287829317534878], linf=[0.0016309648551183775],
                         cons_error=[4.440892098500626e-16],
