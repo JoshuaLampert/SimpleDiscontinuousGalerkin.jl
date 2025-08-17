@@ -51,9 +51,10 @@ end
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return get_node_vars(u, equations, nnodes(solver_right, N_elements), N_elements)
+        return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
+                             N_elements)
     else
-        return get_node_vars(u, equations, 1, 1)
+        return get_node_vars(u_left, equations, 1, 1)
     end
 end
 
