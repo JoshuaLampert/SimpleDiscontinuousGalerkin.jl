@@ -340,6 +340,11 @@ end
     include(joinpath(EXAMPLES_DIR_EULER, "exact_riemann_solver.jl"))
     @test_nowarn plot(sol; step = 10, conversion = energy_internal)
     @test_nowarn plot(sol; step = 10, conversion = cons2prim)
+    # 123 problem (challenging and needs bracketing method)
+    u_ll = prim2cons(SVector(1.0, -2.0, 0.4), equations)
+    u_rr = prim2cons(SVector(1.0, 2.0, 0.4), equations)
+    trixi_include(joinpath(EXAMPLES_DIR_EULER, "exact_riemann_solver.jl"),
+                  u_ll = u_ll, u_rr = u_rr)
 end
 
 @testitem "visualization" setup=[Setup] begin

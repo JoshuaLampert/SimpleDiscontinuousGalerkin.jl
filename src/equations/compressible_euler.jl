@@ -427,12 +427,26 @@ function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(pr
     end
 
     phi(p) = phi_l(p) - phi_r(p)
-    p_star = find_zero(phi, (0.5f0 * min(p_ll, p_rr), 1.5f0 * max(p_ll, p_rr)),
-                       AlefeldPotraShi())
-    v1_star = phi_l(p_star)
 
-    rho_ll_star = (p_star / p_ll)^(1.0 / gamma) * rho_ll
-    rho_rr_star = (p_star / p_rr)^(1.0 / gamma) * rho_rr
+    # Sometimes the bracketing methods have problems and sometimes the initial guess is not good enough
+    # So we try the initial guess first and then fall back to a bracketing method
+    p_star = try
+        find_zero(phi, 0.5f0 * (p_ll + p_rr))
+    catch e
+        find_zero(phi, (0.0, 10 * max(p_ll, p_rr)), AlefeldPotraShi())
+    end
+    v1_star = phi_l(p_star) # = phi_r(p_star)
+
+    if p_star <= p_ll
+        rho_ll_star = (p_star / p_ll)^(1.0 / gamma) * rho_ll
+    else
+        rho_ll_star = ((1.0 + beta * p_star / p_ll) / ((p_star / p_ll) + beta)) * rho_ll
+    end
+    if p_star <= p_rr
+        rho_rr_star = (p_star / p_rr)^(1.0 / gamma) * rho_rr
+    else
+        rho_rr_star = ((1.0 + beta * p_star / p_rr) / ((p_star / p_rr) + beta)) * rho_rr
+    end
 
     w3 = v1_star
     if p_star > p_ll
