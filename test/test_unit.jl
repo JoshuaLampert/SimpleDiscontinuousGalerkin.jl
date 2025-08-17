@@ -74,7 +74,7 @@ end
 
     u2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
     equations = @test_nowarn MaxwellEquations1D(3.12)
-    for conversion in (cons2cons, cons2prim)
+    for conversion in (cons2cons, cons2prim, electric_field, magnetic_field)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u2), equations))
     end

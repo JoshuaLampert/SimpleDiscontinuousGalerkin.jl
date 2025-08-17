@@ -83,9 +83,12 @@ end
 function electric_field(u, equations::MaxwellEquations1D)
     return first(u)
 end
+varnames(::typeof(electric_field), ::MaxwellEquations1D) = ("E",)
+
 function magnetic_field(u, equations::MaxwellEquations1D)
     return last(u)
 end
+varnames(::typeof(magnetic_field), ::MaxwellEquations1D) = ("B",)
 
 pretty_form_utf(::typeof(electric_field)) = "∫E"
 pretty_form_utf(::typeof(magnetic_field)) = "∫B"
