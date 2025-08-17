@@ -116,7 +116,24 @@ function create_cache(mesh::OversetGridMesh, equations, solver)
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     cache_left = create_cache(mesh_left, equations, solver_left)
     cache_right = create_cache(mesh_right, equations, solver_right)
-    return (; cache_left, cache_right)
+
+    linear_map(x, a, b, c, d) = c + (x - a) / (b - a) * (d - c)
+    l_left = left_overlap_element(mesh)
+    b = xmin(mesh_right)
+    D = get_basis(solver_left, l_left)
+    xll_L = left_element_boundary(mesh_left, l_left)
+    xll_R = left_element_boundary(mesh_left, l_left + 1)
+    b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
+    e_M_left = interpolation_operator(b_mapped, D)
+
+    l_right = right_overlap_element(mesh)
+    c = xmax(mesh_left)
+    D = get_basis(solver_right, l_right)
+    xlr_L = left_element_boundary(mesh_right, l_right)
+    xlr_R = left_element_boundary(mesh_right, l_right + 1)
+    c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
+    e_M_right = interpolation_operator(c_mapped, D)
+    return (; cache_left, cache_right, l_left, l_right, e_M_left, e_M_right)
 end
 
 function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
@@ -154,7 +171,7 @@ function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
         surface_integral = (solver_left.surface_integral, solver_right.surface_integral)
         calc_boundary_flux!(surface_flux_values, u, t,
                             boundary_conditions, mesh, equations,
-                            surface_integral, solver)
+                            surface_integral, solver, cache)
     end
 
     @trixi_timeit timer() "surface integral" begin
@@ -179,13 +196,15 @@ end
 
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
                              mesh::OversetGridMesh, equations,
-                             integral::Tuple, solver)
+                             integral::Tuple, solver, cache)
     surface_flux_values_left, surface_flux_values_right = surface_flux_values
     u_left, u_right = u
     (; x_neg, x_pos) = boundary_conditions
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     integral_left, integral_right = integral
     solver_left, solver_right = solver
+    l_left, l_right = cache.l_left, cache.l_right
+    e_M_left, e_M_right = cache.e_M_left, cache.e_M_right
 
     # Left boundary condition of left mesh
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
@@ -196,17 +215,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     # Right boundary condition of left mesh
     u_ll = get_node_vars(u_left, equations, nnodes(solver_left, nelements(mesh_left)),
                          nelements(mesh_left))
-    # TODO: Make this more efficient by computing e_M_right and e_M_left only once
-    # during initialization and storing it in the cache
-    l_right = right_overlap_element(mesh)
-    c = xmax(mesh_left)
-    D = get_basis(solver_right, l_right)
-    linear_map(x, a, b, c, d) = c + (x - a) / (b - a) * (d - c)
-    xlr_L = left_element_boundary(mesh_right, l_right)
-    xlr_R = left_element_boundary(mesh_right, l_right + 1)
-    c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
     u_rr = zeros(real(solver_right), nvariables(equations))
-    e_M_right = interpolation_operator(c_mapped, D)
     for v in eachvariable(equations)
         values = u_right[v, :, l_right]
         u_rr[v] = e_M_right' * values
@@ -215,14 +224,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     set_node_vars!(surface_flux_values_left, f, equations, 2, nelements(mesh_left))
 
     # Left boundary condition of right mesh
-    l_left = left_overlap_element(mesh)
-    b = xmin(mesh_right)
-    D = get_basis(solver_left, l_left)
-    xll_L = left_element_boundary(mesh_left, l_left)
-    xll_R = left_element_boundary(mesh_left, l_left + 1)
-    b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
     u_ll = zeros(real(solver_left), nvariables(equations))
-    e_M_left = interpolation_operator(b_mapped, D)
     for v in eachvariable(equations)
         values = u_left[v, :, l_left]
         u_ll[v] = e_M_left' * values
