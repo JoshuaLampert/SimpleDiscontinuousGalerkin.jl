@@ -89,7 +89,10 @@ end
 
     u3 = [SVector(1.0, 2.0, 4.0), SVector(2.0, 3.0, 3.0)]
     equations = @test_nowarn CompressibleEulerEquations1D(1.4)
-    for conversion in (cons2cons, cons2prim)
+    for conversion in (cons2cons, cons2prim, density, momentum, velocity, pressure,
+                       density_pressure, entropy_thermodynamic, entropy,
+                       energy_total, energy_kinetic, energy_internal,
+                       energy_internal_specific)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u3), equations))
     end
@@ -334,6 +337,9 @@ end
 
     include(joinpath(EXAMPLES_DIR_BURGERS, "exact_riemann_solver.jl"))
     include(joinpath(EXAMPLES_DIR_MAXWELL, "exact_riemann_solver.jl"))
+    include(joinpath(EXAMPLES_DIR_EULER, "exact_riemann_solver.jl"))
+    @test_nowarn plot(sol; step = 10, conversion = energy_internal)
+    @test_nowarn plot(sol; step = 10, conversion = cons2prim)
 end
 
 @testitem "visualization" setup=[Setup] begin
