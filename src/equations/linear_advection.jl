@@ -36,13 +36,10 @@ end
 
 function (riemann_solver::RiemannSolver{LinearAdvectionEquation1D{RealT}})(prob::RiemannProblem,
                                                                            xi) where {RealT}
-    u_L = prob.u_ll[1]
-    u_R = prob.u_rr[1]
-
     a = riemann_solver.equations.advection_velocity
     if a >= xi
-        return SVector(a * u_L)
+        return prob.u_ll
     else
-        return SVector(a * u_R)
+        return prob.u_rr
     end
 end
