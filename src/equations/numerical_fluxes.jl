@@ -162,9 +162,9 @@ Create a Riemann problem with left and right states `u_ll` and `u_rr`,
 which can be solved with a [`RiemannSolver`](@ref). This is used for the [`flux_godunov`](@ref)
 numerical flux.
 """
-struct RiemannProblem{UType}
-    u_ll::UType
-    u_rr::UType
+struct RiemannProblem{ULType, URType}
+    u_ll::ULType
+    u_rr::URType
 end
 
 """
