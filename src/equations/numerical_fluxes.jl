@@ -167,6 +167,10 @@ struct RiemannProblem{ULType, URType}
     u_rr::URType
 end
 
+function Base.show(io::IO, prob::RiemannProblem)
+    print(io, "RiemannProblem(", prob.u_ll, ", ", prob.u_rr, ")")
+end
+
 """
     RiemannSolver(equations)
 
@@ -174,6 +178,10 @@ An exact Riemann solver for `equations`. See also [`RiemannProblem`](@ref).
 """
 struct RiemannSolver{Equations}
     equations::Equations
+end
+
+function Base.show(io::IO, riemann_solver::RiemannSolver)
+    print(io, "RiemannSolver(", riemann_solver.equations, ")")
 end
 
 function (riemann_solver::RiemannSolver)(prob::RiemannProblem, x, t)
@@ -186,22 +194,46 @@ end
 A solution of a Riemann problem, which is a vector of states at different times.
 Is returned when `solve`ing a [`RiemannProblem`](@ref) with a [`RiemannSolver`](@ref).
 """
-struct RiemannSolverSolution{NVARS, RealT}
-    solution::Vector{Vector{SVector{NVARS, RealT}}}
+struct RiemannSolverSolution{ULType, XType, TType}
+    solution::Vector{Vector{ULType}}
+    x::XType
+    t::TType
+    problem::RiemannProblem{ULType}
+    solver::RiemannSolver
+
+    function RiemannSolverSolution(solution, x, t, prob::RiemannProblem,
+                                   riemann_solver::RiemannSolver)
+        new{eltype(prob.u_ll), typeof(x), typeof(t)}(solution, x, t, prob, riemann_solver)
+    end
 end
 
-function SciMLBase.solve(prob::RiemannProblem,
-                         riemann_solver::RiemannSolver{<:AbstractEquations{1, NVARS}},
-                         x::AbstractVector{RealT}, t) where {NVARS, RealT}
-    sol = Vector{Vector{SVector{NVARS}}}(undef, length(t))
+Base.getindex(sol::RiemannSolverSolution, i::Int) = sol.solution[i]
+Base.length(sol::RiemannSolverSolution) = length(sol.solution)
+
+function Base.show(io::IO, sol::RiemannSolverSolution)
+    print(io, "RiemannSolverSolution(", sol.solution, ", ", sol.x, ", ", sol.t, ", ",
+          sol.problem, ", ", sol.solver, ")")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", sol::RiemannSolverSolution)
+    u_ll = sol.problem.u_ll
+    u_rr = sol.problem.u_rr
+    equations = sol.solver.equations
+    print(io, "RiemannSolverSolution for ", equations, " with u_ll = ", u_ll, ", u_rr = ",
+          u_rr, ", ", length(sol), " time steps, and ", length(sol.x), " spatial points")
+end
+
+function SciMLBase.solve(prob::RiemannProblem{ULType, URType},
+                         riemann_solver::RiemannSolver, x, t) where {ULType, URType}
+    sol = Vector{Vector{ULType}}(undef, length(t))
     for (i, ti) in enumerate(t)
-        sol[i] = Vector{SVector{NVARS}}(undef, length(x))
+        sol[i] = Vector{ULType}(undef, length(x))
         for (j, xi) in enumerate(x)
             state = riemann_solver(prob, xi, ti)
             sol[i][j] = state
         end
     end
-    return RiemannSolverSolution{NVARS, RealT}(sol)
+    return RiemannSolverSolution(sol, x, t, prob, riemann_solver)
 end
 
 """

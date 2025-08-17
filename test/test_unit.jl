@@ -319,6 +319,20 @@ end
     @test_nowarn display(stepsize_callback)
 end
 
+@testitem "RiemannSolver" setup=[Setup] begin
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "exact_riemann_solver.jl"))
+    @test_nowarn print(prob)
+    @test_nowarn display(prob)
+    @test_nowarn print(solver)
+    @test_nowarn display(solver)
+    @test_nowarn print(sol)
+    @test_nowarn display(sol)
+
+    using Plots
+    @test_nowarn plot(sol)
+    @test_nowarn plot(sol; step = 10)
+end
+
 @testitem "visualization" setup=[Setup] begin
     using Plots
     include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"))
