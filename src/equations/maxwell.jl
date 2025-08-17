@@ -67,20 +67,6 @@ end
     return equations.speed_of_light
 end
 
-"""
-    flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
-
-Godunov (upwind) flux for the 1D Maxwell equations.
-"""
-function flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
-    E_L, B_L = u_ll
-    E_R, B_R = u_rr
-
-    c = equations.speed_of_light
-    return SVector(0.5f0 * (c^2 * (B_L + B_R) - (E_R - E_L) * c),
-                   0.5f0 * ((E_L + E_R) - (B_R - B_L) * c))
-end
-
 @inline cons2prim(u, ::MaxwellEquations1D) = u
 @inline prim2cons(q, ::MaxwellEquations1D) = q
 
@@ -106,4 +92,21 @@ pretty_form_utf(::typeof(magnetic_field)) = "∫B"
 
 function default_analysis_integrals(::MaxwellEquations1D)
     return (electric_field, magnetic_field, entropy, entropy_timederivative)
+end
+
+function (riemann_solver::RiemannSolver{MaxwellEquations1D{RealT}})(prob::RiemannProblem,
+                                                                    xi) where {RealT}
+    c = riemann_solver.equations.speed_of_light
+
+    if xi < -c
+        return prob.u_ll
+    elseif xi > c
+        return prob.u_rr
+    else
+        E_L, B_L = prob.u_ll
+        E_R, B_R = prob.u_rr
+        E_L_star = 0.5f0 * ((E_L + E_R) - c * (B_R - B_L))
+        B_L_star = 0.5f0 * ((B_L + B_R) - (E_R - E_L) / c)
+        return SVector(E_L_star, B_L_star)
+    end
 end

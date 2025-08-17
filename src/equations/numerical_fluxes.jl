@@ -203,7 +203,7 @@ struct RiemannSolverSolution{ULType, XType, TType}
 
     function RiemannSolverSolution(solution, x, t, prob::RiemannProblem,
                                    riemann_solver::RiemannSolver)
-        new{eltype(prob.u_ll), typeof(x), typeof(t)}(solution, x, t, prob, riemann_solver)
+        new{typeof(prob.u_ll), typeof(x), typeof(t)}(solution, x, t, prob, riemann_solver)
     end
 end
 

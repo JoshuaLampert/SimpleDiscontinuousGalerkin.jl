@@ -166,6 +166,7 @@ end
     x = riemann_solution.x
     data = riemann_solution[step]
     plot_title --> "$(get_name(equations)) at t = $(round(t, digits=5))"
+    layout --> nsubplots
     for i in 1:nsubplots
         @series begin
             subplot --> i
