@@ -228,7 +228,8 @@ end
 
 # The additional kwarg `maxiters` is only used to make `@trixi_include` work, which tries to insert `maxiters` into `solve`
 function CommonSolve.init(prob::RiemannProblem{ULType},
-                          riemann_solver::RiemannSolver, x, t; maxiters = nothing) where {ULType}
+                          riemann_solver::RiemannSolver, x, t;
+                          maxiters = nothing) where {ULType}
     solution = Vector{Vector{ULType}}(undef, length(t))
     return RiemannSolverSolution(solution, x, t, prob, riemann_solver)
 end
