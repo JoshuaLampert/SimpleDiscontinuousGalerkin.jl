@@ -97,17 +97,17 @@ function default_analysis_integrals(::MaxwellEquations1D)
     return (electric_field, magnetic_field, entropy, entropy_timederivative)
 end
 
-function (riemann_solver::RiemannSolver{MaxwellEquations1D{RealT}})(prob::RiemannProblem,
-                                                                    xi) where {RealT}
+function (riemann_solver::RiemannSolver{MaxwellEquations1D{RealT}})(xi) where {RealT}
+    u_ll, u_rr = riemann_solver.prob.u_ll, riemann_solver.prob.u_rr
     c = riemann_solver.equations.speed_of_light
 
     if xi < -c
-        return prob.u_ll
+        return u_ll
     elseif xi > c
-        return prob.u_rr
+        return u_rr
     else
-        E_L, B_L = prob.u_ll
-        E_R, B_R = prob.u_rr
+        E_L, B_L = u_ll
+        E_R, B_R = u_rr
         E_L_star = 0.5f0 * ((E_L + E_R) - c * (B_R - B_L))
         B_L_star = 0.5f0 * ((B_L + B_R) - (E_R - E_L) / c)
         return SVector(E_L_star, B_L_star)

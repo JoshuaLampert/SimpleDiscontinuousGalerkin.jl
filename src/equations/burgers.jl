@@ -76,8 +76,8 @@ function flux_ec(u_ll, u_rr, equation::BurgersEquation1D)
     return SVector((u_L^2 + u_L * u_R + u_R^2) / 6)
 end
 
-function (riemann_solver::RiemannSolver{BurgersEquation1D})(prob::RiemannProblem, xi)
-    u_ll, u_rr = prob.u_ll, prob.u_rr
+function (riemann_solver::RiemannSolver{BurgersEquation1D})(xi)
+    u_ll, u_rr = riemann_solver.prob.u_ll, riemann_solver.prob.u_rr
 
     if u_ll[1] >= u_rr[1] # shock
         s = 0.5f0 * (u_ll[1] + u_rr[1])

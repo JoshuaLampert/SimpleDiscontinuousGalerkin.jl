@@ -22,9 +22,9 @@ u_rr = prim2cons(SVector(0.125, 0.0, 0.1), equations)
 # u_rr = prim2cons(SVector(5.99242, -6.19633, 46.095), equations)
 
 prob = RiemannProblem(u_ll, u_rr)
-solver = RiemannSolver(equations)
+solver = RiemannSolver(prob, equations)
 
 t = 0.0:0.01:0.5
 x = -1.0:0.01:1.0
 
-sol = solve(prob, solver, x, t)
+sol = solve(solver, x, t)

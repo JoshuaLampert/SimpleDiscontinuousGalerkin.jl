@@ -388,9 +388,8 @@ function default_analysis_integrals(::CompressibleEulerEquations1D)
 end
 
 # Based on https://gist.github.com/ketch/08ce0845da0c8f3fa9ff
-function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(prob::RiemannProblem,
-                                                                              xi) where {RealT}
-    u_ll, u_rr = prob.u_ll, prob.u_rr
+function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(xi) where {RealT}
+    u_ll, u_rr = riemann_solver.prob.u_ll, riemann_solver.prob.u_rr
     equations = riemann_solver.equations
     rho_ll, v1_ll, p_ll = cons2prim(u_ll, equations)
     rho_rr, v1_rr, p_rr = cons2prim(u_rr, equations)

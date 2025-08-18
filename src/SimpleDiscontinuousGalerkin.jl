@@ -14,7 +14,7 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 """
 module SimpleDiscontinuousGalerkin
 
-using CommonSolve: CommonSolve
+using CommonSolve: CommonSolve, init, solve!
 import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
@@ -63,5 +63,5 @@ export DGSEM, FDSBP, PerElementFDSBP,
 export Semidiscretization, semidiscretize, jacobian_fd
 export SummaryCallback, AnalysisCallback, StepsizeCallback
 export tstops, errors, integrals
-export solve
+export init, solve!, solve
 end
