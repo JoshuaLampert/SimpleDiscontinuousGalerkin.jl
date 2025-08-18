@@ -14,6 +14,7 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 """
 module SimpleDiscontinuousGalerkin
 
+using CommonSolve: CommonSolve
 import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf

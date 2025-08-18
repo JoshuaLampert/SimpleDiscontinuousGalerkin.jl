@@ -208,6 +208,9 @@ struct RiemannSolverSolution{ULType, XType, TType}
 end
 
 Base.getindex(sol::RiemannSolverSolution, i::Int) = sol.solution[i]
+function Base.setindex!(sol::RiemannSolverSolution, value, i::Int)
+    setindex!(sol.solution, value, i)
+end
 Base.length(sol::RiemannSolverSolution) = length(sol.solution)
 
 function Base.show(io::IO, sol::RiemannSolverSolution)
@@ -223,17 +226,22 @@ function Base.show(io::IO, ::MIME"text/plain", sol::RiemannSolverSolution)
           u_rr, ", ", length(sol), " time steps, and ", length(sol.x), " spatial points")
 end
 
-function SciMLBase.solve(prob::RiemannProblem{ULType, URType},
-                         riemann_solver::RiemannSolver, x, t) where {ULType, URType}
-    sol = Vector{Vector{ULType}}(undef, length(t))
-    for (i, ti) in enumerate(t)
-        sol[i] = Vector{ULType}(undef, length(x))
-        for (j, xi) in enumerate(x)
-            state = riemann_solver(prob, xi, ti)
+# The additional kwarg `maxiters` is only used to make `@trixi_include` work, which tries to insert `maxiters` into `solve`
+function CommonSolve.init(prob::RiemannProblem{ULType},
+                          riemann_solver::RiemannSolver, x, t; maxiters = nothing) where {ULType}
+    solution = Vector{Vector{ULType}}(undef, length(t))
+    return RiemannSolverSolution(solution, x, t, prob, riemann_solver)
+end
+
+function CommonSolve.solve!(sol::RiemannSolverSolution{ULType}) where {ULType}
+    for (i, ti) in enumerate(sol.t)
+        sol[i] = Vector{ULType}(undef, length(sol.x))
+        for (j, xi) in enumerate(sol.x)
+            state = sol.solver(sol.problem, xi, ti)
             sol[i][j] = state
         end
     end
-    return RiemannSolverSolution(sol, x, t, prob, riemann_solver)
+    return sol
 end
 
 """

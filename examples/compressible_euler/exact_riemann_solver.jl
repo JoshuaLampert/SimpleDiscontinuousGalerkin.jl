@@ -27,4 +27,4 @@ solver = RiemannSolver(equations)
 t = 0.0:0.01:0.5
 x = -1.0:0.01:1.0
 
-sol = SimpleDiscontinuousGalerkin.solve(prob, solver, x, t)
+sol = solve(prob, solver, x, t)
