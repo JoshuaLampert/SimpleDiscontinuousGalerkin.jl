@@ -181,7 +181,8 @@ struct RiemannSolver{Equations, ULType, URType, Cache}
     equations::Equations
     cache::Cache
 
-    function RiemannSolver(prob::RiemannProblem{ULType, URType}, equations::AbstractEquations) where {ULType, URType}
+    function RiemannSolver(prob::RiemannProblem{ULType, URType},
+                           equations::AbstractEquations) where {ULType, URType}
         cache = nothing
         new{typeof(equations), ULType, URType, typeof(cache)}(prob, equations, cache)
     end
@@ -209,7 +210,9 @@ struct RiemannSolverSolution{ULType, SolverType, XType, TType}
 
     function RiemannSolverSolution(solution, riemann_solver::RiemannSolver, x, t)
         prob = riemann_solver.prob
-        new{typeof(prob.u_ll), typeof(riemann_solver), typeof(x), typeof(t)}(solution, riemann_solver, x, t)
+        new{typeof(prob.u_ll), typeof(riemann_solver), typeof(x), typeof(t)}(solution,
+                                                                             riemann_solver,
+                                                                             x, t)
     end
 end
 
@@ -220,7 +223,8 @@ end
 Base.length(sol::RiemannSolverSolution) = length(sol.solution)
 
 function Base.show(io::IO, sol::RiemannSolverSolution)
-    print(io, "RiemannSolverSolution(", sol.solution, ", ", sol.solver, ", ", sol.x, ", ", sol.t, ")")
+    print(io, "RiemannSolverSolution(", sol.solution, ", ", sol.solver, ", ", sol.x, ", ",
+          sol.t, ")")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", sol::RiemannSolverSolution)
