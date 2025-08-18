@@ -183,10 +183,12 @@ struct RiemannSolver{Equations, ULType, URType, Cache}
 
     function RiemannSolver(prob::RiemannProblem{ULType, URType},
                            equations::AbstractEquations) where {ULType, URType}
-        cache = nothing
+        cache = create_cache(prob, equations)
         new{typeof(equations), ULType, URType, typeof(cache)}(prob, equations, cache)
     end
 end
+
+create_cache(::RiemannProblem, ::AbstractEquations) = nothing
 
 function Base.show(io::IO, riemann_solver::RiemannSolver)
     print(io, "RiemannSolver(", riemann_solver.prob, ", ", riemann_solver.equations, ")")

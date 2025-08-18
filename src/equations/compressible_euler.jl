@@ -388,9 +388,8 @@ function default_analysis_integrals(::CompressibleEulerEquations1D)
 end
 
 # Based on https://gist.github.com/ketch/08ce0845da0c8f3fa9ff
-function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(xi) where {RealT}
-    u_ll, u_rr = riemann_solver.prob.u_ll, riemann_solver.prob.u_rr
-    equations = riemann_solver.equations
+function create_cache(prob::RiemannProblem, equations::CompressibleEulerEquations1D)
+    u_ll, u_rr = prob.u_ll, prob.u_rr
     rho_ll, v1_ll, p_ll = cons2prim(u_ll, equations)
     rho_rr, v1_rr, p_rr = cons2prim(u_rr, equations)
 
@@ -465,6 +464,21 @@ function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(xi
         w5 = v1_rr + c_rr
     end
 
+    prim_ll = SVector(rho_ll, v1_ll, p_ll)
+    prim_ll_star = SVector(rho_ll_star, v1_star, p_star)
+    prim_rr_star = SVector(rho_rr_star, v1_star, p_star)
+    prim_rr = SVector(rho_rr, v1_rr, p_rr)
+    cache = (; c_ll, c_rr, w1, w2, w3, w4, w5, prim_ll, prim_ll_star, prim_rr_star, prim_rr)
+    return cache
+end
+
+function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(xi) where {RealT}
+    c_ll, c_rr, w1, w2, w3, w4, w5, prim_ll, prim_ll_star, prim_rr_star, prim_rr = riemann_solver.cache
+    rho_ll, v1_ll, p_ll = prim_ll
+    rho_rr, v1_rr, p_rr = prim_rr
+    equations = riemann_solver.equations
+    gamma = equations.gamma
+
     v1_1 = ((gamma - 1.0) * v1_ll + 2 * (c_ll + xi)) / (gamma + 1.0)
     v1_3 = ((gamma - 1.0) * v1_rr - 2 * (c_rr - xi)) / (gamma + 1.0)
     rho_1 = (rho_ll^gamma * (v1_1 - xi)^2 / (gamma * p_ll))^equations.inv_gamma_minus_one
@@ -472,18 +486,21 @@ function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(xi
     p_1 = p_ll * (rho_1 / rho_ll)^gamma
     p_3 = p_rr * (rho_3 / rho_rr)^gamma
 
+    prim_1 = SVector(rho_1, v1_1, p_1)
+    prim_3 = SVector(rho_3, v1_3, p_3)
+
     if xi <= w1
-        prim_out = SVector(rho_ll, v1_ll, p_ll)
+        prim_out = prim_ll
     elseif w1 < xi <= w2
-        prim_out = SVector(rho_1, v1_1, p_1)
+        prim_out = prim_1
     elseif w2 < xi <= w3
-        prim_out = SVector(rho_ll_star, v1_star, p_star)
+        prim_out = prim_ll_star
     elseif w3 < xi <= w4
-        prim_out = SVector(rho_rr_star, v1_star, p_star)
+        prim_out = prim_rr_star
     elseif w4 < xi <= w5
-        prim_out = SVector(rho_3, v1_3, p_3)
+        prim_out = prim_3
     else # xi > w5
-        prim_out = SVector(rho_rr, v1_rr, p_rr)
+        prim_out = prim_rr
     end
     return prim2cons(prim_out, equations)
 end
