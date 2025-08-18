@@ -150,3 +150,32 @@ end
         end
     end
 end
+
+@recipe function f(riemann_solution::RiemannSolverSolution; step = -1,
+                   conversion = cons2cons)
+    equations = riemann_solution.solver.equations
+    names = varnames(conversion, equations)
+
+    nvars = length(conversion(zeros(nvariables(equations)), equations))
+    nsubplots = nvars
+
+    if step == -1
+        step = length(riemann_solution.solution)
+    end
+
+    t = riemann_solution.t[step]
+    x = riemann_solution.x
+    data = conversion.(riemann_solution[step], equations)
+    plot_title --> "$(get_name(equations)) at t = $(round(t, digits=5))"
+    layout --> nsubplots
+    for i in 1:nsubplots
+        @series begin
+            subplot --> i
+            label --> names[i]
+            xguide --> "x"
+            yguide --> names[i]
+            title --> names[i]
+            x, getindex.(data, i)
+        end
+    end
+end

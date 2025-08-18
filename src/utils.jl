@@ -83,7 +83,7 @@ See also [`examples_dir`](@ref).
 Copied from [Trixi.jl](https://github.com/trixi-framework/Trixi.jl).
 """
 function default_example()
-    joinpath(examples_dir(), "linear_advection.jl")
+    joinpath(examples_dir(), "linear_advection", "linear_advection.jl")
 end
 
 function convergence_test(example, iterations_or_Ns; kwargs...)

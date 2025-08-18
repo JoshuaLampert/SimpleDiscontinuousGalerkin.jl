@@ -156,7 +156,7 @@ end
     rho, rho_v1, rho_e = u
     v1 = rho_v1 / rho
     p = (equations.gamma - 1) * (rho_e - 0.5f0 * rho_v1 * v1)
-    # Ignore orientation since it is always "1" in 1D
+
     f1 = rho_v1
     f2 = rho_v1 * v1 + p
     f3 = (rho_e + p) * v1
@@ -185,7 +185,6 @@ Kinetic energy preserving two-point flux by
     p_avg = 0.5f0 * (p_ll + p_rr)
     e_avg = 0.5f0 * (rho_e_ll / rho_ll + rho_e_rr / rho_rr)
 
-    # Ignore orientation since it is always "1" in 1D
     f1 = rho_avg * v1_avg
     f2 = rho_avg * v1_avg * v1_avg + p_avg
     f3 = (rho_avg * e_avg + p_avg) * v1_avg
@@ -224,99 +223,12 @@ See also
     velocity_square_avg = 0.5f0 * (v1_ll * v1_rr)
 
     # Calculate fluxes
-    # Ignore orientation since it is always "1" in 1D
     f1 = rho_mean * v1_avg
     f2 = f1 * v1_avg + p_avg
     f3 = f1 * (velocity_square_avg + inv_rho_p_mean * equations.inv_gamma_minus_one) +
          0.5f0 * (p_ll * v1_rr + p_rr * v1_ll)
 
     return SVector(f1, f2, f3)
-end
-
-# Based on https://gist.github.com/ketch/08ce0845da0c8f3fa9ff
-@inline function flux_godunov(u_ll, u_rr, equations::CompressibleEulerEquations1D)
-    rho_ll, v1_ll, p_ll = cons2prim(u_ll, equations)
-    rho_rr, v1_rr, p_rr = cons2prim(u_rr, equations)
-
-    gamma = equations.gamma
-
-    c_ll = sqrt(gamma * p_ll / rho_ll)
-    c_rr = sqrt(gamma * p_rr / rho_rr)
-
-    alpha = (gamma - 1) / (2 * gamma)
-    beta = (gamma + 1) / (gamma - 1)
-
-    function phi_l(p)
-        # Hugoniot locus 1
-        if p >= p_ll
-            v1_ll +
-            2 * c_ll / sqrt(2 * gamma * (gamma - 1.0)) *
-            ((1 - p / p_ll) / sqrt(1 + beta * p / p_ll))
-        else # Integral curve 1
-            v1_ll +
-            2 * c_ll / (gamma - 1.0) * (1 - (p / p_ll)^alpha)
-        end
-    end
-    function phi_r(p)
-        # Hugoniot locus 3
-        if p >= p_rr
-            v1_rr -
-            2 * c_rr / sqrt(2 * gamma * (gamma - 1.0)) *
-            ((1 - p / p_rr) / sqrt(1 + beta * p / p_rr))
-        else # Integral curve 3
-            v1_rr -
-            2 * c_rr / (gamma - 1.0) * (1 - (p / p_rr)^alpha)
-        end
-    end
-
-    phi(p) = phi_l(p) - phi_r(p)
-    p_star = find_zero(phi, (0.5f0 * min(p_ll, p_rr), 1.5f0 * max(p_ll, p_rr)),
-                       AlefeldPotraShi())
-    v1_star = phi_l(p_star)
-
-    rho_ll_star = (p_star / p_ll)^(1.0 / gamma) * rho_ll
-    rho_rr_star = (p_star / p_rr)^(1.0 / gamma) * rho_rr
-
-    w3 = v1_star
-    if p_star > p_ll
-        w1 = (rho_ll * v1_ll - rho_ll_star * v1_star) / (rho_ll - rho_ll_star)
-        w2 = w1
-    else
-        c_ll_star = sqrt(gamma * p_star / rho_ll_star)
-        w1 = v1_ll - c_ll
-        w2 = v1_star - c_ll_star
-    end
-    if p_star > p_rr
-        w5 = (rho_rr * v1_rr - rho_rr_star * v1_star) / (rho_rr - rho_rr_star)
-        w4 = w5
-    else
-        c_rr_star = sqrt(gamma * p_star / rho_rr_star)
-        w4 = v1_star + c_rr_star
-        w5 = v1_rr + c_rr
-    end
-
-    xi = 0.0 # x/t, but Godunov flux uses the exact Riemann solution at x/t = 0
-    v1_1 = ((gamma - 1.0) * v1_ll + 2 * (c_ll + xi)) / (gamma + 1.0)
-    v1_3 = ((gamma - 1.0) * v1_rr - 2 * (c_rr - xi)) / (gamma + 1.0)
-    rho_1 = (rho_ll^gamma * (v1_1 - xi)^2 / (gamma * p_ll))^equations.inv_gamma_minus_one
-    rho_3 = (rho_rr^gamma * (xi - v1_3)^2 / (gamma * p_rr))^equations.inv_gamma_minus_one
-    p_1 = p_ll * (rho_1 / rho_ll)^gamma
-    p_3 = p_rr * (rho_3 / rho_rr)^gamma
-
-    if xi <= w1
-        prim_out = SVector(rho_ll, v1_ll, p_ll)
-    elseif w1 < xi <= w2
-        prim_out = SVector(rho_1, v1_1, p_1)
-    elseif w2 < xi <= w3
-        prim_out = SVector(rho_ll_star, v1_star, p_star)
-    elseif w3 < xi <= w4
-        prim_out = SVector(rho_rr_star, v1_star, p_star)
-    elseif w4 < xi <= w5
-        prim_out = SVector(rho_3, v1_3, p_3)
-    else # xi > w5
-        prim_out = SVector(rho_rr, v1_rr, p_rr)
-    end
-    return flux(prim2cons(prim_out, equations), equations)
 end
 
 @inline function max_abs_speed(u_ll, u_rr, equations::CompressibleEulerEquations1D)
@@ -390,29 +302,34 @@ end
     rho = u[1]
     return rho
 end
+varnames(::typeof(density), ::CompressibleEulerEquations1D) = ("rho",)
 
 @inline function momentum(u, equations::CompressibleEulerEquations1D)
     rho_v1 = u[2]
     return rho_v1
 end
+varnames(::typeof(momentum), ::CompressibleEulerEquations1D) = ("rho_v1",)
 
 @inline function velocity(u, equations::CompressibleEulerEquations1D)
     rho = u[1]
     v1 = u[2] / rho
     return v1
 end
+varnames(::typeof(velocity), ::CompressibleEulerEquations1D) = ("v1",)
 
 @inline function pressure(u, equations::CompressibleEulerEquations1D)
     rho, rho_v1, rho_e = u
     p = (equations.gamma - 1) * (rho_e - 0.5f0 * (rho_v1^2) / rho)
     return p
 end
+varnames(::typeof(pressure), ::CompressibleEulerEquations1D) = ("p",)
 
 @inline function density_pressure(u, equations::CompressibleEulerEquations1D)
     rho, rho_v1, rho_e = u
     rho_times_p = (equations.gamma - 1) * (rho * rho_e - 0.5f0 * (rho_v1^2))
     return rho_times_p
 end
+varnames(::typeof(density_pressure), ::CompressibleEulerEquations1D) = ("rho_p",)
 
 # Calculate thermodynamic entropy for a conservative state `cons`
 @inline function entropy_thermodynamic(cons, equations::CompressibleEulerEquations1D)
@@ -424,6 +341,7 @@ end
 
     return s
 end
+varnames(::typeof(entropy_thermodynamic), ::CompressibleEulerEquations1D) = ("s",)
 
 # Calculate mathematical entropy for a conservative state `cons`
 @inline function entropy_math(cons, equations::CompressibleEulerEquations1D)
@@ -438,9 +356,28 @@ end
 @inline function entropy(cons, equations::CompressibleEulerEquations1D)
     entropy_math(cons, equations)
 end
+varnames(::typeof(entropy), ::CompressibleEulerEquations1D) = ("S",)
 
-# Calculate total energy for a conservative state `cons`
 @inline energy_total(cons, ::CompressibleEulerEquations1D) = cons[3]
+varnames(::typeof(energy_total), ::CompressibleEulerEquations1D) = ("rho_e",)
+
+@inline function energy_kinetic(cons, equations::CompressibleEulerEquations1D)
+    return 0.5f0 * (cons[2]^2) / cons[1]
+end
+varnames(::typeof(energy_kinetic), ::CompressibleEulerEquations1D) = ("e_kinetic",)
+
+@inline function energy_internal(cons, equations::CompressibleEulerEquations1D)
+    return energy_total(cons, equations) - energy_kinetic(cons, equations)
+end
+varnames(::typeof(energy_internal), ::CompressibleEulerEquations1D) = ("e_internal",)
+
+# This is p/((gamma - 1) * rho)
+@inline function energy_internal_specific(cons, equations::CompressibleEulerEquations1D)
+    return energy_internal(cons, equations) / density(cons, equations)
+end
+function varnames(::typeof(energy_internal_specific), ::CompressibleEulerEquations1D)
+    ("e_internal_specific",)
+end
 
 pretty_form_utf(::typeof(density)) = "∫ρ"
 pretty_form_utf(::typeof(momentum)) = "∫ρv"
@@ -448,4 +385,122 @@ pretty_form_utf(::typeof(energy_total)) = "∫ρe"
 
 function default_analysis_integrals(::CompressibleEulerEquations1D)
     return (density, momentum, energy_total, entropy, entropy_timederivative)
+end
+
+# Based on https://gist.github.com/ketch/08ce0845da0c8f3fa9ff
+function create_cache(prob::RiemannProblem, equations::CompressibleEulerEquations1D)
+    u_ll, u_rr = prob.u_ll, prob.u_rr
+    rho_ll, v1_ll, p_ll = cons2prim(u_ll, equations)
+    rho_rr, v1_rr, p_rr = cons2prim(u_rr, equations)
+
+    gamma = equations.gamma
+
+    c_ll = sqrt(gamma * p_ll / rho_ll)
+    c_rr = sqrt(gamma * p_rr / rho_rr)
+
+    alpha = (gamma - 1) / (2 * gamma)
+    beta = (gamma + 1) / (gamma - 1)
+
+    function phi_l(p)
+        # Hugoniot locus 1
+        if p >= p_ll
+            v1_ll +
+            2 * c_ll / sqrt(2 * gamma * (gamma - 1.0)) *
+            ((1 - p / p_ll) / sqrt(1 + beta * p / p_ll))
+        else # Integral curve 1
+            v1_ll +
+            2 * c_ll / (gamma - 1.0) * (1 - (p / p_ll)^alpha)
+        end
+    end
+    function phi_r(p)
+        # Hugoniot locus 3
+        if p >= p_rr
+            v1_rr -
+            2 * c_rr / sqrt(2 * gamma * (gamma - 1.0)) *
+            ((1 - p / p_rr) / sqrt(1 + beta * p / p_rr))
+        else # Integral curve 3
+            v1_rr -
+            2 * c_rr / (gamma - 1.0) * (1 - (p / p_rr)^alpha)
+        end
+    end
+
+    phi(p) = phi_l(p) - phi_r(p)
+
+    # Sometimes the bracketing methods have problems and sometimes the initial guess is not good enough
+    # So we try the initial guess first and then fall back to a bracketing method
+    p_star = try
+        find_zero(phi, 0.5f0 * (p_ll + p_rr))
+    catch e
+        find_zero(phi, (0.0, 10 * max(p_ll, p_rr)), AlefeldPotraShi())
+    end
+    v1_star = phi_l(p_star) # = phi_r(p_star)
+
+    if p_star <= p_ll
+        rho_ll_star = (p_star / p_ll)^(1.0 / gamma) * rho_ll
+    else
+        rho_ll_star = ((1.0 + beta * p_star / p_ll) / ((p_star / p_ll) + beta)) * rho_ll
+    end
+    if p_star <= p_rr
+        rho_rr_star = (p_star / p_rr)^(1.0 / gamma) * rho_rr
+    else
+        rho_rr_star = ((1.0 + beta * p_star / p_rr) / ((p_star / p_rr) + beta)) * rho_rr
+    end
+
+    w3 = v1_star
+    if p_star > p_ll
+        w1 = (rho_ll * v1_ll - rho_ll_star * v1_star) / (rho_ll - rho_ll_star)
+        w2 = w1
+    else
+        c_ll_star = sqrt(gamma * p_star / rho_ll_star)
+        w1 = v1_ll - c_ll
+        w2 = v1_star - c_ll_star
+    end
+    if p_star > p_rr
+        w5 = (rho_rr * v1_rr - rho_rr_star * v1_star) / (rho_rr - rho_rr_star)
+        w4 = w5
+    else
+        c_rr_star = sqrt(gamma * p_star / rho_rr_star)
+        w4 = v1_star + c_rr_star
+        w5 = v1_rr + c_rr
+    end
+
+    prim_ll = SVector(rho_ll, v1_ll, p_ll)
+    prim_ll_star = SVector(rho_ll_star, v1_star, p_star)
+    prim_rr_star = SVector(rho_rr_star, v1_star, p_star)
+    prim_rr = SVector(rho_rr, v1_rr, p_rr)
+    cache = (; c_ll, c_rr, w1, w2, w3, w4, w5, prim_ll, prim_ll_star, prim_rr_star, prim_rr)
+    return cache
+end
+
+function (riemann_solver::RiemannSolver{CompressibleEulerEquations1D{RealT}})(xi) where {RealT}
+    c_ll, c_rr, w1, w2, w3, w4, w5, prim_ll, prim_ll_star, prim_rr_star, prim_rr = riemann_solver.cache
+    rho_ll, v1_ll, p_ll = prim_ll
+    rho_rr, v1_rr, p_rr = prim_rr
+    equations = riemann_solver.equations
+    gamma = equations.gamma
+
+    v1_1 = ((gamma - 1.0) * v1_ll + 2 * (c_ll + xi)) / (gamma + 1.0)
+    v1_3 = ((gamma - 1.0) * v1_rr - 2 * (c_rr - xi)) / (gamma + 1.0)
+    rho_1 = (rho_ll^gamma * (v1_1 - xi)^2 / (gamma * p_ll))^equations.inv_gamma_minus_one
+    rho_3 = (rho_rr^gamma * (xi - v1_3)^2 / (gamma * p_rr))^equations.inv_gamma_minus_one
+    p_1 = p_ll * (rho_1 / rho_ll)^gamma
+    p_3 = p_rr * (rho_3 / rho_rr)^gamma
+
+    prim_1 = SVector(rho_1, v1_1, p_1)
+    prim_3 = SVector(rho_3, v1_3, p_3)
+
+    if xi <= w1
+        prim_out = prim_ll
+    elseif w1 < xi <= w2
+        prim_out = prim_1
+    elseif w2 < xi <= w3
+        prim_out = prim_ll_star
+    elseif w3 < xi <= w4
+        prim_out = prim_rr_star
+    elseif w4 < xi <= w5
+        prim_out = prim_3
+    else # xi > w5
+        prim_out = prim_rr
+    end
+    return prim2cons(prim_out, equations)
 end

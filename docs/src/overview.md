@@ -24,6 +24,8 @@ for some usage examples.
   quick tests and prototyping to test some new ideas. This includes different numerical fluxes at the boundary than
   in the interior and different bases for each element via the [`PerElementFDSBP`](@ref) solver.
 - SimpleDiscontinuousGalerkin.jl has support for one-dimensional overset grid (Chimera) methods.
+- SimpleDiscontinuousGalerkin.jl supports an interface for solving Riemann problems and has a full Godunov flux for the
+  compressible Euler equations.
 - In contrast to Trixi.jl, which implements an own Gauss-Lobatto-Legendre basis for the Discontinuous Galerkin spectral
   element method ([`DGSEM`](@ref)), this package highlights more the underlying summation-by-parts (SBP) structure of
   the DG method. It reuses the `legendre_derivative_operator` from

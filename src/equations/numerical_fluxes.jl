@@ -154,3 +154,115 @@ Base.show(io::IO, numflux::FluxHLL) = print(io, "FluxHLL(", numflux.min_max_spee
 See [`FluxHLL`](@ref).
 """
 const flux_hll = FluxHLL()
+
+"""
+    RiemannProblem(u_ll, u_rr)
+
+Create a Riemann problem with left and right states `u_ll` and `u_rr`,
+which can be solved with a [`RiemannSolver`](@ref). This is used for the [`flux_godunov`](@ref)
+numerical flux.
+"""
+struct RiemannProblem{ULType, URType}
+    u_ll::ULType
+    u_rr::URType
+end
+
+function Base.show(io::IO, prob::RiemannProblem)
+    print(io, "RiemannProblem(", prob.u_ll, ", ", prob.u_rr, ")")
+end
+
+"""
+    RiemannSolver(prob, equations)
+
+An exact Riemann solver of the [`RiemannProblem`](@ref) prob for `equations`.
+"""
+struct RiemannSolver{Equations, ULType, URType, Cache}
+    prob::RiemannProblem{ULType, URType}
+    equations::Equations
+    cache::Cache
+
+    function RiemannSolver(prob::RiemannProblem{ULType, URType},
+                           equations::AbstractEquations) where {ULType, URType}
+        cache = create_cache(prob, equations)
+        new{typeof(equations), ULType, URType, typeof(cache)}(prob, equations, cache)
+    end
+end
+
+create_cache(::RiemannProblem, ::AbstractEquations) = nothing
+
+function Base.show(io::IO, riemann_solver::RiemannSolver)
+    print(io, "RiemannSolver(", riemann_solver.prob, ", ", riemann_solver.equations, ")")
+end
+
+function (riemann_solver::RiemannSolver)(x, t)
+    riemann_solver(x / t)
+end
+
+"""
+    RiemannSolverSolution
+
+A solution of a Riemann problem, which is a vector of states at different times.
+Is returned when `solve`ing a [`RiemannProblem`](@ref) with a [`RiemannSolver`](@ref).
+"""
+struct RiemannSolverSolution{ULType, SolverType, XType, TType}
+    solution::Vector{Vector{ULType}}
+    solver::SolverType
+    x::XType
+    t::TType
+
+    function RiemannSolverSolution(solution, riemann_solver::RiemannSolver, x, t)
+        prob = riemann_solver.prob
+        new{typeof(prob.u_ll), typeof(riemann_solver), typeof(x), typeof(t)}(solution,
+                                                                             riemann_solver,
+                                                                             x, t)
+    end
+end
+
+Base.getindex(sol::RiemannSolverSolution, i::Int) = sol.solution[i]
+function Base.setindex!(sol::RiemannSolverSolution, value, i::Int)
+    setindex!(sol.solution, value, i)
+end
+Base.length(sol::RiemannSolverSolution) = length(sol.solution)
+
+function Base.show(io::IO, sol::RiemannSolverSolution)
+    print(io, "RiemannSolverSolution(", sol.solution, ", ", sol.solver, ", ", sol.x, ", ",
+          sol.t, ")")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", sol::RiemannSolverSolution)
+    u_ll = sol.solver.prob.u_ll
+    u_rr = sol.solver.prob.u_rr
+    equations = sol.solver.equations
+    print(io, "RiemannSolverSolution for ", equations, " with u_ll = ", u_ll, ", u_rr = ",
+          u_rr, ", ", length(sol), " time steps, and ", length(sol.x), " spatial points")
+end
+
+# The additional kwarg `maxiters` is only used to make `@trixi_include` work, which tries to insert `maxiters` into `solve`
+function CommonSolve.init(riemann_solver::RiemannSolver{Equations, ULType}, x, t;
+                          maxiters = nothing) where {Equations, ULType}
+    solution = Vector{Vector{ULType}}(undef, length(t))
+    return RiemannSolverSolution(solution, riemann_solver, x, t)
+end
+
+function CommonSolve.solve!(sol::RiemannSolverSolution{ULType}) where {ULType}
+    for (i, ti) in enumerate(sol.t)
+        sol[i] = Vector{ULType}(undef, length(sol.x))
+        for (j, xi) in enumerate(sol.x)
+            sol[i][j] = sol.solver(xi, ti)
+        end
+    end
+    return sol
+end
+
+"""
+    flux_godunov(u_ll, u_rr, equations)
+
+Numerical flux using the [`RiemannSolver`](@ref) to solve Riemann problems
+with left and right states `u_ll` and `u_rr` for the given `equations` exactly.
+"""
+function flux_godunov(u_ll, u_rr, equations)
+    prob = RiemannProblem(u_ll, u_rr)
+    riemann_solver = RiemannSolver(prob, equations)
+    godunov_state = riemann_solver(0)
+    return flux(godunov_state, equations)
+end

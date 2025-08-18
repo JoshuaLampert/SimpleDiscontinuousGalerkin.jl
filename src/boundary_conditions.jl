@@ -35,9 +35,9 @@ end
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return u[:, nnodes(solver, N_elements), N_elements]
+        return get_node_vars(u, equations, nnodes(solver, N_elements), N_elements)
     else
-        return u[:, 1, 1]
+        return get_node_vars(u, equations, 1, 1)
     end
 end
 
@@ -51,9 +51,10 @@ end
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return u_right[:, nnodes(solver_right, N_elements), N_elements]
+        return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
+                             N_elements)
     else
-        return u_left[:, 1, 1]
+        return get_node_vars(u_left, equations, 1, 1)
     end
 end
 
@@ -73,13 +74,13 @@ end
 @inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left)
     N_elements = nelements(mesh)
     if is_left
-        return u[:, 1, 1]
+        return get_node_vars(u, equations, 1, 1)
     else
         # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return u[:, nnodes(solver, N_elements), N_elements]
+        return get_node_vars(u, equations, nnodes(solver, N_elements), N_elements)
     end
 end
 
@@ -89,13 +90,14 @@ end
     N_elements = nelements(mesh.mesh_right)
     _, solver_right = solver
     if is_left
-        return u_left[:, 1, 1]
+        return get_node_vars(u_left, equations, 1, 1)
     else
         # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return u_right[:, nnodes(solver_right, N_elements), N_elements]
+        return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
+                             N_elements)
     end
 end
 

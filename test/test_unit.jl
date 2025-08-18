@@ -74,7 +74,7 @@ end
 
     u2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
     equations = @test_nowarn MaxwellEquations1D(3.12)
-    for conversion in (cons2cons, cons2prim)
+    for conversion in (cons2cons, cons2prim, electric_field, magnetic_field)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u2), equations))
     end
@@ -89,7 +89,10 @@ end
 
     u3 = [SVector(1.0, 2.0, 4.0), SVector(2.0, 3.0, 3.0)]
     equations = @test_nowarn CompressibleEulerEquations1D(1.4)
-    for conversion in (cons2cons, cons2prim)
+    for conversion in (cons2cons, cons2prim, density, momentum, velocity, pressure,
+                       density_pressure, entropy_thermodynamic, entropy,
+                       energy_total, energy_kinetic, energy_internal,
+                       energy_internal_specific)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u3), equations))
     end
@@ -259,34 +262,36 @@ end
                                      [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
-@testitem "Jacobian" begin
+@testitem "Jacobian" setup=[Setup] begin
     using LinearAlgebra: eigvals
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01), surface_flux = flux_central)
     J = @test_nowarn jacobian_fd(semi)
     # This is conservative
     @test maximum(abs.(real.(eigvals(J)))) < 1e-7
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection_per_element.jl"),
+    trixi_include(@__MODULE__,
+                  joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This is stable
     @test maximum(real, eigvals(J)) < 1e-7
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection_overset_grid.jl"),
+    trixi_include(@__MODULE__,
+                  joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This has some eigenvalues with slightly positive real part
     @test count(real.(eigvals(J)) .> 1e-7) == 10
     @test maximum(real, eigvals(J)) < 1e-3
 
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "maxwell_overset_grid.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_MAXWELL, "maxwell_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This has some eigenvalues with slightly positive real part
@@ -301,7 +306,7 @@ end
 end
 
 @testitem "AnalysisCallback" setup=[Setup] begin
-    trixi_include(@__MODULE__, joinpath(examples_dir(), "linear_advection.jl"),
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01))
     @test_nowarn print(analysis_callback)
     @test_nowarn display(analysis_callback)
@@ -317,25 +322,51 @@ end
     @test_nowarn display(stepsize_callback)
 end
 
+@testitem "RiemannSolver" setup=[Setup] begin
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "exact_riemann_solver.jl"))
+    @test_nowarn print(prob)
+    @test_nowarn display(prob)
+    @test_nowarn print(solver)
+    @test_nowarn display(solver)
+    @test_nowarn print(sol)
+    @test_nowarn display(sol)
+
+    using Plots
+    @test_nowarn plot(sol)
+    @test_nowarn plot(sol; step = 10)
+
+    include(joinpath(EXAMPLES_DIR_BURGERS, "exact_riemann_solver.jl"))
+    include(joinpath(EXAMPLES_DIR_MAXWELL, "exact_riemann_solver.jl"))
+    include(joinpath(EXAMPLES_DIR_EULER, "exact_riemann_solver.jl"))
+    @test_nowarn plot(sol; step = 10, conversion = energy_internal)
+    @test_nowarn plot(sol; step = 10, conversion = cons2prim)
+    # 123 problem (challenging and needs bracketing method)
+    u_ll = prim2cons(SVector(1.0, -2.0, 0.4), equations)
+    u_rr = prim2cons(SVector(1.0, 2.0, 0.4), equations)
+    trixi_include(joinpath(EXAMPLES_DIR_EULER, "exact_riemann_solver.jl"),
+                  u_ll = u_ll, u_rr = u_rr)
+end
+
 @testitem "visualization" setup=[Setup] begin
     using Plots
-    include(joinpath(examples_dir(), "linear_advection.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     @test_nowarn plot(semi => sol)
     @test_nowarn plot(semi => sol, plot_initial = true)
     @test_nowarn plot(semi => sol, step = 5)
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
 
-    include(joinpath(examples_dir(), "linear_advection_per_element.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
     @test_nowarn plot(analysis_callback)
     @test_nowarn plot(analysis_callback, what = (:errors,))
     @test_nowarn plot(analysis_callback, what = (:integrals, :errors))
 
-    include(joinpath(examples_dir(), "linear_advection_overset_grid.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
 
-    include(joinpath(examples_dir(), "linear_advection_overset_grid_per_element.jl"))
+    include(joinpath(EXAMPLES_DIR_ADVECTION,
+                     "linear_advection_overset_grid_per_element.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
 end
