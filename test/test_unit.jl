@@ -366,6 +366,10 @@ end
 
     include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
+    x_left, x_right = flat_grid(semi)
+    u_left, u_right = get_variable(sol.u[end], 1, semi)
+    @test_nowarn plot(x_left, u_left, label = "left")
+    @test_nowarn plot!(x_right, u_right, label = "right")
 
     include(joinpath(EXAMPLES_DIR_ADVECTION,
                      "linear_advection_overset_grid_per_element.jl"))
