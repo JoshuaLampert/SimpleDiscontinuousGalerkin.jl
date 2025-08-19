@@ -74,11 +74,10 @@ function compute_data(mesh::OversetGridMesh, equations, solver, u, u_exact, plot
     u_exact_left, u_exact_right = u_exact
 
     data_left, data_left_exact = compute_data(mesh_left, equations, solver_left, u_left,
-                                              u_exact_left,
-                                              plot_initial, conversion, nvars)
+                                              u_exact_left, plot_initial, conversion, nvars)
     data_right, data_right_exact = compute_data(mesh_right, equations, solver_right,
-                                                u_right, u_exact_right,
-                                                plot_initial, conversion, nvars)
+                                                u_right, u_exact_right, plot_initial,
+                                                conversion, nvars)
     return (data_left, data_right), (data_left_exact, data_right_exact)
 end
 
