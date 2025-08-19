@@ -7,7 +7,7 @@ end
 
 @recipe function f(semi::Semidiscretization, data, data_exact, names, plot_initial)
     x = flat_grid(semi)
-    for i in 1:length(names)
+    for i in eachindex(names)
         if plot_initial == true
             @series begin
                 subplot --> i
@@ -15,14 +15,14 @@ end
                 xguide --> "x"
                 yguide --> names[i]
                 title --> names[i]
-                x, data_exact[i, :]
+                x, view(data_exact, i, :)
             end
         end
         @series begin
             subplot --> i
             linestyle --> :solid
             label --> "initial $(names[i])"
-            x, data[i, :]
+            x, view(data, i, :)
         end
     end
 end
@@ -30,38 +30,38 @@ end
 @recipe function f(semi::SemidiscretizationOversetGrid, data, data_exact, names,
                    plot_initial)
     x_left, x_right = flat_grid(semi)
-    for i in 1:length(names)
+    for i in eachindex(names)
         if plot_initial == true
             data_exact_left, data_exact_right = data_exact
             @series begin
                 subplot --> i
                 linestyle --> :solid
-                label --> "initial $(names[i])"
-                x_left, data_exact_left[i, :]
+                label --> "initial $(names[i]) left"
+                x_left, view(data_exact_left, i, :)
             end
             @series begin
                 subplot --> i
                 linestyle --> :solid
-                label --> "initial $(names[i])"
-                x_right, data_exact_right[i, :]
+                label --> "initial $(names[i]) right"
+                x_right, view(data_exact_right, i, :)
             end
         end
         data_left, data_right = data
         @series begin
             subplot --> i
-            label --> names[i]
+            label --> "$(names[i]) left"
             xguide --> "x"
             yguide --> names[i]
             title --> names[i]
-            x_left, data_left[i, :]
+            x_left, view(data_left, i, :)
         end
         @series begin
             subplot --> i
-            label --> names[i]
+            label --> "$(names[i]) right"
             xguide --> "x"
             yguide --> names[i]
             title --> names[i]
-            x_right, data_right[i, :]
+            x_right, view(data_right, i, :)
         end
     end
 end
@@ -71,7 +71,11 @@ function compute_data(mesh::OversetGridMesh, equations, solver, u, u_exact, plot
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
     u_left, u_right = u
-    u_exact_left, u_exact_right = u_exact
+    if isnothing(u_exact)
+        u_exact_left, u_exact_right = nothing, nothing
+    else
+        u_exact_left, u_exact_right = u_exact
+    end
 
     data_left, data_left_exact = compute_data(mesh_left, equations, solver_left, u_left,
                                               u_exact_left, plot_initial, conversion, nvars)
