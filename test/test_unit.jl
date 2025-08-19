@@ -359,6 +359,7 @@ end
     include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"))
     @test_nowarn plot(flat_grid(semi), get_variable(sol.u[end], 1, semi))
     @test_nowarn plot(semi, sol, plot_initial = true, step = 6)
+    @test_nowarn plot(semi => sol, plot_initial = true, step = 6, conversion = cons2cons)
     @test_nowarn plot(analysis_callback)
     @test_nowarn plot(analysis_callback, what = (:errors,))
     @test_nowarn plot(analysis_callback, what = (:integrals, :errors))
@@ -369,4 +370,10 @@ end
     include(joinpath(EXAMPLES_DIR_ADVECTION,
                      "linear_advection_overset_grid_per_element.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
+
+    include(joinpath(EXAMPLES_DIR_ADVECTION,
+                     "compressible_euler_overset_grid.jl"))
+    @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
+    @test_nowarn plot(semi => sol, plot_initial = true, step = 6, conversion = cons2cons)
+    @test_nowarn plot(semi => sol, step = 6, conversion = energy_internal_specific)
 end
