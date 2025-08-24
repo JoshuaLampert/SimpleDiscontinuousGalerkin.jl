@@ -11,7 +11,7 @@ end
         if plot_initial == true
             @series begin
                 subplot --> i
-                label --> names[i]
+                label --> "initial $(names[i])"
                 xguide --> "x"
                 yguide --> names[i]
                 title --> names[i]
@@ -20,8 +20,8 @@ end
         end
         @series begin
             subplot --> i
+            label --> names[i]
             linestyle --> :solid
-            label --> "initial $(names[i])"
             x, view(data, i, :)
         end
     end
