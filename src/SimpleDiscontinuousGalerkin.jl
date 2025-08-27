@@ -15,6 +15,7 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 module SimpleDiscontinuousGalerkin
 
 using CommonSolve: CommonSolve, init, solve!
+using Dierckx: Spline1D
 import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf

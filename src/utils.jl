@@ -29,6 +29,18 @@ function interpolation_operator(x,
     e_M = V' \ values
     return e_M
 end
+# Collocation (e.g., Gauss-Lobatto)
+function interpolate(x, values,
+                     D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
+    e_M = interpolation_operator(x, D)
+    return e_M' * values
+end
+# No collocation (e.g., Finite Difference)
+function interpolate(x, values, D::SummationByPartsOperators.DerivativeOperator)
+    nodes = grid(D)
+    spl = Spline1D(nodes, values)
+    return spl(x)
+end
 
 @inline function ln_mean(x::RealT, y::RealT) where {RealT <: Real}
     epsilon_f2 = convert(RealT, 1.0e-4)
