@@ -14,11 +14,6 @@ b = -0.1
 c = 0.1
 d = 1.0
 
-N_elements = 10 # number of elements
-mesh_left = Mesh(a, c, N_elements)
-mesh_right = Mesh(b, d, N_elements)
-mesh = OversetGridMesh(mesh_left, mesh_right)
-
 mesh_left = Mesh(a, c, 1)
 mesh_right = Mesh(b, d, 40)
 mesh = OversetGridMesh(mesh_left, mesh_right)
@@ -27,7 +22,7 @@ x_L_ref = -1.0
 x_R_ref = 1.0
 p = 4
 # n_nodes = 48
-N_elements = 51
+N_elements = 51 # We also call this `N_elements` to be able to run convergence tests on it
 n_nodes = N_elements
 D_FD = derivative_operator(MattssonNordström2004(), 1, p, x_L_ref, x_R_ref, n_nodes)
 
@@ -39,7 +34,7 @@ solver_left = PerElementFDSBP(Ds_left,
                               surface_integral = surface_integral,
                               volume_integral = volume_integral)
 
-D_GLL = legendre_derivative_operator(x_L_ref, x_R_ref, 3 + 1)
+D_GLL = legendre_derivative_operator(x_L_ref, x_R_ref, p)
 Ds_right = [D_GLL for element in eachelement(mesh_right)]
 solver_right = PerElementFDSBP(Ds_right,
                                surface_integral = surface_integral,
@@ -55,7 +50,7 @@ semi = Semidiscretization(mesh, equations, initial_condition, (solver_left, solv
 tspan = (0.0, 1.0)
 ode = semidiscretize(semi, tspan)
 summary_callback = SummaryCallback()
-analysis_callback = AnalysisCallback(semi; io = devnull, interval = 10,
+analysis_callback = AnalysisCallback(semi; interval = 10,
                                      extra_analysis_errors = (:conservation_error,))
 callbacks = CallbackSet(analysis_callback, summary_callback)
 

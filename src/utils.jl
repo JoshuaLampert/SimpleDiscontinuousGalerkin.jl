@@ -25,8 +25,8 @@ function interpolation_operator(x,
     nodes = grid(D)
     functions = basis_functions(D)
     V = vandermonde_matrix(functions, nodes)
-    values = [functions[i](x) for i in eachindex(functions)]
-    e_M = V' \ values
+    basis_values = [functions[i](x) for i in eachindex(functions)]
+    e_M = V' \ basis_values
     return e_M
 end
 # Collocation (e.g., Gauss-Lobatto)
@@ -36,10 +36,27 @@ function interpolate(x, values,
     return e_M' * values
 end
 # No collocation (e.g., Finite Difference)
+# Interpolation via splines
+# function interpolate(x, values, D::SummationByPartsOperators.DerivativeOperator)
+#     nodes = grid(D)
+#     spl = Spline1D(nodes, values)
+#     return spl(x)
+# end
+# Interpolation via local approximation
 function interpolate(x, values, D::SummationByPartsOperators.DerivativeOperator)
     nodes = grid(D)
-    spl = Spline1D(nodes, values)
-    return spl(x)
+    functions = basis_functions(D)
+    V = vandermonde_matrix(functions, nodes)
+    basis_values = [functions[i](x) for i in eachindex(functions)]
+    M = length(functions) # We take ~ M nodes to the left and to the right of x
+    index_x = findfirst(x_i -> x_i >= x, nodes)
+    M_left = min(div(M, 2), index_x - 1)
+    M_right = min(M - M_left - 1, length(nodes) - index_x)
+    indices = (index_x - M_left):(index_x + M_right)
+    e_M = zeros(length(values))
+    e_M_1 = view(V', :, indices) \ basis_values
+    e_M[indices] = e_M_1
+    return e_M' * values
 end
 
 @inline function ln_mean(x::RealT, y::RealT) where {RealT <: Real}
