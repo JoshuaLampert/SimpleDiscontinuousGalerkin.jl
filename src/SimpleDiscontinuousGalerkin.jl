@@ -16,7 +16,7 @@ module SimpleDiscontinuousGalerkin
 
 using CommonSolve: CommonSolve, init, solve!
 import LinearAlgebra: Diagonal, diag, dot
-using PolynomialBases: PolynomialBases, interpolate
+using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
