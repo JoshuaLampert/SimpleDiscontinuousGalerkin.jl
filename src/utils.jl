@@ -4,6 +4,34 @@ function PolynomialBases.interpolate(x, values, D)
     interpolate(x, values, nodes, baryweights)
 end
 
+@inline function ln_mean(x::RealT, y::RealT) where {RealT <: Real}
+    epsilon_f2 = convert(RealT, 1.0e-4)
+    f2 = (x * (x - 2 * y) + y * y) / (x * (x + 2 * y) + y * y) # f2 = f^2
+    if f2 < epsilon_f2
+        return (x + y) / @evalpoly(f2,
+                         2,
+                         convert(RealT, 2 / 3),
+                         convert(RealT, 2 / 5),
+                         convert(RealT, 2 / 7))
+    else
+        return (y - x) / log(y / x)
+    end
+end
+
+@inline function inv_ln_mean(x::RealT, y::RealT) where {RealT <: Real}
+    epsilon_f2 = convert(RealT, 1.0e-4)
+    f2 = (x * (x - 2 * y) + y * y) / (x * (x + 2 * y) + y * y) # f2 = f^2
+    if f2 < epsilon_f2
+        return @evalpoly(f2,
+                         2,
+                         convert(RealT, 2 / 3),
+                         convert(RealT, 2 / 5),
+                         convert(RealT, 2 / 7)) / (x + y)
+    else
+        return log(y / x) / (y - x)
+    end
+end
+
 """
     examples_dir()
 
@@ -29,7 +57,7 @@ See also [`examples_dir`](@ref).
 Copied from [Trixi.jl](https://github.com/trixi-framework/Trixi.jl).
 """
 function default_example()
-    joinpath(examples_dir(), "linear_advection.jl")
+    joinpath(examples_dir(), "linear_advection", "linear_advection.jl")
 end
 
 function convergence_test(example, iterations_or_Ns; kwargs...)

@@ -54,6 +54,8 @@ In particular, not the nodes themselves are returned.
 # This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(solver::DG) = length(grid(solver))
 @inline nnodes(solver::DG, element) = length(grid(solver, element))
+# This is the number of DOFs per variable. See a discussion in
+# https://github.com/trixi-framework/Trixi.jl/issues/1667
 @inline function ndofs(mesh::AbstractMesh, solver::DG)
     sum(nnodes(solver, element) for element in eachelement(mesh))
 end
@@ -134,7 +136,7 @@ function rhs!(du, u, t, mesh, equations, initial_condition,
 
     @trixi_timeit timer() "boundary flux" begin
         calc_boundary_flux!(cache.surface_flux_values, u, t, boundary_conditions, mesh,
-                            equations, solver.surface_integral, solver)
+                            equations, solver.surface_integral, solver, cache)
     end
 
     @trixi_timeit timer() "surface integral" begin

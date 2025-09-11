@@ -228,4 +228,80 @@ function semidiscretize(semi::Semidiscretization, tspan)
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
 end
 
+function central_difference!(Ji, dup, dum, epsilon, semi::Semidiscretization)
+    j = 0
+    for element in eachelement(semi.mesh)
+        for node in eachnode(semi.solver, element)
+            for v in eachvariable(semi.equations)
+                j += 1
+                Ji[j] = (dup[v, node, element] - dum[v, node, element]) /
+                        (2 * epsilon)
+            end
+        end
+    end
+end
+
+"""
+    jacobian_fd(semi;
+                t0=zero(real(semi)),
+                u0_ode=compute_coefficients(t0, semi))
+
+Uses the right-hand side operator of the semidiscretization `semi`
+and simple second order finite difference to compute the Jacobian `J`
+of the semidiscretization `semi` at state `u0_ode`.
+"""
+function jacobian_fd(semi;
+                     t0 = zero(real(semi)),
+                     u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
+    # copy the initial state since it will be modified in the following
+    u_ode = copy(u0_ode)
+    du0_ode = similar(u_ode)
+    dup_ode = similar(u_ode)
+    dum_ode = similar(u_ode)
+
+    # compute residual of linearization state
+    rhs!(du0_ode, u_ode, semi, t0)
+
+    # initialize Jacobian matrix
+    total_ndofs = ndofs(semi) * nvariables(semi.equations)
+    J = zeros(eltype(u_ode), total_ndofs, total_ndofs)
+    Ji = zeros(eltype(u_ode), total_ndofs)
+
+    i = 0
+    # use second order finite difference to estimate Jacobian matrix
+    # This Iterators notation allows to use the same code for both
+    # usual DG and overset grid DG methods.
+    for element in eachelement(semi.mesh)
+        for node in eachnode(semi.solver, element)
+            for v in eachvariable(semi.equations)
+                i += 1
+                # determine size of fluctuation
+                # This is the approach used by FiniteDiff.jl to compute the
+                # step size, which assures that the finite difference is accurate
+                # for very small and very large absolute values `u0_ode[v, node, element]`.
+                # See https://github.com/trixi-framework/Trixi.jl/pull/2514#issuecomment-3190534904.
+                absstep = sqrt(eps(typeof(u0_ode[v, node, element])))
+                relstep = absstep
+                epsilon = max(relstep * abs(u0_ode[v, node, element]), absstep)
+
+                # plus fluctuation
+                u_ode[v, node, element] = u0_ode[v, node, element] + epsilon
+                rhs!(dup_ode, u_ode, semi, t0)
+
+                # minus fluctuation
+                u_ode[v, node, element] = u0_ode[v, node, element] - epsilon
+                rhs!(dum_ode, u_ode, semi, t0)
+
+                # restore linearization state
+                u_ode[v, node, element] = u0_ode[v, node, element]
+
+                # central second order finite difference
+                central_difference!(Ji, dup_ode, dum_ode, epsilon, semi)
+                @. J[:, i] = Ji
+            end
+        end
+    end
+    return J
+end
+
 include("semidiscretization_overset_grid.jl")

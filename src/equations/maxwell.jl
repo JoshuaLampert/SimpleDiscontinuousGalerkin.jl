@@ -35,9 +35,8 @@ struct MaxwellEquations1D{RealT <: Real} <: AbstractEquations{1, 2}
     end
 end
 
-function varnames(::typeof(cons2cons), ::MaxwellEquations1D)
-    ("E", "B")
-end
+varnames(::typeof(cons2cons), ::MaxwellEquations1D) = ("E", "B")
+varnames(::typeof(cons2prim), ::MaxwellEquations1D) = ("E", "B")
 
 """
     initial_condition_convergence_test(x, t, equations::MaxwellEquations1D)
@@ -64,23 +63,12 @@ end
 end
 
 # Calculate maximum wave speed for local Lax-Friedrichs-type dissipation
-@inline function max_abs_speed_naive(u_ll, u_rr, equations::MaxwellEquations1D)
+@inline function max_abs_speed(u_ll, u_rr, equations::MaxwellEquations1D)
     return equations.speed_of_light
 end
 
-"""
-    flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
-
-Godunov (upwind) flux for the 1D Maxwell equations.
-"""
-function flux_godunov(u_ll, u_rr, equations::MaxwellEquations1D)
-    E_L, B_L = u_ll
-    E_R, B_R = u_rr
-
-    c = equations.speed_of_light
-    return SVector(0.5f0 * (c^2 * (B_L + B_R) - (E_R - E_L) * c),
-                   0.5f0 * ((E_L + E_R) - (B_R - B_L) * c))
-end
+@inline cons2prim(u, ::MaxwellEquations1D) = u
+@inline prim2cons(q, ::MaxwellEquations1D) = q
 
 @inline function entropy(u, equations::MaxwellEquations1D)
     E, B = u
@@ -90,4 +78,38 @@ end
 @inline function cons2entropy(u, equations::MaxwellEquations1D)
     E, B = u
     return SVector(E, equations.speed_of_light^2 * B)
+end
+
+function electric_field(u, equations::MaxwellEquations1D)
+    return first(u)
+end
+varnames(::typeof(electric_field), ::MaxwellEquations1D) = ("E",)
+
+function magnetic_field(u, equations::MaxwellEquations1D)
+    return last(u)
+end
+varnames(::typeof(magnetic_field), ::MaxwellEquations1D) = ("B",)
+
+pretty_form_utf(::typeof(electric_field)) = "∫E"
+pretty_form_utf(::typeof(magnetic_field)) = "∫B"
+
+function default_analysis_integrals(::MaxwellEquations1D)
+    return (electric_field, magnetic_field, entropy, entropy_timederivative)
+end
+
+function (riemann_solver::RiemannSolver{MaxwellEquations1D{RealT}})(xi) where {RealT}
+    u_ll, u_rr = riemann_solver.prob.u_ll, riemann_solver.prob.u_rr
+    c = riemann_solver.equations.speed_of_light
+
+    if xi < -c
+        return u_ll
+    elseif xi > c
+        return u_rr
+    else
+        E_L, B_L = u_ll
+        E_R, B_R = u_rr
+        E_L_star = 0.5f0 * ((E_L + E_R) - c * (B_R - B_L))
+        B_L_star = 0.5f0 * ((B_L + B_R) - (E_R - E_L) / c)
+        return SVector(E_L_star, B_L_star)
+    end
 end

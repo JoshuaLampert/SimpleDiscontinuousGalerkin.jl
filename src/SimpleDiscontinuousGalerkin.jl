@@ -14,13 +14,15 @@ See also: [SimpleDiscontinuousGalerkin.jl](https://github.com/JoshuaLampert/Simp
 """
 module SimpleDiscontinuousGalerkin
 
+using CommonSolve: CommonSolve, init, solve!
 import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases, interpolate
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
 using Reexport: @reexport
-import SciMLBase: ODESolution, u_modified!, get_tmp_cache, set_proposed_dt!
+using Roots: find_zero, AlefeldPotraShi
+import SciMLBase: ODESolution, solve, u_modified!, get_tmp_cache, set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
@@ -39,11 +41,17 @@ include("callbacks_step/callbacks_step.jl")
 include("visualization.jl")
 
 export examples_dir, default_example, convergence_test
-export cons2cons, cons2entropy, eachvariable, nvariables
-export mass, entropy
-export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D
-export FluxLaxFriedrichs, flux, flux_central, flux_godunov, flux_lax_friedrichs, flux_ec
-export initial_condition_convergence_test, source_terms_convergence_test
+export cons2cons, cons2entropy, cons2prim, prim2cons, eachvariable, nvariables, varnames
+export mass, entropy, electric_field, magnetic_field, density, velocity, momentum, pressure,
+       density_pressure, entropy_thermodynamic, entropy_math, energy_total, energy_kinetic,
+       energy_internal, energy_internal_specific
+export LinearAdvectionEquation1D, BurgersEquation1D, MaxwellEquations1D,
+       CompressibleEulerEquations1D
+export FluxLaxFriedrichs, FluxHLL, flux, flux_central, flux_godunov, flux_lax_friedrichs,
+       flux_ec, flux_hll, flux_ranocha, flux_kennedy_gruber
+export RiemannProblem, RiemannSolver
+export initial_condition_convergence_test, source_terms_convergence_test,
+       initial_condition_density_wave, initial_condition_weak_blast_wave
 export Mesh, InhomogeneousMesh, OversetGridMesh, nelements, eachelement, element_spacing
 export boundary_condition_periodic, boundary_condition_do_nothing,
        BoundaryConditionDirichlet
@@ -52,7 +60,8 @@ export DGSEM, FDSBP, PerElementFDSBP,
        VolumeIntegralStrongForm, VolumeIntegralWeakForm,
        VolumeIntegralFluxDifferencing, VolumeIntegralFluxDifferencingStrongForm,
        SurfaceIntegralStrongForm, SurfaceIntegralWeakForm
-export Semidiscretization, semidiscretize
+export Semidiscretization, semidiscretize, jacobian_fd
 export SummaryCallback, AnalysisCallback, StepsizeCallback
 export tstops, errors, integrals
+export init, solve!, solve
 end

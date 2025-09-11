@@ -41,12 +41,99 @@ function get_variable(u, v, semi::SemidiscretizationOversetGrid)
     return get_variable(u_left, v, solver_left), get_variable(u_right, v, solver_right)
 end
 
+# We need to explicitly loop over every component because `u` is a `VectorOfArray` with
+# potentially different number of nodes per element and there is the issue in RecursiveArrayTools.jl
+# https://github.com/SciML/RecursiveArrayTools.jl/issues/454
+function central_difference!(Ji, dup, dum, epsilon, semi::SemidiscretizationOversetGrid)
+    meshes = (semi.mesh.mesh_left, semi.mesh.mesh_right)
+    j = 0
+    for nmesh in 1:2
+        for element in eachelement(meshes[nmesh])
+            for node in eachnode(semi.solver[nmesh], element)
+                for v in eachvariable(semi.equations)
+                    j += 1
+                    Ji[j] = (dup[v, node, element, nmesh] - dum[v, node, element, nmesh]) /
+                            (2 * epsilon)
+                end
+            end
+        end
+    end
+end
+
+function jacobian_fd(semi::SemidiscretizationOversetGrid;
+                     t0 = zero(real(semi)),
+                     u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
+    # copy the initial state since it will be modified in the following
+    u_ode = copy(u0_ode)
+    du0_ode = similar(u_ode)
+    dup_ode = similar(u_ode)
+    dum_ode = similar(u_ode)
+
+    # compute residual of linearization state
+    rhs!(du0_ode, u_ode, semi, t0)
+
+    # initialize Jacobian matrix
+    total_ndofs = ndofs(semi) * nvariables(semi.equations)
+    J = zeros(eltype(u_ode), total_ndofs, total_ndofs)
+    Ji = zeros(eltype(u_ode), total_ndofs)
+
+    i = 0
+    # use second order finite difference to estimate Jacobian matrix
+    meshes = [semi.mesh.mesh_left, semi.mesh.mesh_right]
+    for nmesh in 1:2
+        for element in eachelement(meshes[nmesh])
+            for node in eachnode(semi.solver[nmesh], element)
+                for v in eachvariable(semi.equations)
+                    i += 1
+                    # determine size of fluctuation
+                    epsilon = sqrt(eps(typeof(u0_ode[v, node, element, nmesh])))
+
+                    # plus fluctuation
+                    u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh] +
+                                                     epsilon
+                    rhs!(dup_ode, u_ode, semi, t0)
+
+                    # minus fluctuation
+                    u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh] -
+                                                     epsilon
+                    rhs!(dum_ode, u_ode, semi, t0)
+
+                    # restore linearization state
+                    u_ode[v, node, element, nmesh] = u0_ode[v, node, element, nmesh]
+
+                    # central second order finite difference
+                    central_difference!(Ji, dup_ode, dum_ode, epsilon, semi)
+                    @. J[:, i] = Ji
+                end
+            end
+        end
+    end
+    return J
+end
+
 function create_cache(mesh::OversetGridMesh, equations, solver)
     solver_left, solver_right = solver
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     cache_left = create_cache(mesh_left, equations, solver_left)
     cache_right = create_cache(mesh_right, equations, solver_right)
-    return (; cache_left, cache_right)
+
+    linear_map(x, a, b, c, d) = c + (x - a) / (b - a) * (d - c)
+    l_left = left_overlap_element(mesh)
+    b = xmin(mesh_right)
+    D = get_basis(solver_left, l_left)
+    xll_L = left_element_boundary(mesh_left, l_left)
+    xll_R = left_element_boundary(mesh_left, l_left + 1)
+    b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
+    e_M_left = interpolation_operator(b_mapped, D)
+
+    l_right = right_overlap_element(mesh)
+    c = xmax(mesh_left)
+    D = get_basis(solver_right, l_right)
+    xlr_L = left_element_boundary(mesh_right, l_right)
+    xlr_R = left_element_boundary(mesh_right, l_right + 1)
+    c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
+    e_M_right = interpolation_operator(c_mapped, D)
+    return (; cache_left, cache_right, l_left, l_right, e_M_left, e_M_right)
 end
 
 function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
@@ -84,7 +171,7 @@ function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
         surface_integral = (solver_left.surface_integral, solver_right.surface_integral)
         calc_boundary_flux!(surface_flux_values, u, t,
                             boundary_conditions, mesh, equations,
-                            surface_integral, solver)
+                            surface_integral, solver, cache)
     end
 
     @trixi_timeit timer() "surface integral" begin
@@ -109,13 +196,15 @@ end
 
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
                              mesh::OversetGridMesh, equations,
-                             integral::Tuple, solver)
+                             integral::Tuple, solver, cache)
     surface_flux_values_left, surface_flux_values_right = surface_flux_values
     u_left, u_right = u
     (; x_neg, x_pos) = boundary_conditions
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     integral_left, integral_right = integral
     solver_left, solver_right = solver
+    l_left, l_right = cache.l_left, cache.l_right
+    e_M_left, e_M_right = cache.e_M_left, cache.e_M_right
 
     # Left boundary condition of left mesh
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
@@ -126,15 +215,6 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     # Right boundary condition of left mesh
     u_ll = get_node_vars(u_left, equations, nnodes(solver_left, nelements(mesh_left)),
                          nelements(mesh_left))
-    # TODO: Make this more efficient by computing e_M_right and e_M_left only once
-    # during initialization and storing it in the cache
-    l_right = right_overlap_element(mesh)
-    c = xmax(mesh_left)
-    D = get_basis(solver_right, l_right)
-    linear_map(x, a, b, c, d) = c + (x - a) / (b - a) * (d - c)
-    xlr_L = left_element_boundary(mesh_right, l_right)
-    xlr_R = left_element_boundary(mesh_right, l_right + 1)
-    c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
     u_rr = zeros(real(solver_right), nvariables(equations))
     for v in eachvariable(equations)
         values = u_right[v, :, l_right]
@@ -144,12 +224,6 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     set_node_vars!(surface_flux_values_left, f, equations, 2, nelements(mesh_left))
 
     # Left boundary condition of right mesh
-    l_left = left_overlap_element(mesh)
-    b = xmin(mesh_right)
-    D = get_basis(solver_left, l_left)
-    xll_L = left_element_boundary(mesh_left, l_left)
-    xll_R = left_element_boundary(mesh_left, l_left + 1)
-    b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
     u_ll = zeros(real(solver_left), nvariables(equations))
     for v in eachvariable(equations)
         values = u_left[v, :, l_left]

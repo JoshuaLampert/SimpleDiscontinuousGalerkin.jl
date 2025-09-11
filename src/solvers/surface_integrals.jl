@@ -22,7 +22,7 @@ function calc_interface_flux!(surface_flux_values, u, mesh,
 end
 
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mesh,
-                             equations, integral::AbstractSurfaceIntegral, solver)
+                             equations, integral::AbstractSurfaceIntegral, solver, cache)
     (; x_neg, x_pos) = boundary_conditions
     # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
@@ -91,13 +91,14 @@ function calc_surface_integral!(du, u, mesh, equations,
     (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
     for element in eachelement(mesh)
         # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
-        f_L = flux(u[:, 1, element], equations)
+        u_L = get_node_vars(u, equations, 1, element)
+        f_L = flux(u_L, equations)
         # TODO: We cannot use `u[:, end, element]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        N = nnodes(solver, element)
-        f_R = flux(u[:, N, element], equations)
+        u_R = get_node_vars(u, equations, nnodes(solver, element), element)
+        f_R = flux(u_R, equations)
         surface_operator_left_ = get_integral_operator(surface_operator_left, solver,
                                                        element)
         surface_operator_right_ = get_integral_operator(surface_operator_right, solver,
