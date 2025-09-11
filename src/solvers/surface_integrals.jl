@@ -2,19 +2,24 @@ abstract type AbstractSurfaceIntegral end
 
 function calc_interface_flux!(surface_flux_values, u, mesh,
                               equations, integral::AbstractSurfaceIntegral, solver, cache)
+    (; e_L, e_R) = cache
     for element in 2:(nelements(mesh) - 1)
         N_element = nnodes(solver, element)
         N_element_m1 = nnodes(solver, element - 1)
-        # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
         # left interface
-        u_ll = get_node_vars(u, equations, N_element_m1, element - 1)
-        u_rr = get_node_vars(u, equations, 1, element)
+        # u_ll = get_node_vars(u, equations, N_element_m1, element - 1)
+        # u_rr = get_node_vars(u, equations, 1, element)
+        u_ll = e_R * get_node_vars(u, equations, :, element - 1)[1] # TODO: general nvars
+        u_rr = e_L * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
+
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 1, element)
         set_node_vars!(surface_flux_values, f, equations, 2, element - 1)
         # right interface
-        u_ll = get_node_vars(u, equations, N_element, element)
-        u_rr = get_node_vars(u, equations, 1, element + 1)
+        # u_ll = get_node_vars(u, equations, N_element, element)
+        # u_rr = get_node_vars(u, equations, 1, element + 1)
+        u_ll = e_R * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
+        u_rr = e_L * get_node_vars(u, equations, :, element + 1)[1] # TODO: general nvars
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 2, element)
         set_node_vars!(surface_flux_values, f, equations, 1, element + 1)
@@ -24,13 +29,15 @@ end
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mesh,
                              equations, integral::AbstractSurfaceIntegral, solver, cache)
     (; x_neg, x_pos) = boundary_conditions
-    # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
+    (; e_L, e_R) = cache
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
-    u_rr = get_node_vars(u, equations, 1, 1)
+    # u_rr = get_node_vars(u, equations, 1, 1)
+    u_rr = e_L * get_node_vars(u, equations, :, 1)[1] # TODO: general nvars
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
-    u_ll = get_node_vars(u, equations, nnodes(solver, nelements(mesh)), nelements(mesh))
+    # u_ll = get_node_vars(u, equations, nnodes(solver, nelements(mesh)), nelements(mesh))
+    u_ll = e_R * get_node_vars(u, equations, :, nelements(mesh))[1] # TODO: general nvars
     u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
@@ -62,13 +69,14 @@ SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
 # This is M^{-1} * B * (f* - f) for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
 # So basically a SAT.
-# This assumes Lobatto-type nodes, where the first and last node are the boundaries.
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::SurfaceIntegralStrongForm; left)
     M = mass_matrix(basis)
-    unit_vector = zeros(eltype(M), length(grid(basis)))
-    left ? unit_vector[begin] = 1 : unit_vector[end] = 1
-    return M \ unit_vector
+    # unit_vector = zeros(eltype(M), length(grid(basis)))
+    # left ? unit_vector[begin] = 1 : unit_vector[end] = 1
+    boundary = left ? basis.xmin : basis.xmax
+    boundary_projection = PolynomialBases.interpolation_matrix([boundary], basis)[1, :]
+    return M \ boundary_projection
 end
 
 function create_cache_surface_flux_values(mesh, equations, solver)
@@ -81,19 +89,22 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongFo
     surface_operator_right = compute_integral_operator(mesh, solver, integral; left = false)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
-    return (; surface_operator_left, surface_operator_right, surface_flux_values)
+    e_L = interpolation_matrix([solver.basis.xmin], solver.basis)
+    e_R = interpolation_matrix([solver.basis.xmax], solver.basis)
+    return (; surface_operator_left, surface_operator_right, surface_flux_values, e_L, e_R)
 end
 
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
                                 ::SurfaceIntegralStrongForm, solver, cache)
-    (; surface_operator_left, surface_operator_right, surface_flux_values) = cache
+    (; surface_operator_left, surface_operator_right, surface_flux_values, e_L, e_R) = cache
     for element in eachelement(mesh)
-        # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
-        u_L = get_node_vars(u, equations, 1, element)
+        # u_L = get_node_vars(u, equations, 1, element)
+        u_L = e_L * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
         f_L = flux(u_L, equations)
-        u_R = get_node_vars(u, equations, nnodes(solver, element), element)
+        # u_R = get_node_vars(u, equations, nnodes(solver, element), element)
+        u_R = e_R * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
         f_R = flux(u_R, equations)
         surface_operator_left_ = get_integral_operator(surface_operator_left, solver,
                                                        element)
@@ -163,12 +174,12 @@ SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, su
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 
 # This is M^{-1} * B * f* for `B = Diagonal([-1, 0, ..., 0, 1])` and `f* = [f_L^{num}, 0, ..., 0, f_R^{num}]`
-# This assumes Lobatto-type nodes, where the first and last node are the boundaries.
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::SurfaceIntegralWeakForm)
     M = mass_matrix(basis)
-    R = zeros(eltype(M), 2, length(grid(basis)))
-    R[1, 1] = R[end, end] = 1
+    x_l_ref = basis.xmin
+    x_r_ref = basis.xmax
+    R = interpolation_matrix([x_l_ref, x_r_ref], basis)
     B = Diagonal([-1, 1])
     return -M \ (R' * B)
 end
@@ -177,7 +188,9 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm
     surface_operator = compute_integral_operator(mesh, solver, integral)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
-    return (; surface_operator, surface_flux_values)
+    e_L = interpolation_matrix([solver.basis.xmin], solver.basis)
+    e_R = interpolation_matrix([solver.basis.xmax], solver.basis)
+    return (; surface_operator, surface_flux_values, e_L, e_R)
 end
 
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
