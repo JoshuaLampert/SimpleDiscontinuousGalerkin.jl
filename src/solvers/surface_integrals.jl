@@ -93,10 +93,6 @@ function calc_surface_integral!(du, u, mesh, equations,
         # This assumes Lobatto-type nodes, where the first and last node are the boundaries.
         u_L = get_node_vars(u, equations, 1, element)
         f_L = flux(u_L, equations)
-        # TODO: We cannot use `u[:, end, element]` here because for `PerElementFDSBP` `u` is a
-        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results:
-        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         u_R = get_node_vars(u, equations, nnodes(solver, element), element)
         f_R = flux(u_R, equations)
         surface_operator_left_ = get_integral_operator(surface_operator_left, solver,
