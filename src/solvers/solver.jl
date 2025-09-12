@@ -22,7 +22,7 @@ compute_projection_operators(solver::DG) = compute_projection_operators(solver.b
 function compute_projection_operators(basis)
     x_l_ref = SummationByPartsOperators.xmin(basis)
     x_r_ref = SummationByPartsOperators.xmax(basis)
-    R = interpolation_matrix([x_l_ref, x_r_ref], basis)
+    R = _interpolation_matrix([x_l_ref, x_r_ref], basis)
     e_left = R[1, :]
     e_right = R[2, :]
     return e_left, e_right

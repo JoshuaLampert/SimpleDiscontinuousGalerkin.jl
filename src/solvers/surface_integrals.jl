@@ -72,7 +72,7 @@ function compute_integral_operator(basis::AbstractDerivativeOperator,
     M = mass_matrix(basis)
     boundary = left ? SummationByPartsOperators.xmin(basis) :
                SummationByPartsOperators.xmax(basis)
-    boundary_projection = PolynomialBases.interpolation_matrix([boundary], basis)[1, :]
+    boundary_projection = _interpolation_matrix([boundary], basis)[1, :]
     return M \ boundary_projection
 end
 
@@ -176,7 +176,7 @@ function compute_integral_operator(basis::AbstractDerivativeOperator,
     M = mass_matrix(basis)
     x_l_ref = SummationByPartsOperators.xmin(basis)
     x_r_ref = SummationByPartsOperators.xmax(basis)
-    R = interpolation_matrix([x_l_ref, x_r_ref], basis)
+    R = _interpolation_matrix([x_l_ref, x_r_ref], basis)
     B = Diagonal([-1, 1])
     return -M \ (R' * B)
 end

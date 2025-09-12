@@ -29,8 +29,9 @@ function interpolation_operator(x,
     e_M = V' \ values
     return e_M
 end
-function interpolation_matrix(dest,
-                              D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
+# To avoid piracy, we do not extend this function, but give it a different name.
+function _interpolation_matrix(dest,
+                               D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
     nodes = grid(D)
     baryweights = PolynomialBases.barycentric_weights(nodes)
     return PolynomialBases.interpolation_matrix(dest, nodes, baryweights)
