@@ -86,7 +86,8 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongFo
     surface_operator_right = compute_integral_operator(mesh, solver, integral; left = false)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
-    return (; surface_operator_left, surface_operator_right, surface_flux_values, e_left, e_right)
+    return (; surface_operator_left, surface_operator_right, surface_flux_values, e_left,
+            e_right)
 end
 
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently

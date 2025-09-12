@@ -234,7 +234,8 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
 
     # Right boundary condition of right mesh
     e_right_R = get_projection_operator(cache_right.e_right, solver_right, nelements(mesh))
-    u_ll = get_multiplied_node_vars(u_right, equations, e_right_R', :, nelements(mesh_right))
+    u_ll = get_multiplied_node_vars(u_right, equations, e_right_R', :,
+                                    nelements(mesh_right))
     u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral_right.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_right, f, equations, 2, nelements(mesh_right))

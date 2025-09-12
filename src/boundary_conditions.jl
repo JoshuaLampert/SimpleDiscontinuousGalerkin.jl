@@ -28,7 +28,8 @@ function Base.show(io::IO, ::BoundaryConditionPeriodic)
     print(io, "boundary_condition_periodic")
 end
 
-@inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left, cache)
+@inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left,
+                                               cache)
     N_elements = nelements(mesh)
     (; e_left, e_right) = cache
     if is_left
@@ -76,7 +77,8 @@ function Base.show(io::IO, ::BoundaryConditionDoNothing)
     print(io, "boundary_condition_do_nothing")
 end
 
-@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left, cache)
+@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left,
+                                                cache)
     N_elements = nelements(mesh)
     (; e_left, e_right) = cache
     if is_left
