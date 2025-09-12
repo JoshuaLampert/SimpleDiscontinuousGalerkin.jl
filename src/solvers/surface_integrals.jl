@@ -70,7 +70,8 @@ SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::SurfaceIntegralStrongForm; left)
     M = mass_matrix(basis)
-    boundary = left ? basis.xmin : basis.xmax
+    boundary = left ? SummationByPartsOperators.xmin(basis) :
+               SummationByPartsOperators.xmax(basis)
     boundary_projection = PolynomialBases.interpolation_matrix([boundary], basis)[1, :]
     return M \ boundary_projection
 end
@@ -173,8 +174,8 @@ SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::SurfaceIntegralWeakForm)
     M = mass_matrix(basis)
-    x_l_ref = basis.xmin
-    x_r_ref = basis.xmax
+    x_l_ref = SummationByPartsOperators.xmin(basis)
+    x_r_ref = SummationByPartsOperators.xmax(basis)
     R = interpolation_matrix([x_l_ref, x_r_ref], basis)
     B = Diagonal([-1, 1])
     return -M \ (R' * B)
