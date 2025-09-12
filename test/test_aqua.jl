@@ -10,7 +10,6 @@
                                               skip = (Core, Base,
                                                       SimpleDiscontinuousGalerkin.SummationByPartsOperators)))
     @test isnothing(check_no_stale_explicit_imports(SimpleDiscontinuousGalerkin))
-    @test isnothing(check_all_qualified_accesses_via_owners(SimpleDiscontinuousGalerkin;
-                                                            ignore = (:ustrip,)))
+    @test isnothing(check_all_qualified_accesses_via_owners(SimpleDiscontinuousGalerkin))
     @test isnothing(check_no_self_qualified_accesses(SimpleDiscontinuousGalerkin))
 end

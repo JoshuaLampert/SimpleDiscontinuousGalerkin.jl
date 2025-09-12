@@ -29,11 +29,11 @@ function interpolation_operator(x,
     e_M = V' \ values
     return e_M
 end
-function PolynomialBases.interpolation_matrix(dest,
-                                              D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
+function interpolation_matrix(dest,
+                              D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
     nodes = grid(D)
     baryweights = PolynomialBases.barycentric_weights(nodes)
-    return interpolation_matrix(dest, nodes, baryweights)
+    return PolynomialBases.interpolation_matrix(dest, nodes, baryweights)
 end
 
 @inline function ln_mean(x::RealT, y::RealT) where {RealT <: Real}
