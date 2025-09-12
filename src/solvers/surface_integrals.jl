@@ -2,17 +2,22 @@ abstract type AbstractSurfaceIntegral end
 
 function calc_interface_flux!(surface_flux_values, u, mesh,
                               equations, integral::AbstractSurfaceIntegral, solver, cache)
-    (; e_L, e_R) = cache
+    (; e_left, e_right) = cache
     for element in 2:(nelements(mesh) - 1)
-        u_ll = get_multiplied_node_vars(u, equations, e_R', :, element - 1)
+        # left interface
+        e_L = get_projection_operator(e_left, solver, element)
+        e_R_m1 = get_projection_operator(e_right, solver, element - 1)
+        u_ll = get_multiplied_node_vars(u, equations, e_R_m1', :, element - 1)
         u_rr = get_multiplied_node_vars(u, equations, e_L', :, element)
 
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 1, element)
         set_node_vars!(surface_flux_values, f, equations, 2, element - 1)
         # right interface
+        e_R = get_projection_operator(e_right, solver, element)
+        e_L_p1 = get_projection_operator(e_left, solver, element + 1)
         u_ll = get_multiplied_node_vars(u, equations, e_R', :, element)
-        u_rr = get_multiplied_node_vars(u, equations, e_L', :, element + 1)
+        u_rr = get_multiplied_node_vars(u, equations, e_L_p1', :, element + 1)
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 2, element)
         set_node_vars!(surface_flux_values, f, equations, 1, element + 1)
@@ -22,12 +27,14 @@ end
 function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mesh,
                              equations, integral::AbstractSurfaceIntegral, solver, cache)
     (; x_neg, x_pos) = boundary_conditions
-    (; e_L, e_R) = cache
+    (; e_left, e_right) = cache
+    e_L = get_projection_operator(e_left, solver, 1)
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true, cache)
     u_rr = get_multiplied_node_vars(u, equations, e_L', :, 1)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
+    e_R = get_projection_operator(e_right, solver, nelements(mesh))
     u_ll = get_multiplied_node_vars(u, equations, e_R', :, nelements(mesh))
     u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
@@ -74,21 +81,22 @@ function create_cache_surface_flux_values(mesh, equations, solver)
 end
 
 function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongForm)
+    e_left, e_right = compute_projection_operators(solver)
     surface_operator_left = compute_integral_operator(mesh, solver, integral; left = true)
     surface_operator_right = compute_integral_operator(mesh, solver, integral; left = false)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
-    e_L = interpolation_matrix([solver.basis.xmin], solver.basis)
-    e_R = interpolation_matrix([solver.basis.xmax], solver.basis)
-    return (; surface_operator_left, surface_operator_right, surface_flux_values, e_L, e_R)
+    return (; surface_operator_left, surface_operator_right, surface_flux_values, e_left, e_right)
 end
 
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
 # a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
 function calc_surface_integral!(du, u, mesh, equations,
                                 ::SurfaceIntegralStrongForm, solver, cache)
-    (; surface_operator_left, surface_operator_right, surface_flux_values, e_L, e_R) = cache
+    (; surface_operator_left, surface_operator_right, surface_flux_values, e_left, e_right) = cache
     for element in eachelement(mesh)
+        e_L = get_projection_operator(e_left, solver, element)
+        e_R = get_projection_operator(e_right, solver, element)
         u_L = get_multiplied_node_vars(u, equations, e_L', :, element)
         f_L = flux(u_L, equations)
         u_R = get_multiplied_node_vars(u, equations, e_R', :, element)
@@ -172,12 +180,11 @@ function compute_integral_operator(basis::AbstractDerivativeOperator,
 end
 
 function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm)
+    e_left, e_right = compute_projection_operators(solver)
     surface_operator = compute_integral_operator(mesh, solver, integral)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
-    e_L = interpolation_matrix([solver.basis.xmin], solver.basis)[1, :]
-    e_R = interpolation_matrix([solver.basis.xmax], solver.basis)[1, :]
-    return (; surface_operator, surface_flux_values, e_L, e_R)
+    return (; surface_operator, surface_flux_values, e_left, e_right)
 end
 
 # TODO: Here, we would like to use `@views` to avoid allocations, but there is currently

@@ -10,11 +10,34 @@ include("per_element.jl")
 get_basis(solver::DG, element) = solver.basis
 get_basis(solver::PerElementFDSBP, element) = solver.basis.bases[element]
 
+get_projection_operator(projection, solver, element) = projection
+get_projection_operator(projection, ::PerElementFDSBP, element) = projection[element]
+
 get_integral_operator(operator, solver, element) = operator
 function get_integral_operator(operator, ::PerElementFDSBP, element)
     operator[element]
 end
 
+compute_projection_operators(solver::DG) = compute_projection_operators(solver.basis)
+function compute_projection_operators(basis)
+    x_l_ref = SummationByPartsOperators.xmin(basis)
+    x_r_ref = SummationByPartsOperators.xmax(basis)
+    R = interpolation_matrix([x_l_ref, x_r_ref], basis)
+    e_left = R[1, :]
+    e_right = R[2, :]
+    return e_left, e_right
+end
+function compute_projection_operators(solver::PerElementFDSBP)
+    n_elements = length(solver.basis.bases)
+    e_left = Vector{Vector{real(solver)}}(undef, n_elements)
+    e_right = Vector{Vector{real(solver)}}(undef, n_elements)
+    for element in 1:n_elements
+        e_L, e_R = compute_projection_operators(get_basis(solver, element))
+        e_left[element] = e_L
+        e_right[element] = e_R
+    end
+    return e_left, e_right
+end
 function compute_integral_operator(mesh, solver::DG, integral; kwargs...)
     compute_integral_operator(solver.basis, integral; kwargs...)
 end
