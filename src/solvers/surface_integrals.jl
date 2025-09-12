@@ -4,15 +4,15 @@ function calc_interface_flux!(surface_flux_values, u, mesh,
                               equations, integral::AbstractSurfaceIntegral, solver, cache)
     (; e_L, e_R) = cache
     for element in 2:(nelements(mesh) - 1)
-        u_ll = e_R * get_node_vars(u, equations, :, element - 1)[1] # TODO: general nvars
-        u_rr = e_L * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
+        u_ll = get_multiplied_node_vars(u, equations, e_R', :, element - 1)
+        u_rr = get_multiplied_node_vars(u, equations, e_L', :, element)
 
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 1, element)
         set_node_vars!(surface_flux_values, f, equations, 2, element - 1)
         # right interface
-        u_ll = e_R * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
-        u_rr = e_L * get_node_vars(u, equations, :, element + 1)[1] # TODO: general nvars
+        u_ll = get_multiplied_node_vars(u, equations, e_R', :, element)
+        u_rr = get_multiplied_node_vars(u, equations, e_L', :, element + 1)
         f = integral.surface_flux(u_ll, u_rr, equations)
         set_node_vars!(surface_flux_values, f, equations, 2, element)
         set_node_vars!(surface_flux_values, f, equations, 1, element + 1)
@@ -24,11 +24,11 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
     (; x_neg, x_pos) = boundary_conditions
     (; e_L, e_R) = cache
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true, cache)
-    u_rr = e_L * get_node_vars(u, equations, :, 1)[1] # TODO: general nvars
+    u_rr = get_multiplied_node_vars(u, equations, e_L', :, 1)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 1, 1)
 
-    u_ll = e_R * get_node_vars(u, equations, :, nelements(mesh))[1] # TODO: general nvars
+    u_ll = get_multiplied_node_vars(u, equations, e_R', :, nelements(mesh))
     u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
@@ -89,9 +89,9 @@ function calc_surface_integral!(du, u, mesh, equations,
                                 ::SurfaceIntegralStrongForm, solver, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values, e_L, e_R) = cache
     for element in eachelement(mesh)
-        u_L = e_L * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
+        u_L = get_multiplied_node_vars(u, equations, e_L', :, element)
         f_L = flux(u_L, equations)
-        u_R = e_R * get_node_vars(u, equations, :, element)[1] # TODO: general nvars
+        u_R = get_multiplied_node_vars(u, equations, e_R', :, element)
         f_R = flux(u_R, equations)
         surface_operator_left_ = get_integral_operator(surface_operator_left, solver,
                                                        element)
@@ -175,8 +175,8 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm
     surface_operator = compute_integral_operator(mesh, solver, integral)
 
     surface_flux_values = create_cache_surface_flux_values(mesh, equations, solver)
-    e_L = interpolation_matrix([solver.basis.xmin], solver.basis)
-    e_R = interpolation_matrix([solver.basis.xmax], solver.basis)
+    e_L = interpolation_matrix([solver.basis.xmin], solver.basis)[1, :]
+    e_R = interpolation_matrix([solver.basis.xmax], solver.basis)[1, :]
     return (; surface_operator, surface_flux_values, e_L, e_R)
 end
 
