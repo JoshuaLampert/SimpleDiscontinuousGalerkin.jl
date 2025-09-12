@@ -90,7 +90,6 @@ end
                                                 solver, is_left, cache)
     u_left, u_right = u
     N_elements = nelements(mesh.mesh_right)
-    _, solver_right = solver
     (; e_L, e_R) = cache
     if is_left
         return e_L * get_node_vars(u_left, equations, :, 1)[1] # TODO: general nvars
