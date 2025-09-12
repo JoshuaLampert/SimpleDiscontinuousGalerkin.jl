@@ -10,19 +10,19 @@ equations = LinearAdvectionEquation1D(advection_velocity)
 
 initial_condition = initial_condition_convergence_test
 
-# Create DG solver with alternating Gauss-Legendre and Gauss-Lobatto-Legendre operator
-# with polynomial degree = 3 and Godunov flux as surface flux
-D_GL = polynomialbases_derivative_operator(GaussLegendre, -1.0, 1.0, 4)
-D_GLL = polynomialbases_derivative_operator(LobattoLegendre, -1.0, 1.0, 4)
-Ds = [isodd(element) ? D_GL : D_GLL for element in eachelement(mesh)]
-solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
-                         volume_integral = VolumeIntegralStrongForm())
+# Create DG solver with Gauss-Legendre operator with polynomial degree = 3 and Godunov flux as surface flux
+D = polynomialbases_derivative_operator(GaussLegendre, -1.0, 1.0, 4)
+solver = FDSBP(D, surface_flux = flux_godunov)
 
-coordinates_min = -1.0 # minimum coordinate
-coordinates_max = 1.0 # maximum coordinate
+a = -1.0
+b = -0.1
+c = 0.1
+d = 1.0
 
 N_elements = 10 # number of elements
-mesh = Mesh(coordinates_min, coordinates_max, N_elements)
+mesh_left = Mesh(a, c, N_elements)
+mesh_right = Mesh(b, d, N_elements)
+mesh = OversetGridMesh(mesh_left, mesh_right)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
 semi = Semidiscretization(mesh, equations, initial_condition, solver)
