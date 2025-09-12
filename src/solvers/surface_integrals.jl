@@ -30,7 +30,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
                              equations, integral::AbstractSurfaceIntegral, solver, cache)
     (; x_neg, x_pos) = boundary_conditions
     (; e_L, e_R) = cache
-    u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
+    u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true, cache)
     # u_rr = get_node_vars(u, equations, 1, 1)
     u_rr = e_L * get_node_vars(u, equations, :, 1)[1] # TODO: general nvars
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
@@ -38,7 +38,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions, mes
 
     # u_ll = get_node_vars(u, equations, nnodes(solver, nelements(mesh)), nelements(mesh))
     u_ll = e_R * get_node_vars(u, equations, :, nelements(mesh))[1] # TODO: general nvars
-    u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false)
+    u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values, f, equations, 2, nelements(mesh))
     return nothing

@@ -207,7 +207,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     e_M_left, e_M_right = cache.e_M_left, cache.e_M_right
 
     # Left boundary condition of left mesh
-    u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
+    u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true, cache)
     u_rr = get_node_vars(u_left, equations, 1, 1)
     f = integral_left.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_left, f, equations, 1, 1)
@@ -236,7 +236,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     # Right boundary condition of right mesh
     u_ll = get_node_vars(u_right, equations, nnodes(solver_right, nelements(mesh_right)),
                          nelements(mesh_right))
-    u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false)
+    u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral_right.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_right, f, equations, 2, nelements(mesh_right))
 end

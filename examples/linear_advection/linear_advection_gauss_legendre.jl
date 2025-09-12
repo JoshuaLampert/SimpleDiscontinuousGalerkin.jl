@@ -12,8 +12,7 @@ initial_condition = initial_condition_convergence_test
 
 # Create DG solver with Gauss-Legendre operator with polynomial degree = 3 and Godunov flux as surface flux
 D = polynomialbases_derivative_operator(GaussLegendre, -1.0, 1.0, 4)
-solver = FDSBP(D, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
-               volume_integral = VolumeIntegralStrongForm())
+solver = FDSBP(D, surface_flux = flux_godunov)
 
 coordinates_min = -1.0 # minimum coordinate
 coordinates_max = 1.0 # maximum coordinate
