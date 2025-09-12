@@ -139,6 +139,6 @@ function Base.show(io::IO, ::BoundaryConditionDirichlet)
     print(io, "boundary_condition_dirichlet")
 end
 @inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, mesh, equations,
-                                                                  solver, is_left)
+                                                                  solver, is_left, cache)
     return boundary_condition.boundary_value_function(x, t, equations)
 end
