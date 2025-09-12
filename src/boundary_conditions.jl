@@ -36,7 +36,6 @@ end
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        # return get_node_vars(u, equations, nnodes(solver, N_elements), N_elements)
         return e_R * get_node_vars(u, equations, :, N_elements)[1] # TODO: general nvars
     else
         return e_L * get_node_vars(u, equations, :, 1)[1] # TODO: general nvars
@@ -54,11 +53,8 @@ end
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        # return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
-        #                      N_elements)
         return e_R * get_node_vars(u_right, equations, :, N_elements)[1] # TODO: general nvars
     else
-        # return get_node_vars(u_left, equations, 1, 1)
         return e_L * get_node_vars(u_left, equations, :, 1)[1] # TODO: general nvars
     end
 end
@@ -80,14 +76,12 @@ end
     N_elements = nelements(mesh)
     (; e_L, e_R) = cache
     if is_left
-        # return get_node_vars(u, equations, 1, 1)
         return e_L * get_node_vars(u, equations, :, 1)[1] # TODO: general nvars
     else
         # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        # return get_node_vars(u, equations, nnodes(solver, N_elements), N_elements)
         return e_R * get_node_vars(u, equations, :, N_elements)[1] # TODO: general nvars
     end
 end
@@ -99,15 +93,12 @@ end
     _, solver_right = solver
     (; e_L, e_R) = cache
     if is_left
-        # return get_node_vars(u_left, equations, 1, 1)
         return e_L * get_node_vars(u_left, equations, :, 1)[1] # TODO: general nvars
     else
         # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        # return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
-        #                      N_elements)
         return e_R * get_node_vars(u_right, equations, :, N_elements)[1] # TODO: general nvars
     end
 end
