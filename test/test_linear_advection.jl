@@ -64,6 +64,16 @@ end
                         change_mass=-3.469446951953615e-16,
                         change_entropy=-4.298594954432744e-7,
                         entropy_timederivative=-6.420623096525803e-7)
+
+    # Same errors as in "linear_advection.jl"
+    D = couple_discontinuously(D_leg, uniform_mesh, Val(:minus))
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_FDSBP_SAT.jl"),
+                        boundary_conditions=boundary_condition_periodic,
+                        D = D,
+                        l2=[0.000157464142385992], linf=[0.0004289501170479104],
+                        change_mass=-2.7755575615628914e-17,
+                        change_entropy=-9.082223083600738e-7,
+                        entropy_timederivative=-9.21063849912418e-7)
 end
 
 @testitem "linear_advection_FD.jl" setup=[Setup] begin
