@@ -15,10 +15,10 @@ function basis_functions(D::SummationByPartsOperators.AbstractNonperiodicDerivat
     return [x -> x^i for i in 0:p]
 end
 function lagrange_polynomial(xs, i)
-    return x -> prod((x - xs[j]) / (xs[i] - xs[j]) for j in 1:length(xs) if j != i)
+    return x -> prod((x - xs[j]) / (xs[i] - xs[j]) for j in eachindex(xs) if j != i)
 end
 function basis_functions(D::LegendreDerivativeOperator)
-    return [lagrange_polynomial(grid(D), i) for i in 1:length(grid(D))]
+    return [lagrange_polynomial(grid(D), i) for i in eachindex(grid(D))]
 end
 function interpolation_operator(x,
                                 D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
@@ -28,6 +28,13 @@ function interpolation_operator(x,
     values = [functions[i](x) for i in eachindex(functions)]
     e_M = V' \ values
     return e_M
+end
+# To avoid piracy, we do not extend this function, but give it a different name.
+function _interpolation_matrix(dest,
+                               D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
+    nodes = grid(D)
+    baryweights = PolynomialBases.barycentric_weights(nodes)
+    return PolynomialBases.interpolation_matrix(dest, nodes, baryweights)
 end
 
 @inline function ln_mean(x::RealT, y::RealT) where {RealT <: Real}

@@ -48,11 +48,13 @@ function create_jacobian_and_node_coordinates(mesh, solver::PerElementFDSBP)
         x_l = left_element_boundary(mesh, element)
         D = get_basis(solver, element)
         nodes_basis = grid(D)
-        dx_basis = last(nodes_basis) - first(nodes_basis)
+        xmin = SummationByPartsOperators.xmin(D)
+        xmax = SummationByPartsOperators.xmax(D)
+        dx_basis = xmax - xmin
         dx = element_spacing(mesh, element) # length of the element
         jacobian[element] = dx / dx_basis
         for j in eachindex(nodes_basis)
-            x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
+            x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - xmin)
         end
     end
     return jacobian, x

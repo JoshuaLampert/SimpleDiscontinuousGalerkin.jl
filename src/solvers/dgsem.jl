@@ -54,7 +54,9 @@ Base.summary(io::IO, solver::FDSBP) = print(io, "FDSBP(D=$(solver.basis)")
 
 function create_jacobian_and_node_coordinates(mesh, solver::Union{DGSEM, FDSBP})
     nodes_basis = grid(solver.basis)
-    dx_basis = last(nodes_basis) - first(nodes_basis) # length of the basis nodes
+    xmin = SummationByPartsOperators.xmin(solver.basis)
+    xmax = SummationByPartsOperators.xmax(solver.basis)
+    dx_basis = xmax - xmin
     # compute all mapped nodes
     x = zeros(real(solver), nnodes(solver), nelements(mesh))
     jacobian = zeros(real(solver), nelements(mesh))
@@ -63,7 +65,7 @@ function create_jacobian_and_node_coordinates(mesh, solver::Union{DGSEM, FDSBP})
         dx = element_spacing(mesh, element) # length of the element
         jacobian[element] = dx / dx_basis
         for j in eachindex(nodes_basis)
-            x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - first(nodes_basis))
+            x[j, element] = x_l + jacobian[element] * (nodes_basis[j] - xmin)
         end
     end
     return jacobian, x

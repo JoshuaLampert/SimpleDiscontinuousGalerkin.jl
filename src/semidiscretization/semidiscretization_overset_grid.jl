@@ -123,7 +123,9 @@ function create_cache(mesh::OversetGridMesh, equations, solver)
     D = get_basis(solver_left, l_left)
     xll_L = left_element_boundary(mesh_left, l_left)
     xll_R = left_element_boundary(mesh_left, l_left + 1)
-    b_mapped = linear_map(b, xll_L, xll_R, first(grid(D)), last(grid(D)))
+    x_ll_L_ref = SummationByPartsOperators.xmin(D)
+    x_ll_R_ref = SummationByPartsOperators.xmax(D)
+    b_mapped = linear_map(b, xll_L, xll_R, x_ll_L_ref, x_ll_R_ref)
     e_M_left = interpolation_operator(b_mapped, D)
 
     l_right = right_overlap_element(mesh)
@@ -131,7 +133,9 @@ function create_cache(mesh::OversetGridMesh, equations, solver)
     D = get_basis(solver_right, l_right)
     xlr_L = left_element_boundary(mesh_right, l_right)
     xlr_R = left_element_boundary(mesh_right, l_right + 1)
-    c_mapped = linear_map(c, xlr_L, xlr_R, first(grid(D)), last(grid(D)))
+    x_lr_L_ref = SummationByPartsOperators.xmin(D)
+    x_lr_R_ref = SummationByPartsOperators.xmax(D)
+    c_mapped = linear_map(c, xlr_L, xlr_R, x_lr_L_ref, x_lr_R_ref)
     e_M_right = interpolation_operator(c_mapped, D)
     return (; cache_left, cache_right, l_left, l_right, e_M_left, e_M_right)
 end
@@ -203,40 +207,38 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     integral_left, integral_right = integral
     solver_left, solver_right = solver
+    cache_left, cache_right = cache
     l_left, l_right = cache.l_left, cache.l_right
     e_M_left, e_M_right = cache.e_M_left, cache.e_M_right
 
     # Left boundary condition of left mesh
-    u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true)
-    u_rr = get_node_vars(u_left, equations, 1, 1)
+    e_left_L = get_projection_operator(cache_left.e_left, solver_left, 1)
+    u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true, cache)
+    u_rr = get_multiplied_node_vars(u_left, equations, e_left_L', :, 1)
     f = integral_left.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_left, f, equations, 1, 1)
 
     # Right boundary condition of left mesh
-    u_ll = get_node_vars(u_left, equations, nnodes(solver_left, nelements(mesh_left)),
-                         nelements(mesh_left))
-    u_rr = zeros(real(solver_right), nvariables(equations))
-    for v in eachvariable(equations)
-        values = u_right[v, :, l_right]
-        u_rr[v] = e_M_right' * values
-    end
+    e_right_L = get_projection_operator(cache_left.e_right, solver_left,
+                                        nelements(mesh_left))
+    u_ll = get_multiplied_node_vars(u_left, equations, e_right_L', :, nelements(mesh_left))
+    u_rr = get_multiplied_node_vars(u_right, equations, e_M_right', :, l_right)
     f = integral_left.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_left, f, equations, 2, nelements(mesh_left))
 
     # Left boundary condition of right mesh
-    u_ll = zeros(real(solver_left), nvariables(equations))
-    for v in eachvariable(equations)
-        values = u_left[v, :, l_left]
-        u_ll[v] = e_M_left' * values
-    end
-    u_rr = get_node_vars(u_right, equations, 1, 1)
+    e_left_R = get_projection_operator(cache_right.e_left, solver_right, 1)
+    u_ll = get_multiplied_node_vars(u_left, equations, e_M_left', :, l_left)
+    u_rr = get_multiplied_node_vars(u_right, equations, e_left_R', :, 1)
     f = integral_right.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_right, f, equations, 1, 1)
 
     # Right boundary condition of right mesh
-    u_ll = get_node_vars(u_right, equations, nnodes(solver_right, nelements(mesh_right)),
-                         nelements(mesh_right))
-    u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false)
+    e_right_R = get_projection_operator(cache_right.e_right, solver_right,
+                                        nelements(mesh_right))
+    u_ll = get_multiplied_node_vars(u_right, equations, e_right_R', :,
+                                    nelements(mesh_right))
+    u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral_right.surface_flux_boundary(u_ll, u_rr, equations)
     set_node_vars!(surface_flux_values_right, f, equations, 2, nelements(mesh_right))
 end

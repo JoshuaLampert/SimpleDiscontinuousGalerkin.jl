@@ -80,6 +80,10 @@ end
     SVector(ntuple(@inline(v->u[v, indices...]), Val(nvariables(equations))))
 end
 
+@inline function get_multiplied_node_vars(u, equations, factor, indices...)
+    SVector(ntuple(v -> factor * u[v, indices...], Val(nvariables(equations))))
+end
+
 @inline function set_node_vars!(u, u_node, equations, indices...)
     for v in eachvariable(equations)
         u[v, indices...] = u_node[v]
