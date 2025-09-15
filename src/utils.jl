@@ -57,6 +57,7 @@ function interpolate(x, values, D::SummationByPartsOperators.DerivativeOperator)
     e_M_1 = view(V', :, indices) \ basis_values
     e_M[indices] = e_M_1
     return e_M' * values
+end
 # To avoid piracy, we do not extend this function, but give it a different name.
 function _interpolation_matrix(dest,
                                D::SummationByPartsOperators.AbstractNonperiodicDerivativeOperator)
