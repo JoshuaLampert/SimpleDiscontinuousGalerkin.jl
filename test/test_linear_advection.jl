@@ -69,7 +69,7 @@ end
     D = couple_discontinuously(D_leg, uniform_mesh, Val(:minus))
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_FDSBP_SAT.jl"),
                         boundary_conditions=boundary_condition_periodic,
-                        D = D,
+                        D=D,
                         l2=[0.000157464142385992], linf=[0.0004289501170479104],
                         change_mass=-2.7755575615628914e-17,
                         change_entropy=-9.082223083600738e-7,
