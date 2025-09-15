@@ -23,6 +23,9 @@ for some usage examples.
 - SimpleDiscontinuousGalerkin.jl has some (rather niche) features Trixi.jl does not support (yet), which stem from
   quick tests and prototyping to test some new ideas. This includes different numerical fluxes at the boundary than
   in the interior and different bases for each element via the [`PerElementFDSBP`](@ref) solver.
+- SimpleDiscontinuousGalerkin.jl supports bases, which do not include the boundary nodes (e.g. Gauss-Legendre basis),
+  while Trixi.jl only supports bases including the boundary nodes (e.g. Gauss-Lobatto basis) utilizing the
+  `PolynomialBasesDerivativeOperator` from [SummationByPartsOperatorsExtra.jl](https://github.com/JoshuaLampert/SummationByPartsOperatorsExtra.jl).
 - SimpleDiscontinuousGalerkin.jl has support for one-dimensional overset grid (Chimera) methods.
 - SimpleDiscontinuousGalerkin.jl supports an interface for solving Riemann problems and has a full Godunov flux for the
   compressible Euler equations.

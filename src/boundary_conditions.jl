@@ -28,33 +28,39 @@ function Base.show(io::IO, ::BoundaryConditionPeriodic)
     print(io, "boundary_condition_periodic")
 end
 
-@inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left)
+@inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left,
+                                               cache)
     N_elements = nelements(mesh)
+    (; e_left, e_right) = cache
     if is_left
         # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return get_node_vars(u, equations, nnodes(solver, N_elements), N_elements)
+        e_R = get_projection_operator(e_right, solver, N_elements)
+        return get_multiplied_node_vars(u, equations, e_R', :, N_elements)
     else
-        return get_node_vars(u, equations, 1, 1)
+        e_L = get_projection_operator(e_left, solver, 1)
+        return get_multiplied_node_vars(u, equations, e_L', :, 1)
     end
 end
 
 @inline function (::BoundaryConditionPeriodic)(u, x, t, mesh::OversetGridMesh, equations,
-                                               solver, is_left)
+                                               solver, is_left, cache)
     u_left, u_right = u
     N_elements = nelements(mesh.mesh_right)
-    _, solver_right = solver
+    solver_left, solver_right = solver
+    cache_left, cache_right = cache
     if is_left
         # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
-                             N_elements)
+        e_R = get_projection_operator(cache_right.e_right, solver_right, N_elements)
+        return get_multiplied_node_vars(u_right, equations, e_R', :, N_elements)
     else
-        return get_node_vars(u_left, equations, 1, 1)
+        e_L = get_projection_operator(cache_left.e_left, solver_left, 1)
+        return get_multiplied_node_vars(u_left, equations, e_L', :, 1)
     end
 end
 
@@ -71,33 +77,39 @@ function Base.show(io::IO, ::BoundaryConditionDoNothing)
     print(io, "boundary_condition_do_nothing")
 end
 
-@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left)
+@inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left,
+                                                cache)
     N_elements = nelements(mesh)
+    (; e_left, e_right) = cache
     if is_left
-        return get_node_vars(u, equations, 1, 1)
+        e_L = get_projection_operator(e_left, solver, 1)
+        return get_multiplied_node_vars(u, equations, e_L', :, 1)
     else
         # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return get_node_vars(u, equations, nnodes(solver, N_elements), N_elements)
+        e_R = get_projection_operator(e_right, solver, N_elements)
+        return get_multiplied_node_vars(u, equations, e_R', :, N_elements)
     end
 end
 
 @inline function (::BoundaryConditionDoNothing)(u, x, t, mesh::OversetGridMesh, equations,
-                                                solver, is_left)
+                                                solver, is_left, cache)
     u_left, u_right = u
     N_elements = nelements(mesh.mesh_right)
-    _, solver_right = solver
+    solver_left, solver_right = solver
+    cache_left, cache_right = cache
     if is_left
-        return get_node_vars(u_left, equations, 1, 1)
+        e_L = get_projection_operator(cache_left.e_left, solver_left, 1)
+        return get_multiplied_node_vars(u_left, equations, e_L', :, 1)
     else
         # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
         # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
         # and can give wrong results:
         # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
-        return get_node_vars(u_right, equations, nnodes(solver_right, N_elements),
-                             N_elements)
+        e_R = get_projection_operator(cache_right.e_right, solver_right, N_elements)
+        return get_multiplied_node_vars(u_right, equations, e_R', :, N_elements)
     end
 end
 
@@ -127,6 +139,6 @@ function Base.show(io::IO, ::BoundaryConditionDirichlet)
     print(io, "boundary_condition_dirichlet")
 end
 @inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, mesh, equations,
-                                                                  solver, is_left)
+                                                                  solver, is_left, cache)
     return boundary_condition.boundary_value_function(x, t, equations)
 end
