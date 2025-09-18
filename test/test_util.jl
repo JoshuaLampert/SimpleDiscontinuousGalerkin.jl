@@ -1,5 +1,5 @@
 using Test: @test
-using TrixiTest: @trixi_test_nowarn
+using TrixiTest: @trixi_test_nowarn, get_kwarg
 
 # Use a macro to avoid world age issues when defining new initial conditions etc.
 # inside an example.
@@ -98,17 +98,4 @@ macro test_trixi_include(example, args...)
         end
         println("═"^100)
     end
-end
-
-# Get the first value assigned to `keyword` in `args` and return `default_value`
-# if there are no assignments to `keyword` in `args`.
-function get_kwarg(args, keyword, default_value)
-    val = default_value
-    for arg in args
-        if arg.head == :(=) && arg.args[1] == keyword
-            val = arg.args[2]
-            break
-        end
-    end
-    return val
 end
