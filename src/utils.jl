@@ -134,7 +134,7 @@ function convergence_test(mod::Module, example, Ns::AbstractVector; io::IO = std
 
         trixi_include(mod, example; kwargs..., N_elements = Ns[iter])
 
-        l2_error, linf_error = mod.analysis_callback(mod.sol)
+        l2_error, linf_error = @invokelatest mod.analysis_callback(@invokelatest mod.sol)
 
         # collect errors as one vector to reshape later
         append!(errors[:l2], l2_error)
@@ -145,7 +145,7 @@ function convergence_test(mod::Module, example, Ns::AbstractVector; io::IO = std
     end
 
     # Use raw error values to compute EOC
-    analyze_convergence(io, errors, iterations, mod.semi, Ns)
+    analyze_convergence(io, errors, iterations, (@invokelatest mod.semi), Ns)
 end
 
 # Analyze convergence for any semidiscretization
