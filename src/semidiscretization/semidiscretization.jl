@@ -228,17 +228,11 @@ function semidiscretize(semi::Semidiscretization, tspan)
     return ODEProblem{iip}(rhs!, u0, tspan, semi)
 end
 
-function central_difference!(Ji, dup, dum, epsilon, semi::Semidiscretization)
-    j = 0
-    for element in eachelement(semi.mesh)
-        for node in eachnode(semi.solver, element)
-            for v in eachvariable(semi.equations)
-                j += 1
-                Ji[j] = (dup[v, node, element] - dum[v, node, element]) /
-                        (2 * epsilon)
-            end
-        end
-    end
+# In contrast to `Iterators.flatten`, this `collect`s the result and returns a vector.
+# We do this because it would be hard to define a non-allocating `flatten`
+# for `SemidiscretizationOversetGrid`
+function Iterators.flatten(semi::Semidiscretization, u)
+    return collect(Iterators.flatten(semi.solver, u))
 end
 
 """
@@ -265,41 +259,31 @@ function jacobian_fd(semi;
     # initialize Jacobian matrix
     total_ndofs = ndofs(semi) * nvariables(semi.equations)
     J = zeros(eltype(u_ode), total_ndofs, total_ndofs)
-    Ji = zeros(eltype(u_ode), total_ndofs)
 
     i = 0
     # use second order finite difference to estimate Jacobian matrix
     # This Iterators notation allows to use the same code for both
     # usual DG and overset grid DG methods.
-    for element in eachelement(semi.mesh)
-        for node in eachnode(semi.solver, element)
-            for v in eachvariable(semi.equations)
-                i += 1
-                # determine size of fluctuation
-                # This is the approach used by FiniteDiff.jl to compute the
-                # step size, which assures that the finite difference is accurate
-                # for very small and very large absolute values `u0_ode[v, node, element]`.
-                # See https://github.com/trixi-framework/Trixi.jl/pull/2514#issuecomment-3190534904.
-                absstep = sqrt(eps(typeof(u0_ode[v, node, element])))
-                relstep = absstep
-                epsilon = max(relstep * abs(u0_ode[v, node, element]), absstep)
+    for idx in Iterators.product(Base.OneTo.(size(u0_ode))...)
+        i += 1
+        # determine size of fluctuation
+        epsilon = sqrt(eps(typeof(u0_ode[idx...])))
 
-                # plus fluctuation
-                u_ode[v, node, element] = u0_ode[v, node, element] + epsilon
-                rhs!(dup_ode, u_ode, semi, t0)
+        # plus fluctuation
+        u_ode[idx...] = u0_ode[idx...] + epsilon
+        rhs!(dup_ode, u_ode, semi, t0)
 
-                # minus fluctuation
-                u_ode[v, node, element] = u0_ode[v, node, element] - epsilon
-                rhs!(dum_ode, u_ode, semi, t0)
+        # minus fluctuation
+        u_ode[idx...] = u0_ode[idx...] - epsilon
+        rhs!(dum_ode, u_ode, semi, t0)
 
-                # restore linearization state
-                u_ode[v, node, element] = u0_ode[v, node, element]
+        # restore linearization state
+        u_ode[idx...] = u0_ode[idx...]
 
-                # central second order finite difference
-                central_difference!(Ji, dup_ode, dum_ode, epsilon, semi)
-                @. J[:, i] = Ji
-            end
-        end
+        # central second order finite difference
+        Ji_ode = (dup_ode .- dum_ode) ./ (2 * epsilon)
+        Ji = Iterators.flatten(semi, Ji_ode)
+        @. J[:, i] = Ji
     end
     return J
 end

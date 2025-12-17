@@ -101,6 +101,11 @@ function get_variable(u, v, ::DG)
     return vec(u[v, :, :])
 end
 
+
+function Iterators.flatten(::DG, u)
+    return Iterators.flatten(u)
+end
+
 function allocate_coefficients(mesh, equations, solver, cache)
     return allocate_coefficients(mesh, equations, solver)
 end
