@@ -67,9 +67,7 @@ function create_cache(mesh, equations, solver,
     return (; volume_operator, f_all)
 end
 
-# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
-# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
-function calc_volume_integral!(du, u, mesh, equations,
+@views function calc_volume_integral!(du, u, mesh, equations,
                                ::Union{VolumeIntegralStrongForm,
                                        VolumeIntegralWeakForm},
                                solver, cache)
@@ -84,14 +82,7 @@ function calc_volume_integral!(du, u, mesh, equations,
             end
         end
         for v in eachvariable(equations)
-            # TODO: We would like to use broadcasting here:
-            # du[v, :, element] .= du[v, :, element] + volume_operator_ * f_all[v, :, element]
-            # but there are currently issues with RecursiveArrayTools.jl:
-            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
-            du_update = volume_operator_ * f_all[v, :, element]
-            for node in eachnode(solver, element)
-                du[v, node, element] += du_update[node]
-            end
+            du[v, :, element] .= du[v, :, element] + volume_operator_ * f_all[v, :, element]
         end
     end
     return nothing

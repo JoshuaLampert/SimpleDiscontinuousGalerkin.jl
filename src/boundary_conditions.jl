@@ -33,10 +33,6 @@ end
     N_elements = nelements(mesh)
     (; e_left, e_right) = cache
     if is_left
-        # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
-        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results:
-        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         e_R = get_projection_operator(e_right, solver, N_elements)
         return get_multiplied_node_vars(u, equations, e_R', :, N_elements)
     else
@@ -52,10 +48,6 @@ end
     solver_left, solver_right = solver
     cache_left, cache_right = cache
     if is_left
-        # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
-        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results:
-        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         e_R = get_projection_operator(cache_right.e_right, solver_right, N_elements)
         return get_multiplied_node_vars(u_right, equations, e_R', :, N_elements)
     else
@@ -85,10 +77,6 @@ end
         e_L = get_projection_operator(e_left, solver, 1)
         return get_multiplied_node_vars(u, equations, e_L', :, 1)
     else
-        # TODO: We cannot use `u[:, end, end]` here because for `PerElementFDSBP` `u` is a
-        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results:
-        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         e_R = get_projection_operator(e_right, solver, N_elements)
         return get_multiplied_node_vars(u, equations, e_R', :, N_elements)
     end
@@ -104,10 +92,6 @@ end
         e_L = get_projection_operator(cache_left.e_left, solver_left, 1)
         return get_multiplied_node_vars(u_left, equations, e_L', :, 1)
     else
-        # TODO: We cannot use `u_right[:, end, end]` here because for `PerElementFDSBP` `u` is a
-        # `VectorOfArray` of vectors with different lengths, where `end` is not well-defined
-        # and can give wrong results:
-        # https://github.com/SciML/RecursiveArrayTools.jl/issues/454#issuecomment-2927845128
         e_R = get_projection_operator(cache_right.e_right, solver_right, N_elements)
         return get_multiplied_node_vars(u_right, equations, e_R', :, N_elements)
     end

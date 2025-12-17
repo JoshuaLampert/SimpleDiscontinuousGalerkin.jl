@@ -91,9 +91,7 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongFo
             e_right)
 end
 
-# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
-# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
-function calc_surface_integral!(du, u, mesh, equations,
+@views function calc_surface_integral!(du, u, mesh, equations,
                                 ::SurfaceIntegralStrongForm, solver, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values, e_left, e_right) = cache
     for element in eachelement(mesh)
@@ -108,21 +106,11 @@ function calc_surface_integral!(du, u, mesh, equations,
         surface_operator_right_ = get_integral_operator(surface_operator_right, solver,
                                                         element)
         for v in eachvariable(equations)
-            # TODO: We would like to use broadcasting here:
-            # du[v, :, element] .= du[v, :, element] +
-            #                      surface_operator_left_ *
-            #                     (surface_flux_values[v, 1, element] - f_L[v]) -
-            #                     surface_operator_right_ *
-            #                     (surface_flux_values[v, 2, element] - f_R[v])
-            # but there are currently issues with RecursiveArrayTools.jl:
-            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
-            du_update = surface_operator_left_ *
-                        (surface_flux_values[v, 1, element] - f_L[v]) -
-                        surface_operator_right_ *
-                        (surface_flux_values[v, 2, element] - f_R[v])
-            for node in eachnode(solver, element)
-                du[v, node, element] += du_update[node]
-            end
+            du[v, :, element] .= du[v, :, element] +
+                                 surface_operator_left_ *
+                                (surface_flux_values[v, 1, element] - f_L[v]) -
+                                surface_operator_right_ *
+                                (surface_flux_values[v, 2, element] - f_R[v])
         end
     end
     return nothing
@@ -189,23 +177,14 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm
     return (; surface_operator, surface_flux_values, e_left, e_right)
 end
 
-# TODO: Here, we would like to use `@views` to avoid allocations, but there is currently
-# a bug in RecursiveArrayTools.jl: https://github.com/SciML/RecursiveArrayTools.jl/issues/453
-function calc_surface_integral!(du, u, mesh, equations,
+@views function calc_surface_integral!(du, u, mesh, equations,
                                 ::SurfaceIntegralWeakForm, solver, cache)
     (; surface_operator, surface_flux_values) = cache
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, solver, element)
         for v in eachvariable(equations)
-            # TODO: We would like to use broadcasting here:
-            # du[v, :, element] .= du[v, :, element] +
-            #                      surface_operator_ * surface_flux_values[v, :, element]
-            # but there are currently issues with RecursiveArrayTools.jl:
-            # https://github.com/SciML/RecursiveArrayTools.jl/issues/453 and https://github.com/SciML/RecursiveArrayTools.jl/issues/454
-            du_update = surface_operator_ * surface_flux_values[v, :, element]
-            for node in eachnode(solver, element)
-                du[v, node, element] += du_update[node]
-            end
+            du[v, :, element] .= du[v, :, element] +
+                                 surface_operator_ * surface_flux_values[v, :, element]
         end
     end
     return nothing
