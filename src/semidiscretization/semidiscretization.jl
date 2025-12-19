@@ -244,6 +244,13 @@ Uses the right-hand side operator of the semidiscretization `semi`
 and simple second order finite difference to compute the Jacobian `J`
 of the semidiscretization `semi` at state `u0_ode`.
 """
+
+# Iterate over all indices of `u` while handling ragged VectorOfArray inputs.
+function fd_indices(u)
+    return Iterators.flatten((((idx.I..., element) for idx in CartesianIndices(arr))
+                              for (element, arr) in enumerate(u.u)))
+end
+
 function jacobian_fd(semi;
                      t0 = zero(real(semi)),
                      u0_ode = compute_coefficients(semi.initial_condition, t0, semi))
@@ -264,7 +271,7 @@ function jacobian_fd(semi;
     # use second order finite difference to estimate Jacobian matrix
     # This Iterators notation allows to use the same code for both
     # usual DG and overset grid DG methods.
-    for idx in Iterators.product(Base.OneTo.(size(u0_ode))...)
+    for idx in fd_indices(u0_ode)
         i += 1
         # determine size of fluctuation
         # This is the approach used by FiniteDiff.jl to compute the
