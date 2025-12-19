@@ -245,10 +245,14 @@ and simple second order finite difference to compute the Jacobian `J`
 of the semidiscretization `semi` at state `u0_ode`.
 """
 
-# Iterate over all indices of `u` while handling ragged VectorOfArray inputs.
-function fd_indices(u)
-    return Iterators.flatten((((idx.I..., element) for idx in CartesianIndices(arr))
-                              for (element, arr) in enumerate(u.u)))
+# Iterate over all indices of `u`, handling nested VectorOfArray inputs with ragged
+# inner dimensions. Each outer VectorOfArray level adds one trailing index.
+# Designed to work for both usual DG and overset grid DG methods with
+# potentially different nodes per element.
+fd_indices(u) = (idx.I for idx in CartesianIndices(u))
+function fd_indices(u::VectorOfArray)
+    Iterators.flatten((((inner..., outer) for inner in fd_indices(arr))
+                       for (outer, arr) in enumerate(u.u)))
 end
 
 function jacobian_fd(semi;
