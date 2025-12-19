@@ -92,7 +92,7 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralStrongFo
 end
 
 @views function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralStrongForm, solver, cache)
+                                       ::SurfaceIntegralStrongForm, solver, cache)
     (; surface_operator_left, surface_operator_right, surface_flux_values, e_left, e_right) = cache
     for element in eachelement(mesh)
         e_L = get_projection_operator(e_left, solver, element)
@@ -108,9 +108,9 @@ end
         for v in eachvariable(equations)
             du[v, :, element] .= du[v, :, element] +
                                  surface_operator_left_ *
-                                (surface_flux_values[v, 1, element] - f_L[v]) -
-                                surface_operator_right_ *
-                                (surface_flux_values[v, 2, element] - f_R[v])
+                                 (surface_flux_values[v, 1, element] - f_L[v]) -
+                                 surface_operator_right_ *
+                                 (surface_flux_values[v, 2, element] - f_R[v])
         end
     end
     return nothing
@@ -178,7 +178,7 @@ function create_cache(mesh, equations, solver, integral::SurfaceIntegralWeakForm
 end
 
 @views function calc_surface_integral!(du, u, mesh, equations,
-                                ::SurfaceIntegralWeakForm, solver, cache)
+                                       ::SurfaceIntegralWeakForm, solver, cache)
     (; surface_operator, surface_flux_values) = cache
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, solver, element)
