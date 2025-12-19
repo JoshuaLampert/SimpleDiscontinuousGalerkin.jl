@@ -68,9 +68,9 @@ function create_cache(mesh, equations, solver,
 end
 
 @views function calc_volume_integral!(du, u, mesh, equations,
-                               ::Union{VolumeIntegralStrongForm,
-                                       VolumeIntegralWeakForm},
-                               solver, cache)
+                                      ::Union{VolumeIntegralStrongForm,
+                                              VolumeIntegralWeakForm},
+                                      solver, cache)
     (; volume_operator, f_all) = cache
     for element in eachelement(mesh)
         volume_operator_ = get_integral_operator(volume_operator, solver, element)
