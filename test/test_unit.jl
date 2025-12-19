@@ -291,6 +291,14 @@ end
     @test count(real.(eigvals(J)) .> 1e-7) == 10
     @test maximum(real, eigvals(J)) < 1e-3
 
+    trixi_include(@__MODULE__,
+                  joinpath(EXAMPLES_DIR_ADVECTION,
+                           "linear_advection_overset_grid_per_element.jl"),
+                  tspan = (0.0, 0.01))
+    J = @test_nowarn jacobian_fd(semi)
+    # This is stable
+    @test maximum(real, eigvals(J)) < 1e-7
+
     trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_MAXWELL, "maxwell_overset_grid.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
