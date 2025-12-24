@@ -34,6 +34,7 @@ end
 
 function Base.show(io::IO, f::FluxPlusDissipation)
     print(io, "FluxPlusDissipation(", f.numerical_flux, ", ", f.dissipation, ")")
+    return nothing
 end
 
 """
@@ -55,6 +56,7 @@ end
 
 function Base.show(io::IO, d::DissipationLocalLaxFriedrichs)
     print(io, "DissipationLocalLaxFriedrichs(", d.max_abs_speed, ")")
+    return nothing
 end
 
 """
@@ -77,11 +79,12 @@ Local Lax-Friedrichs (Rusanov) flux with maximum wave speed estimate provided by
 [`max_abs_speed`](@ref).
 """
 function FluxLaxFriedrichs(max_abs_speed = max_abs_speed)
-    FluxPlusDissipation(flux_central, DissipationLocalLaxFriedrichs(max_abs_speed))
+    return FluxPlusDissipation(flux_central, DissipationLocalLaxFriedrichs(max_abs_speed))
 end
 
 function Base.show(io::IO, f::FluxLaxFriedrichs)
     print(io, "FluxLaxFriedrichs(", f.dissipation.max_abs_speed, ")")
+    return nothing
 end
 
 """
@@ -169,6 +172,7 @@ end
 
 function Base.show(io::IO, prob::RiemannProblem)
     print(io, "RiemannProblem(", prob.u_ll, ", ", prob.u_rr, ")")
+    return nothing
 end
 
 """
@@ -184,7 +188,7 @@ struct RiemannSolver{Equations, ULType, URType, Cache}
     function RiemannSolver(prob::RiemannProblem{ULType, URType},
                            equations::AbstractEquations) where {ULType, URType}
         cache = create_cache(prob, equations)
-        new{typeof(equations), ULType, URType, typeof(cache)}(prob, equations, cache)
+        return new{typeof(equations), ULType, URType, typeof(cache)}(prob, equations, cache)
     end
 end
 
@@ -192,10 +196,11 @@ create_cache(::RiemannProblem, ::AbstractEquations) = nothing
 
 function Base.show(io::IO, riemann_solver::RiemannSolver)
     print(io, "RiemannSolver(", riemann_solver.prob, ", ", riemann_solver.equations, ")")
+    return nothing
 end
 
 function (riemann_solver::RiemannSolver)(x, t)
-    riemann_solver(x / t)
+    return riemann_solver(x / t)
 end
 
 """
@@ -212,21 +217,22 @@ struct RiemannSolverSolution{ULType, SolverType, XType, TType}
 
     function RiemannSolverSolution(solution, riemann_solver::RiemannSolver, x, t)
         prob = riemann_solver.prob
-        new{typeof(prob.u_ll), typeof(riemann_solver), typeof(x), typeof(t)}(solution,
-                                                                             riemann_solver,
-                                                                             x, t)
+        return new{typeof(prob.u_ll), typeof(riemann_solver), typeof(x), typeof(t)}(solution,
+                                                                                    riemann_solver,
+                                                                                    x, t)
     end
 end
 
 Base.getindex(sol::RiemannSolverSolution, i::Int) = sol.solution[i]
 function Base.setindex!(sol::RiemannSolverSolution, value, i::Int)
-    setindex!(sol.solution, value, i)
+    return setindex!(sol.solution, value, i)
 end
 Base.length(sol::RiemannSolverSolution) = length(sol.solution)
 
 function Base.show(io::IO, sol::RiemannSolverSolution)
     print(io, "RiemannSolverSolution(", sol.solution, ", ", sol.solver, ", ", sol.x, ", ",
           sol.t, ")")
+    return nothing
 end
 
 function Base.show(io::IO, ::MIME"text/plain", sol::RiemannSolverSolution)
@@ -235,6 +241,7 @@ function Base.show(io::IO, ::MIME"text/plain", sol::RiemannSolverSolution)
     equations = sol.solver.equations
     print(io, "RiemannSolverSolution for ", equations, " with u_ll = ", u_ll, ", u_rr = ",
           u_rr, ", ", length(sol), " time steps, and ", length(sol.x), " spatial points")
+    return nothing
 end
 
 # The additional kwarg `maxiters` is only used to make `@trixi_include` work, which tries to insert `maxiters` into `solve`

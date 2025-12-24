@@ -30,12 +30,12 @@ struct CompressibleEulerEquations1D{RealT <: Real} <: AbstractEquations{1, 3}
 
     function CompressibleEulerEquations1D(gamma)
         γ, inv_gamma_minus_one = promote(gamma, inv(gamma - 1))
-        new{typeof(γ)}(γ, inv_gamma_minus_one)
+        return new{typeof(γ)}(γ, inv_gamma_minus_one)
     end
 end
 
 function varnames(::typeof(cons2cons), ::CompressibleEulerEquations1D)
-    ("rho", "rho_v1", "rho_e")
+    return ("rho", "rho_v1", "rho_e")
 end
 varnames(::typeof(cons2prim), ::CompressibleEulerEquations1D) = ("rho", "v1", "p")
 
@@ -354,7 +354,7 @@ end
 
 # Default entropy is the mathematical entropy
 @inline function entropy(cons, equations::CompressibleEulerEquations1D)
-    entropy_math(cons, equations)
+    return entropy_math(cons, equations)
 end
 varnames(::typeof(entropy), ::CompressibleEulerEquations1D) = ("S",)
 
@@ -376,7 +376,7 @@ varnames(::typeof(energy_internal), ::CompressibleEulerEquations1D) = ("e_intern
     return energy_internal(cons, equations) / density(cons, equations)
 end
 function varnames(::typeof(energy_internal_specific), ::CompressibleEulerEquations1D)
-    ("e_internal_specific",)
+    return ("e_internal_specific",)
 end
 
 pretty_form_utf(::typeof(density)) = "∫ρ"

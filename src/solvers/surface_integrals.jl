@@ -58,10 +58,10 @@ struct SurfaceIntegralStrongForm{SurfaceFlux, SurfaceFluxBoundary} <:
 end
 
 function SurfaceIntegralStrongForm(surface_flux::Tuple)
-    SurfaceIntegralStrongForm(surface_flux[1], surface_flux[2])
+    return SurfaceIntegralStrongForm(surface_flux[1], surface_flux[2])
 end
 function SurfaceIntegralStrongForm(surface_flux)
-    SurfaceIntegralStrongForm(surface_flux, surface_flux)
+    return SurfaceIntegralStrongForm(surface_flux, surface_flux)
 end
 SurfaceIntegralStrongForm() = SurfaceIntegralStrongForm(flux_central)
 
@@ -153,7 +153,7 @@ struct SurfaceIntegralWeakForm{SurfaceFlux, SurfaceFluxBoundary} <: AbstractSurf
 end
 
 function SurfaceIntegralWeakForm(surface_flux::Tuple)
-    SurfaceIntegralWeakForm(surface_flux[1], surface_flux[2])
+    return SurfaceIntegralWeakForm(surface_flux[1], surface_flux[2])
 end
 SurfaceIntegralWeakForm(surface_flux) = SurfaceIntegralWeakForm(surface_flux, surface_flux)
 SurfaceIntegralWeakForm() = SurfaceIntegralWeakForm(flux_central)
