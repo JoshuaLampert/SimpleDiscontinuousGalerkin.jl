@@ -21,8 +21,8 @@ function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, sol
     cache_left, cache_right = cache
     compute_coefficients!(u_left, func, t, mesh.mesh_left, equations, solver_left,
                           cache_left)
-    compute_coefficients!(u_right, func, t, mesh.mesh_right, equations, solver_right,
-                          cache_right)
+    return compute_coefficients!(u_right, func, t, mesh.mesh_right, equations, solver_right,
+                                 cache_right)
 end
 
 function grid(semi::SemidiscretizationOversetGrid)
@@ -180,7 +180,7 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
                                     nelements(mesh_right))
     u_rr = x_pos(u, xmax(mesh), t, mesh, equations, solver, false, cache)
     f = integral_right.surface_flux_boundary(u_ll, u_rr, equations)
-    set_node_vars!(surface_flux_values_right, f, equations, 2, nelements(mesh_right))
+    return set_node_vars!(surface_flux_values_right, f, equations, 2, nelements(mesh_right))
 end
 
 # This method is for integrating a vector quantity for all variables over the entire domain,
@@ -246,7 +246,7 @@ function integrate_quantity(func, u, semi::SemidiscretizationOversetGrid)
     compute_quantity!(quantity_left, func, u_left, mesh_left, equations, solver_left)
     compute_quantity!(quantity_right, func, u_right, mesh_right, equations, solver_right)
     quantity = VectorOfArray([quantity_left, quantity_right])
-    integrate(quantity, semi)
+    return integrate(quantity, semi)
 end
 
 function analyze(::typeof(entropy_timederivative), du, u, t,

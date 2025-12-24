@@ -33,8 +33,8 @@ struct Semidiscretization{Mesh, Equations, InitialCondition, BoundaryConditions,
                                                                                  Cache}
         @assert ndims(mesh) == ndims(equations)
 
-        new(mesh, equations, initial_condition, boundary_conditions, source_terms, solver,
-            cache)
+        return new(mesh, equations, initial_condition, boundary_conditions, source_terms,
+                   solver, cache)
     end
 end
 
@@ -51,11 +51,12 @@ function Semidiscretization(mesh, equations, initial_condition, solver;
     _boundary_conditions = digest_boundary_conditions(boundary_conditions)
     _solver = digest_solver(mesh, solver)
     cache = (; create_cache(mesh, equations, _solver)...)
-    Semidiscretization{typeof(mesh), typeof(equations), typeof(initial_condition),
-                       typeof(_boundary_conditions), typeof(source_terms), typeof(_solver),
-                       typeof(cache)}(mesh, equations, initial_condition,
-                                      _boundary_conditions, source_terms,
-                                      _solver, cache)
+    return Semidiscretization{typeof(mesh), typeof(equations), typeof(initial_condition),
+                              typeof(_boundary_conditions), typeof(source_terms),
+                              typeof(_solver), typeof(cache)}(mesh, equations,
+                                                              initial_condition,
+                                                              _boundary_conditions,
+                                                              source_terms, _solver, cache)
 end
 
 function Base.show(io::IO, semi::Semidiscretization)
@@ -69,6 +70,7 @@ function Base.show(io::IO, semi::Semidiscretization)
     print(io, ", ", semi.source_terms)
     print(io, ", ", semi.solver)
     print(io, "))")
+    return nothing
 end
 
 function Base.show(io::IO, ::MIME"text/plain", semi::Semidiscretization)
@@ -123,7 +125,7 @@ Return the solution belonging to the variable `v` of the solution `u`
 at one time step as a vector at every node across all elements.
 """
 function get_variable(u, v, semi::Semidiscretization)
-    get_variable(u, v, semi.solver)
+    return get_variable(u, v, semi.solver)
 end
 
 # Here, `func` is a function that takes a vector at one element
@@ -154,13 +156,13 @@ function PolynomialBases.integrate(func, u, semi::Semidiscretization)
 end
 
 function PolynomialBases.integrate(u, semi::Semidiscretization)
-    integrate(identity, u, semi)
+    return integrate(identity, u, semi)
 end
 
 # Here, `func` is a function that takes a vector at one node and the equations, e.g., `mass` or `entropy`.
 function integrate_quantity(func, u, semi::Semidiscretization)
     quantity = get_tmp_cache_scalar(semi.cache)
-    integrate_quantity!(quantity, func, u, semi)
+    return integrate_quantity!(quantity, func, u, semi)
 end
 
 function compute_quantity!(quantity, func, u, mesh, equations, solver)
@@ -175,7 +177,7 @@ end
 function integrate_quantity!(quantity, func, u, semi::Semidiscretization)
     mesh, equations, solver, _ = mesh_equations_solver_cache(semi)
     compute_quantity!(quantity, func, u, mesh, equations, solver)
-    integrate(quantity, semi)
+    return integrate(quantity, semi)
 end
 
 function compute_quantity_timederivative!(quantity, func, du, u, mesh, equations, solver)
@@ -194,7 +196,8 @@ end
 end
 
 function calc_error_norms(u, t, semi::Semidiscretization)
-    calc_error_norms(u, t, semi.initial_condition, mesh_equations_solver_cache(semi)...)
+    return calc_error_norms(u, t, semi.initial_condition,
+                            mesh_equations_solver_cache(semi)...)
 end
 
 function rhs!(du, u, semi::Semidiscretization, t)
@@ -213,7 +216,7 @@ function compute_coefficients(func, t, semi::Semidiscretization)
 end
 
 function compute_coefficients!(u, func, t, semi::Semidiscretization)
-    compute_coefficients!(u, func, t, mesh_equations_solver_cache(semi)...)
+    return compute_coefficients!(u, func, t, mesh_equations_solver_cache(semi)...)
 end
 
 """
@@ -251,8 +254,8 @@ of the semidiscretization `semi` at state `u0_ode`.
 # potentially different nodes per element.
 fd_indices(u) = (idx.I for idx in CartesianIndices(u))
 function fd_indices(u::VectorOfArray)
-    Iterators.flatten((((inner..., outer) for inner in fd_indices(arr))
-                       for (outer, arr) in enumerate(u.u)))
+    return Iterators.flatten((((inner..., outer) for inner in fd_indices(arr))
+                              for (outer, arr) in enumerate(u.u)))
 end
 
 function jacobian_fd(semi;

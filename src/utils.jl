@@ -90,11 +90,11 @@ See also [`examples_dir`](@ref).
 Copied from [Trixi.jl](https://github.com/trixi-framework/Trixi.jl).
 """
 function default_example()
-    joinpath(examples_dir(), "linear_advection", "linear_advection.jl")
+    return joinpath(examples_dir(), "linear_advection", "linear_advection.jl")
 end
 
 function convergence_test(example, iterations_or_Ns; kwargs...)
-    convergence_test(Main, example, iterations_or_Ns; kwargs...)
+    return convergence_test(Main, example, iterations_or_Ns; kwargs...)
 end
 
 """
@@ -117,7 +117,7 @@ function convergence_test(mod::Module, example, iterations; io::IO = stdout,
 
     initial_N = extract_initial_N(example, kwargs)
     Ns = initial_N * 2 .^ (0:(iterations - 1))
-    convergence_test(mod, example, Ns; io = io, kwargs...)
+    return convergence_test(mod, example, Ns; io = io, kwargs...)
 end
 
 function convergence_test(mod::Module, example, Ns::AbstractVector; io::IO = stdout,
@@ -145,7 +145,7 @@ function convergence_test(mod::Module, example, Ns::AbstractVector; io::IO = std
     end
 
     # Use raw error values to compute EOC
-    analyze_convergence(io, errors, iterations, (@invokelatest mod.semi), Ns)
+    return analyze_convergence(io, errors, iterations, (@invokelatest mod.semi), Ns)
 end
 
 # Analyze convergence for any semidiscretization
@@ -153,7 +153,7 @@ end
 function analyze_convergence(io, errors, iterations, semi, Ns)
     _, equations, _, _ = mesh_equations_solver_cache(semi)
     variablenames = varnames(cons2cons, equations)
-    analyze_convergence(io, errors, iterations, variablenames, Ns)
+    return analyze_convergence(io, errors, iterations, variablenames, Ns)
 end
 
 # This method is called with the collected error values to actually compute and print the EOC

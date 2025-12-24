@@ -133,17 +133,17 @@ end
     plot_title --> "$(get_name(equations)) at t = $(round(t, digits=5))"
     layout --> nvars
 
-    semi, data, data_exact, names, plot_initial
+    return semi, data, data_exact, names, plot_initial
 end
 
 @recipe function f(semisol::Pair{<:Semidiscretization, <:ODESolution}; plot_initial = false,
                    conversion = cons2prim, step = -1)
-    PlotData(semisol, plot_initial, conversion, step)
+    return PlotData(semisol, plot_initial, conversion, step)
 end
 
 @recipe function f(semi::Semidiscretization, sol::ODESolution; plot_initial = false,
                    conversion = cons2prim, step = -1)
-    PlotData(semi => sol, plot_initial, conversion, step)
+    return PlotData(semi => sol, plot_initial, conversion, step)
 end
 
 function pretty_form_utf(name)

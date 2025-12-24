@@ -18,6 +18,7 @@ function Base.show(io::IO, solver::DG)
     print(io, ", ", solver.surface_integral)
     print(io, ", ", solver.volume_integral)
     print(io, ")")
+    return nothing
 end
 
 function Base.show(io::IO, mime::MIME"text/plain", solver::DG)
@@ -57,7 +58,7 @@ In particular, not the nodes themselves are returned.
 # This is the number of DOFs per variable. See a discussion in
 # https://github.com/trixi-framework/Trixi.jl/issues/1667
 @inline function ndofs(mesh::AbstractMesh, solver::DG)
-    sum(nnodes(solver, element) for element in eachelement(mesh))
+    return sum(nnodes(solver, element) for element in eachelement(mesh))
 end
 
 @inline function get_node_coords(x, equations, ::DG, indices...)
@@ -77,11 +78,11 @@ end
     # compiler for standard `Array`s but not necessarily for more
     # advanced array types such as `PtrArray`s, cf.
     # https://github.com/JuliaSIMD/VectorizationBase.jl/issues/55
-    SVector(ntuple(@inline(v->u[v, indices...]), Val(nvariables(equations))))
+    return SVector(ntuple(@inline(v->u[v, indices...]), Val(nvariables(equations))))
 end
 
 @inline function get_multiplied_node_vars(u, equations, factor, indices...)
-    SVector(ntuple(v -> factor * u[v, indices...], Val(nvariables(equations))))
+    return SVector(ntuple(v -> factor * u[v, indices...], Val(nvariables(equations))))
 end
 
 @inline function set_node_vars!(u, u_node, equations, indices...)
@@ -126,6 +127,7 @@ end
 
 function reset_du!(du)
     du .= zero(du)
+    return nothing
 end
 
 function rhs!(du, u, t, mesh, equations, initial_condition,

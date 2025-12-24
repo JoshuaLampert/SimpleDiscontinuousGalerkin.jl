@@ -15,7 +15,7 @@ get_projection_operator(projection, ::PerElementFDSBP, element) = projection[ele
 
 get_integral_operator(operator, solver, element) = operator
 function get_integral_operator(operator, ::PerElementFDSBP, element)
-    operator[element]
+    return operator[element]
 end
 
 compute_projection_operators(solver::DG) = compute_projection_operators(solver.basis)
@@ -39,7 +39,7 @@ function compute_projection_operators(solver::PerElementFDSBP)
     return e_left, e_right
 end
 function compute_integral_operator(mesh, solver::DG, integral; kwargs...)
-    compute_integral_operator(solver.basis, integral; kwargs...)
+    return compute_integral_operator(solver.basis, integral; kwargs...)
 end
 function compute_integral_operator(mesh, solver::PerElementFDSBP, integral; kwargs...)
     n_elements = nelements(mesh)

@@ -24,19 +24,20 @@ function Base.show(io::IO, cb::DiscreteCallback{<:Any, <:StepsizeCallback})
     print(io, "StepsizeCallback(",
           "cfl_number=", cfl_number, ", ",
           "interval=", interval, ")")
+    return nothing
 end
 
 function StepsizeCallback(; cfl = 1.0, interval = 1)
     stepsize_callback = StepsizeCallback{typeof(cfl)}(cfl, interval)
 
-    DiscreteCallback(stepsize_callback, stepsize_callback, # the first one is the condition, the second the affect!
-                     save_positions = (false, false),
-                     initialize = initialize!)
+    return DiscreteCallback(stepsize_callback, stepsize_callback, # the first one is the condition, the second the affect!
+                            save_positions = (false, false),
+                            initialize = initialize!)
 end
 
 function initialize!(cb::DiscreteCallback{Condition, Affect!}, u, t,
                      integrator) where {Condition, Affect! <: StepsizeCallback}
-    cb.affect!(integrator)
+    return cb.affect!(integrator)
 end
 
 # this method is called to determine whether the callback should be activated

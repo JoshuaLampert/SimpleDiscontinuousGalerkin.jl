@@ -1,9 +1,9 @@
 function digest_boundary_conditions(boundary_conditions)
-    (; x_neg = boundary_conditions, x_pos = boundary_conditions)
+    return (; x_neg = boundary_conditions, x_pos = boundary_conditions)
 end
 
 function digest_boundary_conditions(boundary_conditions::NTuple{2, Any})
-    (; x_neg = boundary_conditions[1], x_pos = boundary_conditions[2])
+    return (; x_neg = boundary_conditions[1], x_pos = boundary_conditions[2])
 end
 function digest_boundary_conditions(boundary_conditions::NamedTuple{Keys, ValueTypes}) where {
                                                                                               Keys,
@@ -12,7 +12,7 @@ function digest_boundary_conditions(boundary_conditions::NamedTuple{Keys, ValueT
                                                                                                      Any}
                                                                                               }
     @unpack x_neg, x_pos = boundary_conditions
-    (; x_neg, x_pos)
+    return (; x_neg, x_pos)
 end
 
 struct BoundaryConditionPeriodic end
@@ -26,6 +26,7 @@ const boundary_condition_periodic = BoundaryConditionPeriodic()
 
 function Base.show(io::IO, ::BoundaryConditionPeriodic)
     print(io, "boundary_condition_periodic")
+    return nothing
 end
 
 @inline function (::BoundaryConditionPeriodic)(u, x, t, mesh, equations, solver, is_left,
@@ -67,6 +68,7 @@ const boundary_condition_do_nothing = BoundaryConditionDoNothing()
 
 function Base.show(io::IO, ::BoundaryConditionDoNothing)
     print(io, "boundary_condition_do_nothing")
+    return nothing
 end
 
 @inline function (::BoundaryConditionDoNothing)(u, x, t, mesh, equations, solver, is_left,
@@ -121,6 +123,7 @@ end
 
 function Base.show(io::IO, ::BoundaryConditionDirichlet)
     print(io, "boundary_condition_dirichlet")
+    return nothing
 end
 @inline function (boundary_condition::BoundaryConditionDirichlet)(u, x, t, mesh, equations,
                                                                   solver, is_left, cache)

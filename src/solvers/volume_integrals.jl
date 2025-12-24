@@ -139,7 +139,7 @@ struct VolumeIntegralFluxDifferencingStrongForm{VolumeFlux} <:
 end
 
 function VolumeIntegralFluxDifferencingStrongForm()
-    VolumeIntegralFluxDifferencingStrongForm(flux_central)
+    return VolumeIntegralFluxDifferencingStrongForm(flux_central)
 end
 
 function compute_integral_operator(basis::AbstractDerivativeOperator,

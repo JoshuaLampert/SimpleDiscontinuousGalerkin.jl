@@ -33,6 +33,7 @@ end
 
 function Base.summary(io::IO, solver::PerElementFDSBP)
     print(io, "PerElementFDSBP(bases=$(solver.basis.bases))")
+    return nothing
 end
 
 grid(solver::PerElementFDSBP, element) = grid(solver.basis, element)

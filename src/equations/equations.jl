@@ -101,7 +101,7 @@ Default analysis integrals used by the [`AnalysisCallback`](@ref).
 default_analysis_integrals(::AbstractEquations) = (entropy, entropy_timederivative)
 
 function default_analysis_integrals(::AbstractEquations{1, 1})
-    (mass, entropy, entropy_timederivative)
+    return (mass, entropy, entropy_timederivative)
 end
 
 """

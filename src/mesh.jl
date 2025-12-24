@@ -7,6 +7,7 @@ abstract type AbstractMesh{NDIMS, RealT} end
 function Base.show(io::IO, mesh::AbstractMesh{RealT}) where {RealT}
     print(io, nameof(typeof(mesh)), "{", RealT, "} with ", nelements(mesh), " elements")
     print(io, " from ", xmin(mesh), " to ", xmax(mesh))
+    return nothing
 end
 
 function Base.show(io::IO, ::MIME"text/plain",
@@ -15,6 +16,7 @@ function Base.show(io::IO, ::MIME"text/plain",
     println(io, "    xmin: ", xmin(mesh))
     println(io, "    xmax: ", xmax(mesh))
     print(io, "    nelements: ", nelements(mesh))
+    return nothing
 end
 
 """
@@ -30,7 +32,7 @@ struct Mesh{NDIMS, RealT} <: AbstractMesh{NDIMS, RealT}
     function Mesh{RealT}(xmin::RealT, xmax::RealT, N_elements::Int) where {RealT}
         @assert xmin < xmax
         @assert N_elements > 0
-        new{1, RealT}(xmin, xmax, N_elements)
+        return new{1, RealT}(xmin, xmax, N_elements)
     end
 end
 
@@ -41,7 +43,7 @@ Create a simple homogeneous one-dimensional mesh from `xmin` to `xmax` with `N_e
 """
 function Mesh(xmin, xmax, N_elements)
     xmin, xmax = promote(xmin, xmax)
-    Mesh{typeof(xmin)}(xmin, xmax, N_elements)
+    return Mesh{typeof(xmin)}(xmin, xmax, N_elements)
 end
 
 """
@@ -96,7 +98,7 @@ struct InhomogeneousMesh{NDIMS, RealT} <: AbstractMesh{NDIMS, RealT}
 
     function InhomogeneousMesh(coordinates::AbstractVector{RealT}) where {RealT}
         @assert length(coordinates)>1 "InhomogeneousMesh requires at least two coordinates"
-        new{1, RealT}(sort(collect(coordinates)))
+        return new{1, RealT}(sort(collect(coordinates)))
     end
 end
 
@@ -104,7 +106,7 @@ xmin(mesh::InhomogeneousMesh) = first(mesh.coordinates)
 xmax(mesh::InhomogeneousMesh) = last(mesh.coordinates)
 @inline nelements(mesh::InhomogeneousMesh) = length(mesh.coordinates) - 1
 function element_spacing(mesh::InhomogeneousMesh, element)
-    mesh.coordinates[element + 1] - mesh.coordinates[element]
+    return mesh.coordinates[element + 1] - mesh.coordinates[element]
 end
 function left_element_boundary(mesh::InhomogeneousMesh, element)
     @assert 1<=element<=nelements(mesh)+1 "Element index out of bounds"
@@ -131,7 +133,7 @@ struct OversetGridMesh{NDIMS, RealT, MeshLeft <: AbstractMesh, MeshRight <: Abst
         @assert xmin(mesh_left) < xmin(mesh_right) &&
                 xmax(mesh_left) > xmin(mesh_right) &&
                 xmin(mesh_left) < xmax(mesh_right)
-        new{1, RealT, MeshLeft, MeshRight}(mesh_left, mesh_right)
+        return new{1, RealT, MeshLeft, MeshRight}(mesh_left, mesh_right)
     end
 end
 
@@ -160,4 +162,5 @@ function Base.show(io::IO, ::MIME"text/plain",
     println(io, string(nameof(typeof(mesh))), "{", RealT, "} ")
     println(io, "    mesh_left: ", mesh.mesh_left)
     print(io, "    mesh_right: ", mesh.mesh_right)
+    return nothing
 end
