@@ -138,10 +138,11 @@ function rhs!(du, u, t, mesh::OversetGridMesh, equations, initial_condition,
     end
 end
 
-function calc_boundary_flux_left!(surface_flux_values_left, u, u_left, t, x_neg,
+function calc_boundary_flux_left!(surface_flux_values_left, u, t, x_neg,
                                   equations, mesh, mesh_left, integral_left, solver,
                                   solver_left, cache, cache_left, l_left, l_right, e_M_left,
                                   e_M_right)
+    u_left, u_right = u
     # Left boundary condition of left mesh
     e_left_L = get_projection_operator(cache_left.e_left, solver_left, 1)
     u_ll = x_neg(u, xmin(mesh), t, mesh, equations, solver, true, cache)
@@ -159,10 +160,11 @@ function calc_boundary_flux_left!(surface_flux_values_left, u, u_left, t, x_neg,
     return nothing
 end
 
-function calc_boundary_flux_right!(surface_flux_values_right, u, u_right, t, x_pos,
+function calc_boundary_flux_right!(surface_flux_values_right, u, t, x_pos,
                                    equations, mesh, mesh_right, integral_right, solver,
                                    solver_right, cache, cache_right, l_left, l_right,
                                    e_M_left, e_M_right)
+    u_left, u_right = u
     # Left boundary condition of right mesh
     e_left_R = get_projection_operator(cache_right.e_left, solver_right, 1)
     u_ll = get_multiplied_node_vars(u_left, equations, e_M_left', :, l_left)
@@ -185,7 +187,6 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
                              mesh::OversetGridMesh, equations,
                              integral::Tuple, solver, cache)
     surface_flux_values_left, surface_flux_values_right = surface_flux_values
-    u_left, u_right = u
     (; x_neg, x_pos) = boundary_conditions
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     integral_left, integral_right = integral
@@ -194,10 +195,10 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
     l_left, l_right = cache.l_left, cache.l_right
     e_M_left, e_M_right = cache.e_M_left, cache.e_M_right
 
-    calc_boundary_flux_left!(surface_flux_values_left, u_left, u_right, t, x_neg, equations,
+    calc_boundary_flux_left!(surface_flux_values_left, u, t, x_neg, equations,
                              mesh, mesh_left, integral_left, solver, solver_left, cache,
                              cache_left, l_left, l_right, e_M_left, e_M_right)
-    calc_boundary_flux_right!(surface_flux_values_right, u, u_right, t, x_pos, equations,
+    calc_boundary_flux_right!(surface_flux_values_right, u, t, x_pos, equations,
                               mesh, mesh_right, integral_right, solver, solver_right, cache,
                               cache_right, l_left, l_right, e_M_left, e_M_right)
     return nothing
