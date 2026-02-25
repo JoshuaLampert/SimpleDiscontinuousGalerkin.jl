@@ -2,9 +2,6 @@ function digest_boundary_conditions(boundary_conditions)
     return (; x_neg = boundary_conditions, x_pos = boundary_conditions)
 end
 
-function digest_boundary_conditions(boundary_conditions::NTuple{2, Any})
-    return (; x_neg = boundary_conditions[1], x_pos = boundary_conditions[2])
-end
 function digest_boundary_conditions(boundary_conditions::NamedTuple{Keys, ValueTypes}) where {
                                                                                               Keys,
                                                                                               ValueTypes <:

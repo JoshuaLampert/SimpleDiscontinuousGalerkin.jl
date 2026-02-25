@@ -41,13 +41,13 @@ end
 """
     Semidiscretization(mesh, equations, initial_condition, solver;
                        source_terms = nothing,
-                       boundary_conditions = boundary_condition_periodic)
+                       boundary_conditions)
 
 Construct a semidiscretization of a PDE.
 """
 function Semidiscretization(mesh, equations, initial_condition, solver;
                             source_terms = nothing,
-                            boundary_conditions = boundary_condition_periodic)
+                            boundary_conditions)
     _boundary_conditions = digest_boundary_conditions(boundary_conditions)
     _solver = digest_solver(mesh, solver)
     cache = (; create_cache(mesh, equations, _solver)...)

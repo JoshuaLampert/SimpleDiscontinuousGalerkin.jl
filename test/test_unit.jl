@@ -134,11 +134,6 @@ end
     @test_nowarn print(boundary_condition_periodic)
     @test_nowarn print(boundary_condition_do_nothing)
     @test_nowarn print(BoundaryConditionDirichlet((x, t, equations) -> SVector(0.0)))
-
-    @test SimpleDiscontinuousGalerkin.digest_boundary_conditions((boundary_condition_do_nothing,
-                                                                  boundary_condition_periodic)) ==
-          SimpleDiscontinuousGalerkin.digest_boundary_conditions((x_neg = boundary_condition_do_nothing,
-                                                                  x_pos = boundary_condition_periodic))
 end
 
 @testitem "mesh" begin

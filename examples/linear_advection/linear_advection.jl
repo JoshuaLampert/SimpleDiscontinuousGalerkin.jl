@@ -19,7 +19,8 @@ N_elements = 10 # number of elements
 mesh = Mesh(coordinates_min, coordinates_max, N_elements)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, solver)
+semi = Semidiscretization(mesh, equations, initial_condition, solver;
+                          boundary_conditions = boundary_condition_periodic)
 
 ###############################################################################
 # ODE solvers, callbacks etc.

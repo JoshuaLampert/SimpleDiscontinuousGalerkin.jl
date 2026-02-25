@@ -23,7 +23,8 @@ mesh_right = Mesh(b, d, N_elements)
 mesh = OversetGridMesh(mesh_left, mesh_right)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, solver)
+semi = Semidiscretization(mesh, equations, initial_condition, solver;
+                          boundary_conditions = boundary_condition_periodic)
 
 ###############################################################################
 # ODE solvers, callbacks etc.
