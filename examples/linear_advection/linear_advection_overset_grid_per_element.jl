@@ -33,7 +33,8 @@ solver_right = PerElementFDSBP(Ds_right,
                                volume_integral = VolumeIntegralWeakForm())
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, (solver_left, solver_right))
+semi = Semidiscretization(mesh, equations, initial_condition, (solver_left, solver_right);
+                          boundary_conditions = boundary_condition_periodic)
 
 ###############################################################################
 # ODE solvers, callbacks etc.

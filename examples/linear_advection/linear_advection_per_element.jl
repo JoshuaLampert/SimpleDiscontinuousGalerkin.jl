@@ -23,7 +23,8 @@ Ds = [isodd(element) ? D_polydeg_2 : D_polydeg_4 for element in eachelement(mesh
 solver = PerElementFDSBP(Ds, surface_flux = flux_godunov)
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, solver)
+semi = Semidiscretization(mesh, equations, initial_condition, solver;
+                          boundary_conditions = boundary_condition_periodic)
 
 ###############################################################################
 # ODE solvers, callbacks etc.

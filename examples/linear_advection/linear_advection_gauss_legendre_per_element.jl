@@ -25,7 +25,8 @@ solver = PerElementFDSBP(Ds, surface_integral = SurfaceIntegralStrongForm(flux_g
                          volume_integral = VolumeIntegralStrongForm())
 
 # A semidiscretization collects data structures and functions for the spatial discretization
-semi = Semidiscretization(mesh, equations, initial_condition, solver)
+semi = Semidiscretization(mesh, equations, initial_condition, solver;
+                          boundary_conditions = boundary_condition_periodic)
 
 ###############################################################################
 # ODE solvers, callbacks etc.

@@ -90,7 +90,8 @@ end
     D = legendre_derivative_operator(-1.0, 1.0, 4)
     solver = FDSBP(D, surface_integral = SurfaceIntegralStrongForm(flux_godunov),
                    volume_integral = VolumeIntegralStrongForm())
-    semi = Semidiscretization(mesh, equations, initial_condition, solver)
+    semi = Semidiscretization(mesh, equations, initial_condition, solver;
+                              boundary_conditions = boundary_condition_periodic)
     @testset "FDSBP with Legendre operator" begin
         # Same errors as in "linear_advection.jl"
         @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_FD.jl"),
