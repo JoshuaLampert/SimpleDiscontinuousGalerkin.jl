@@ -104,7 +104,8 @@ function max_dt(u, t, mesh, equations, dg, cache)
         # We need to take the length of the basis into account because
         # in contrast to Trixi.jl, it is not always on the reference element [-1, 1].
         basis = get_basis(dg, element)
-        dx_basis = SummationByPartsOperators.xmax(basis) - SummationByPartsOperators.xmin(basis)
+        dx_basis = SummationByPartsOperators.xmax(basis) -
+                   SummationByPartsOperators.xmin(basis)
         inv_jacobian = 1 / (dx_basis * cache.jacobian[element])
         max_scaled_speed = max(max_scaled_speed, inv_jacobian * max_lambda1)
         max_nnodes = max(max_nnodes, nnodes(dg, element))
