@@ -156,7 +156,6 @@ function analyze_convergence(io, errors, iterations, semi, Ns)
     return analyze_convergence(io, errors, iterations, variablenames, Ns)
 end
 
-
 """
     calc_mean_convergence(eocs)
 
