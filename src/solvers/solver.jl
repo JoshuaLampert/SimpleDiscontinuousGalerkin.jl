@@ -65,7 +65,7 @@ function calc_error_norms(u, t, initial_condition, mesh, equations,
             # TODO: Broadcast (issue in RecursiveArrayTools.jl)
             diff = zeros(real(solver), nnodes(solver, element))
             for i in eachnode(solver, element)
-                diff[i] = u[v, i, element] - u_exact[v, i, element]
+                diff[i] = u_exact[v, i, element] - u[v, i, element]
             end
             l2_error[v] += cache.jacobian[element] *
                            integrate(abs2, diff, get_basis(solver, element))
@@ -73,6 +73,7 @@ function calc_error_norms(u, t, initial_condition, mesh, equations,
         end
         l2_error[v] = sqrt(l2_error[v])
     end
+    l2_error ./= sqrt(total_volume(mesh))
     return l2_error, linf_error
 end
 
