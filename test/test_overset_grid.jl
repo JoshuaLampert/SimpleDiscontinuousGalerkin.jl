@@ -3,7 +3,7 @@
     # overlap element to b.
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_overset_grid.jl"),
-                        l2=[2.3825331813104963e-5], linf=[3.095999626845369e-5],
+                        l2=[2.2716562560724384e-5], linf=[3.095999626867574e-5],
                         cons_error=[6.721897816142075e-9],
                         change_mass=-6.721897816142075e-9,
                         change_entropy=8.533662195886471e-6,
@@ -18,7 +18,7 @@
         @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                      "linear_advection_overset_grid.jl"),
                             mesh_left=mesh_left,
-                            l2=[2.0422480731399535e-5], linf=[3.951360818943428e-5],
+                            l2=[1.999785554833705e-5], linf=[3.951360818987837e-5],
                             cons_error=[2.220446049250313e-16],
                             change_mass=2.220446049250313e-16,
                             change_entropy=-1.9940662454587255e-8,
@@ -38,7 +38,7 @@
         @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                      "linear_advection_overset_grid.jl"),
                             semi=semi,
-                            l2=[9.287766266389129e-6], linf=[4.926556788237193e-5],
+                            l2=[8.855538354052327e-6], linf=[4.926556788241703e-5],
                             cons_error=[0.5462913980698885],
                             change_mass=-0.5462913980698885,
                             change_entropy=-0.19785618067708552,
@@ -50,7 +50,7 @@ end
     # Same errors as in "linear_advection_overset_grid.jl"
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_overset_grid_strong_form.jl"),
-                        l2=[2.3825331814026118e-5], linf=[3.095999626745449e-5],
+                        l2=[2.2716562561174237e-5], linf=[3.095999626445689e-5],
                         cons_error=[6.721899148409705e-9],
                         change_mass=-6.721899148409705e-9,
                         change_entropy=8.53366219633056e-6,
@@ -62,7 +62,7 @@ end
                                      "linear_advection_overset_grid_strong_form.jl"),
                             surface_integral=SurfaceIntegralWeakForm(flux_godunov),
                             volume_integral=VolumeIntegralFluxDifferencing(flux_central),
-                            l2=[2.382533181422071e-5], linf=[3.095999626634427e-5],
+                            l2=[2.271656256151124e-5], linf=[3.0959996265567113e-5],
                             cons_error=[6.72189803818668e-9],
                             change_mass=-6.72189803818668e-9,
                             change_entropy=8.533662197107716e-6,
@@ -75,7 +75,7 @@ end
                                      "linear_advection_overset_grid_strong_form.jl"),
                             surface_integral=SurfaceIntegralStrongForm(flux_godunov),
                             volume_integral=VolumeIntegralFluxDifferencingStrongForm(flux_central),
-                            l2=[2.3825331813872226e-5], linf=[3.095999626678836e-5],
+                            l2=[2.2716562560903234e-5], linf=[3.095999626478996e-5],
                             cons_error=[6.72189803818668e-9],
                             change_mass=-6.72189803818668e-9,
                             change_entropy=8.533662195886471e-6,
@@ -88,7 +88,7 @@ end
     # overlap element to b.
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_overset_grid_cfl.jl"),
-                        l2=[2.381442225978849e-5], linf=[3.098598080530923e-5],
+                        l2=[2.270616070921286e-5], linf=[3.098598080175652e-5],
                         cons_error=[2.1519649284762465e-8],
                         change_mass=-2.1519649284762465e-8,
                         change_entropy=8.54207263600859e-6,
@@ -99,7 +99,7 @@ end
     # Mass conservative because b is exactly in the left mesh (11 elements).
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_overset_grid_per_element.jl"),
-                        l2=[0.0007287829317534878], linf=[0.0016309648551183775],
+                        l2=[0.0006948672611069451], linf=[0.001630964855121042],
                         cons_error=[4.440892098500626e-16],
                         change_mass=4.440892098500626e-16,
                         change_entropy=-1.049475386327714e-5,
@@ -110,8 +110,8 @@ end
     # Not mass conservative because we miss integrating the part from the left boundary of the left
     # overlap element to b.
     @test_trixi_include(joinpath(EXAMPLES_DIR_MAXWELL, "maxwell_overset_grid.jl"),
-                        l2=[0.00023060901614886724, 0.00026184365443377735],
-                        linf=[0.0002498594703230772, 0.00036105557236677105],
+                        l2=[0.00021987706964034888, 0.0002496581287339889],
+                        linf=[0.00024985947032329925, 0.0003610555723681172],
                         cons_error=[0.001469440514095803, 0.024591060510140168],
                         change_entropy=0.0032048130928074015,
                         entropy_timederivative=0.12743862294720792)
@@ -122,7 +122,7 @@ end
     @test_trixi_include(joinpath(EXAMPLES_DIR_BURGERS, "burgers_overset_grid.jl"),
                         source_terms=nothing,
                         interval=200,
-                        l2=[1.0898127073451138], linf=[0.7933574712125537],
+                        l2=[1.039095645738027], linf=[0.7933574712125533],
                         cons_error=[6.159517340620368e-13],
                         change_mass=-6.159517340620368e-13,
                         change_entropy=-0.43769950084048936,
@@ -132,7 +132,7 @@ end
 @testitem "burgers_overset_grid.jl" setup=[Setup] begin
     # Mass conservative because we choose 11 elements meaning b is exactly an interface.
     @test_trixi_include(joinpath(EXAMPLES_DIR_BURGERS, "burgers_overset_grid.jl"),
-                        l2=[0.00036782718958315656], linf=[0.0007339228201976855],
+                        l2=[0.00035070946457545], linf=[0.0007339228201974635],
                         cons_error=[9.636735853746359e-14],
                         change_mass=-9.636735853746359e-14,
                         change_entropy=-2.5824226002058026e-6,
@@ -144,14 +144,14 @@ end
     # overlap element to b.
     @test_trixi_include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_overset_grid.jl"),
                         l2=[
-                            9.018763743420028e-6,
-                            2.9398892374950745e-6,
-                            1.7972218598452348e-5
+                            8.599053831556651e-6,
+                            2.803074404817271e-6,
+                            1.7135838079835745e-5
                         ],
                         linf=[
-                            1.4000563695937274e-5,
-                            4.487164357191986e-6,
-                            2.7333799352824428e-5
+                            1.4000563705263147e-5,
+                            4.487164365185592e-6,
+                            2.7333799362150302e-5
                         ],
                         cons_error=[
                             0.0030839333952679127,
