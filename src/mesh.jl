@@ -20,6 +20,33 @@ function Base.show(io::IO, ::MIME"text/plain",
 end
 
 """
+    element_spacing(mesh::AbstractMesh, element)
+
+Return the length of the element `element` in the mesh.
+"""
+element_spacing(mesh::AbstractMesh, element) = element_spacing(mesh)
+
+"""
+    left_element_boundary(mesh::AbstractMesh, element)
+
+Return the left boundary coordinate of the element `element` in the mesh.
+"""
+function left_element_boundary(mesh::AbstractMesh, element)
+    @assert 1<=element<=nelements(mesh)+1 "Element index out of bounds"
+    dx = element_spacing(mesh)
+    return xmin(mesh) + (element - 1) * dx
+end
+
+"""
+    total_volume(mesh::AbstractMesh)
+
+Return the total volume of the mesh, which is the length of the domain in one dimension.
+"""
+function total_volume(mesh::AbstractMesh)
+    return xmax(mesh) - xmin(mesh)
+end
+
+"""
     Mesh
 
 Struct that holds the information for a simple homogeneous one-dimensional mesh.
@@ -67,25 +94,7 @@ Return the spacing of the elements in the mesh.
 This is the length of each element, which is the same for all elements in a homogeneous [`Mesh`](@ref)
 and can be different for each element in an [`InhomogeneousMesh`](@ref).
 """
-element_spacing(mesh::Mesh) = (xmax(mesh) - xmin(mesh)) / nelements(mesh)
-
-"""
-    element_spacing(mesh::AbstractMesh, element)
-
-Return the length of the element `element` in the mesh.
-"""
-element_spacing(mesh::AbstractMesh, element) = element_spacing(mesh)
-
-"""
-    left_element_boundary(mesh::AbstractMesh, element)
-
-Return the left boundary coordinate of the element `element` in the mesh.
-"""
-function left_element_boundary(mesh::AbstractMesh, element)
-    @assert 1<=element<=nelements(mesh)+1 "Element index out of bounds"
-    dx = element_spacing(mesh)
-    return xmin(mesh) + (element - 1) * dx
-end
+element_spacing(mesh::Mesh) = total_volume(mesh) / nelements(mesh)
 
 """
     InhomogeneousMesh{NDIMS, RealT}
