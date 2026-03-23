@@ -35,7 +35,8 @@ end
                         l2=[0.00011144287f0], linf=[0.00043702126f0],
                         change_mass=-2.3469329f-7,
                         change_entropy=-7.56979f-6,
-                        entropy_timederivative=-5.364418f-7)
+                        entropy_timederivative=-5.364418f-7,
+                        RealT_for_test_tolerances=Float32)
     @test eltype(sol.u[end]) === Float32
 end
 
@@ -49,7 +50,7 @@ end
                         change_mass=df64"9.398538128609711e-32",
                         change_entropy=df64"-9.08222294896891188069229575962773225e-07",
                         entropy_timederivative=df64"-9.2106384991931779546407648803854876e-07",
-                        atol=df64"1e-30", rtol=sqrt(eps(Double64)))
+                        RealT_for_test_tolerances=Double64)
     @test eltype(sol.u[end]) === Double64
 end
 
