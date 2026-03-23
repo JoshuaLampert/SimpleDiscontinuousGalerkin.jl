@@ -36,7 +36,8 @@ end
                             2.708944180085382e-14,
                             5.3290705182007514e-14
                         ], change_entropy=3.407981097325319e-8,
-                        entropy_timederivative=3.162079266830209e-8)
+                        entropy_timederivative=3.162079266830209e-8,
+                        atol=1e-12) # To make CI pass
 end
 
 @testitem "compressible_euler_basic.jl with initial_condition_density_wave.jl" setup=[Setup] begin

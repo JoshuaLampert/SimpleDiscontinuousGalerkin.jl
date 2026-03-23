@@ -29,6 +29,31 @@
     end
 end
 
+@testitem "linear_advection_float32.jl" setup=[Setup] begin
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_float32.jl"),
+                        l2=[0.00011144287f0], linf=[0.00043702126f0],
+                        change_mass=-2.3469329f-7,
+                        change_entropy=-7.56979f-6,
+                        entropy_timederivative=-5.364418f-7,
+                        RealT_for_test_tolerances=Float32)
+    @test eltype(sol.u[end]) === Float32
+end
+
+@testitem "linear_advection_float32.jl with Double64" setup=[Setup] begin
+    using DoubleFloats: Double64, @df64_str
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_float32.jl"),
+                        RealT=Double64,
+                        l2=[df64"1.11343962874803462940801969069672503e-04"],
+                        linf=[df64"4.2895011703240468510400642690940612e-04"],
+                        change_mass=df64"9.398538128609711e-32",
+                        change_entropy=df64"-9.08222294896891188069229575962773225e-07",
+                        entropy_timederivative=df64"-9.2106384991931779546407648803854876e-07",
+                        RealT_for_test_tolerances=Double64)
+    @test eltype(sol.u[end]) === Double64
+end
+
 @testitem "linear_advection_Dirichlet_boundary_condition.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_Dirichlet_boundary_condition.jl"),
