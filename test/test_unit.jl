@@ -266,7 +266,8 @@ end
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
 
-    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_float32.jl"),
+    trixi_include(@__MODULE__,
+                  joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_float32.jl"),
                   RealT = Double64, tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This is stable
