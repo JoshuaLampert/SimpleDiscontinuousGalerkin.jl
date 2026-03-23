@@ -43,8 +43,9 @@ end
     using DoubleFloats: Double64, @df64_str
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_float32.jl"),
-                        RealT = Double64,
-                        l2=[df64"1.11343962874803462940801969069672503e-04"], linf=[df64"4.2895011703240468510400642690940612e-04"],
+                        RealT=Double64,
+                        l2=[df64"1.11343962874803462940801969069672503e-04"],
+                        linf=[df64"4.2895011703240468510400642690940612e-04"],
                         change_mass=df64"9.398538128609711e-32",
                         change_entropy=df64"-9.08222294896891188069229575962773225e-07",
                         entropy_timederivative=df64"-9.2106384991931779546407648803854876e-07",
