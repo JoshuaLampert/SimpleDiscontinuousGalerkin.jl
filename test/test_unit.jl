@@ -259,11 +259,19 @@ end
 
 @testitem "Jacobian" setup=[Setup] begin
     using LinearAlgebra: eigvals
+    using DoubleFloats: Double64
     trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01))
     J = @test_nowarn jacobian_fd(semi)
     # This is stable
     @test maximum(real, eigvals(J)) < 0.0
+
+    trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_float32.jl"),
+                  RealT = Double64, tspan = (0.0, 0.01))
+    J = @test_nowarn jacobian_fd(semi)
+    # This is stable
+    @test maximum(real, eigvals(J)) < sqrt(eps(Double64))
+    @test eltype(J) == Double64
 
     trixi_include(@__MODULE__, joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection.jl"),
                   tspan = (0.0, 0.01), surface_flux = flux_central)

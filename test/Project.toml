@@ -1,5 +1,6 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+DoubleFloats = "497a8b3b-efae-58df-a0af-a86822472b78"
 ExplicitImports = "7d51a73a-1435-4ff3-83d9-f097790105c7"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OrdinaryDiffEqLowStorageRK = "b0944070-b475-4768-8dec-fb6eb410534d"
@@ -13,6 +14,7 @@ TrixiTest = "0a316866-cbd0-4425-8bcb-08103b2c1f26"
 
 [compat]
 Aqua = "0.8.3"
+DoubleFloats = "1.4"
 ExplicitImports = "1.6"
 LinearAlgebra = "1"
 OrdinaryDiffEqLowStorageRK = "1.1"
