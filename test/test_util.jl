@@ -5,9 +5,11 @@ using TrixiTest: @trixi_test_nowarn, get_kwarg
 # inside an example.
 """
     @test_trixi_include(example; l2=nothing, linf = nothing, cons_error=nothing,
-                        change_mass=nothing, change_entropy=nothing,
-                        entropy_timederivative=nothing,
-                        atol=1e-12, rtol=sqrt(eps()))
+                        change_mass = nothing, change_entropy = nothing,
+                        entropy_timederivative = nothing,
+                        RealT_for_test_tolerances = Float64,
+                        atol = 500 * eps(RealT_for_test_tolerances),
+                        rtol = sqrt(eps(RealT_for_test_tolerances)),)
 
 Test by calling `trixi_include(example; parameters...)`.
 By default, only the absence of error output is checked.
@@ -15,7 +17,11 @@ If `l2`, `linf`, or `cons_error` are specified, in addition the resulting L2/Lin
 variable are compared approximately against these reference values, using
 `atol, rtol` as absolute/relative tolerance. If `change_mass` or `change_entropy` are specified,
 the change in mass or entropy is compared against the reference values. If `entropy_timederivative`
-is specified, the time derivative of the entropy is compared against the reference value
+is specified, the time derivative of the entropy is compared against the reference value.
+
+The keyword arguments `additional_ignore_content`, `l2`, `linf`,
+`RealT_for_test_tolerances`, `atol`, and `rtol` are not passed to
+`trixi_include(elixir; parameters...)`.
 """
 macro test_trixi_include(example, args...)
     local l2 = get_kwarg(args, :l2, nothing)
@@ -24,14 +30,19 @@ macro test_trixi_include(example, args...)
     local change_mass = get_kwarg(args, :change_mass, nothing)
     local change_entropy = get_kwarg(args, :change_entropy, nothing)
     local entropy_timederivative = get_kwarg(args, :entropy_timederivative, nothing)
-    local atol = get_kwarg(args, :atol, 1e-12)
-    local rtol = get_kwarg(args, :rtol, sqrt(eps()))
+    local RealT_symbol = get_kwarg(args, :RealT_for_test_tolerances, :Float64)
+    RealT_for_test_tolerances = getfield(@__MODULE__, RealT_symbol)
+    atol_default = 500 * eps(RealT_for_test_tolerances)
+    rtol_default = sqrt(eps(RealT_for_test_tolerances))
+    local atol = get_kwarg(args, :atol, atol_default)
+    local rtol = get_kwarg(args, :rtol, rtol_default)
 
     local kwargs = Pair{Symbol, Any}[]
     for arg in args
         if (arg.head == :(=) &&
             !(arg.args[1] in (:l2, :linf, :cons_error, :change_mass, :change_entropy,
-                              :entropy_timederivative, :atol, :rtol)))
+                              :entropy_timederivative, :RealT_for_test_tolerances,
+                              :atol, :rtol)))
             push!(kwargs, Pair(arg.args...))
         end
     end
