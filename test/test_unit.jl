@@ -389,6 +389,7 @@ end
                      "linear_advection_overset_grid_per_element.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
     @test_nowarn plot(semi => sol, plot_initial = true, plot_analytical = true, step = 6)
+
     include(joinpath(EXAMPLES_DIR_EULER, "compressible_euler_overset_grid.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6, conversion = cons2cons)
