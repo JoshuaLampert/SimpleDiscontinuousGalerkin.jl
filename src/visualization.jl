@@ -171,7 +171,8 @@ end
     u = sol.u[step]
 
     if plot_initial
-        u_initial = compute_coefficients(initial_condition, zero(t), semi)
+        t0 = sol.t[1]
+        u_initial = compute_coefficients(initial_condition, t0, semi)
     else
         u_initial = nothing
     end
