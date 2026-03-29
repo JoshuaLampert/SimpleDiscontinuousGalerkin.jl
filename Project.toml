@@ -22,7 +22,7 @@ TrixiBase = "9a0f1c46-06d5-4909-a5a3-ce25d3fa3284"
 
 [sources]
 RecursiveArrayTools = {rev = "abstractarray-breaking-update", url = "https://github.com/ChrisRackauckas-Claude/RecursiveArrayTools.jl"}
-RecursiveArrayToolsRaggedArrays = {rev = "abstractarray-breaking-update", url = "https://github.com/ChrisRackauckas-Claude/RecursiveArrayTools.jl/lib/RecursiveArrayToolsRaggedArrays"}
+RecursiveArrayToolsRaggedArrays = {rev = "abstractarray-breaking-update", url = "https://github.com/ChrisRackauckas-Claude/RecursiveArrayTools.jl", subdir ="lib/RecursiveArrayToolsRaggedArrays"}
 
 [compat]
 CommonSolve = "0.2.4"
