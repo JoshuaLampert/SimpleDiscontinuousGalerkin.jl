@@ -20,6 +20,7 @@ using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayTools: VectorOfArray
+using RecursiveArrayToolsRaggedArrays: RaggedVectorOfArray
 using Reexport: @reexport
 using Roots: find_zero, AlefeldPotraShi
 import SciMLBase: ODESolution, solve, u_modified!, get_tmp_cache, set_proposed_dt!
