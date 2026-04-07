@@ -12,9 +12,6 @@ TestItemRunner = "f8b46487-2199-4994-9208-9a1283c18c0a"
 TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 TrixiTest = "0a316866-cbd0-4425-8bcb-08103b2c1f26"
 
-[sources]
-RecursiveArrayTools = {rev = "abstractarray-breaking-update", url = "https://github.com/ChrisRackauckas-Claude/RecursiveArrayTools.jl"}
-
 [compat]
 Aqua = "0.8.3"
 DoubleFloats = "1.4"
@@ -23,7 +20,7 @@ LinearAlgebra = "1"
 OrdinaryDiffEqLowStorageRK = "1.1"
 OrdinaryDiffEqSSPRK = "1.2"
 Plots = "1.25"
-RecursiveArrayTools = "3.42, 4"
+RecursiveArrayTools = "4"
 Test = "1"
 TestItemRunner = "1"
 TestItems = "1"
