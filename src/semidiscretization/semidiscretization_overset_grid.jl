@@ -245,11 +245,11 @@ function overlap_integral(func, u, semi::SemidiscretizationOversetGrid)
     integral_overlap_left = sum(integrate_on_element(func, u_left.u[element],
                                                      get_basis(solver_left, element),
                                                      element, jacobian_left)
-                                for element in (l_left + 1):nelements(mesh_left))
+                                for element in (l_left + 1):nelements(mesh_left), init = 0)
     integral_overlap_right = sum(integrate_on_element(func, u_right.u[element],
                                                       get_basis(solver_right, element),
                                                       element, jacobian_right)
-                                 for element in 1:(l_right - 1))
+                                 for element in 1:(l_right - 1), init = 0)
     integral_overlap = overlap_integral_combination(surface_integral_left,
                                                     surface_integral_right,
                                                     integral_overlap_left,
