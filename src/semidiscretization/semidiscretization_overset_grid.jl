@@ -228,6 +228,42 @@ function PolynomialBases.integrate(func,
     return integrals
 end
 
+# This computes the integral of a function `func` in the overlap region, i.e., between the points `b` and `c`.
+# In general it is not clear which mesh should be used for the integration in the overlap region, so here we compute the integral on the left mesh.
+# TODO: This is inefficient because it computes unnecessarily many integrals (adds and subtracts the same contribution in the overlap region and
+# computes both the integral on the left and on the right although only one is needed)
+function overlap_integral(func, u, semi::SemidiscretizationOversetGrid)
+    u_left, u_right = u
+    jacobian_left, jacobian_right = semi.cache.cache_left.jacobian,
+                                    semi.cache.cache_right.jacobian
+    mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
+    solver_left, solver_right = semi.solver
+    surface_integral_left, surface_integral_right = solver_left.surface_integral,
+                                                    solver_right.surface_integral
+    l_left = left_overlap_element(semi.mesh)
+    l_right = right_overlap_element(semi.mesh)
+    integral_overlap_left = sum(integrate_on_element(func, u_left.u[element],
+                                                     get_basis(solver_left, element),
+                                                     element, jacobian_left)
+                                for element in (l_left + 1):nelements(mesh_left); init = 0)
+    integral_overlap_right = sum(integrate_on_element(func, u_right.u[element],
+                                                      get_basis(solver_right, element),
+                                                      element, jacobian_right)
+                                 for element in 1:(l_right - 1); init = 0)
+    integral_overlap = overlap_integral_combination(surface_integral_left,
+                                                    surface_integral_right,
+                                                    integral_overlap_left,
+                                                    integral_overlap_right)
+    return integral_overlap
+end
+
+# TODO: Generalize this to allow for a suitable convex combination of the two integrals.
+# Passing the surface integrals allows us to dispatch on the type of surface integral.
+function overlap_integral_combination(surface_integral_left, surface_integral_right,
+                                      integral_overlap_left, integral_overlap_right)
+    return integral_overlap_left
+end
+
 # This method is for integrating a scalar quantity over the entire domain.
 # Need to dispatch on type of `u` to avoid method ambiguities.
 function PolynomialBases.integrate(func,
@@ -243,20 +279,20 @@ function PolynomialBases.integrate(func,
                                     semi.cache.cache_right.jacobian
     mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
     solver_left, solver_right = semi.solver
-    l_left = left_overlap_element(semi.mesh)
     # TODO: This integrates the left domain only until the right boundary of the left overlap element,
     # i.e., we count the integral from b to the right boundary of the left overlap element twice.
-    # TODO: Which part should be integrated in the overlap region? This uses the right mesh,
-    # which is not correct for negative velocities.
+    # In general, we cannot integrate on a subdomain with a standard SBP operator.
     integral_left = sum(integrate_on_element(func, u_left.u[element],
                                              get_basis(solver_left, element), element,
                                              jacobian_left)
-                        for element in 1:l_left)
+                        for element in 1:nelements(mesh_left))
     integral_right = sum(integrate_on_element(func, u_right.u[element],
                                               get_basis(solver_right, element),
                                               element, jacobian_right)
                          for element in 1:nelements(mesh_right))
-    return integral_left + integral_right
+
+    integral_overlap = overlap_integral(func, u, semi)
+    return integral_left + integral_right - integral_overlap
 end
 
 function integrate_quantity(func, u, semi::SemidiscretizationOversetGrid)
