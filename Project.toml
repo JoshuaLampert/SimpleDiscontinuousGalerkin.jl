@@ -1,7 +1,7 @@
 name = "SimpleDiscontinuousGalerkin"
 uuid = "1c8e7e25-3265-4959-9fcf-9ce6764f3290"
-authors = ["Joshua Lampert <joshua.lampert@uni-hamburg.de> and contributors"]
 version = "0.1.0-DEV"
+authors = ["Joshua Lampert <joshua.lampert@uni-hamburg.de> and contributors"]
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
@@ -27,7 +27,7 @@ Printf = "1"
 RecipesBase = "1.3.4"
 RecursiveArrayTools = "3.42"
 Reexport = "1.2"
-Roots = "2.2.8"
+Roots = "2.2.8, 3"
 SciMLBase = "2.78"
 SimpleUnPack = "1.1.0"
 StaticArrays = "1.9"
