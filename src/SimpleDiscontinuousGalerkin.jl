@@ -19,7 +19,6 @@ import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
-using RecursiveArrayTools: VectorOfArray
 using RecursiveArrayToolsRaggedArrays: RaggedVectorOfArray
 using Reexport: @reexport
 using Roots: find_zero, AlefeldPotraShi
