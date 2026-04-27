@@ -23,7 +23,8 @@ using RecursiveArrayTools: VectorOfArray
 using RecursiveArrayToolsRaggedArrays: RaggedVectorOfArray
 using Reexport: @reexport
 using Roots: find_zero, AlefeldPotraShi
-import SciMLBase: ODESolution, solve, derivative_discontinuity!, get_tmp_cache, set_proposed_dt!
+import SciMLBase: ODESolution, solve, derivative_discontinuity!, get_tmp_cache,
+                  set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
