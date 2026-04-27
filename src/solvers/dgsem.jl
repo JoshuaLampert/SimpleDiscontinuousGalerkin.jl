@@ -72,8 +72,8 @@ function create_jacobian_and_node_coordinates(mesh, solver::Union{DGSEM, FDSBP})
 end
 
 function create_tmp_scalar(mesh, solver)
-    return VectorOfArray([zeros(real(solver), nnodes(solver, element))
-                          for element in eachelement(mesh)])
+    return RaggedVectorOfArray([zeros(real(solver), nnodes(solver, element))
+                                for element in eachelement(mesh)])
 end
 
 function create_cache(mesh, equations, solver)
