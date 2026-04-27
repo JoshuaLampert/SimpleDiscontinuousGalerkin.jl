@@ -20,7 +20,7 @@ TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 TrixiBase = "9a0f1c46-06d5-4909-a5a3-ce25d3fa3284"
 
 [sources]
-RecursiveArrayToolsRaggedArrays = {rev = "recursivefill-raggedarrays", url = "https://github.com/JoshuaLampert/RecursiveArrayTools.jl/lib/RecursiveArrayToolsRaggedArrays"}
+RecursiveArrayToolsRaggedArrays = {rev = "recursivefill-raggedarrays", url = "https://github.com/JoshuaLampert/RecursiveArrayTools.jl", subdir = "lib/RecursiveArrayToolsRaggedArrays"}
 
 [compat]
 CommonSolve = "0.2.4"

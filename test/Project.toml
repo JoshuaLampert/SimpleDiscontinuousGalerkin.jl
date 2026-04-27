@@ -13,7 +13,7 @@ TestItems = "1c621080-faea-4a02-84b6-bbd5e436b8fe"
 TrixiTest = "0a316866-cbd0-4425-8bcb-08103b2c1f26"
 
 [sources]
-RecursiveArrayToolsRaggedArrays = {rev = "recursivefill-raggedarrays", url = "https://github.com/JoshuaLampert/RecursiveArrayTools.jl/lib/RecursiveArrayToolsRaggedArrays"}
+RecursiveArrayToolsRaggedArrays = {rev = "recursivefill-raggedarrays", url = "https://github.com/JoshuaLampert/RecursiveArrayTools.jl", subdir = "lib/RecursiveArrayToolsRaggedArrays"}
 
 [compat]
 Aqua = "0.8.3"
