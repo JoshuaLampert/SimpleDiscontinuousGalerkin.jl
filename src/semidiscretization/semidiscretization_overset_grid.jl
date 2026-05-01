@@ -12,7 +12,7 @@ function allocate_coefficients(mesh::OversetGridMesh, equations, solver::Tuple)
     solver_left, solver_right = solver
     u_left = allocate_coefficients(mesh.mesh_left, equations, solver_left)
     u_right = allocate_coefficients(mesh.mesh_right, equations, solver_right)
-    return VectorOfArray([u_left, u_right])
+    return RaggedVectorOfArray([u_left, u_right])
 end
 
 function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, solver, cache)
@@ -43,7 +43,7 @@ end
 
 # In contrast to `Iterators.flatten`, this `collect`s the result and returns a vector.
 # We do this because it would be hard to define this method in a non-allocating way.
-function Iterators.flatten(semi::SemidiscretizationOversetGrid, u::VectorOfArray)
+function Iterators.flatten(semi::SemidiscretizationOversetGrid, u::RaggedVectorOfArray)
     solver_left, solver_right = semi.solver
     u_left, u_right = u
     u_left_flattened = Iterators.flatten(solver_left, u_left)
@@ -208,21 +208,21 @@ function calc_boundary_flux!(surface_flux_values, u, t, boundary_conditions,
 end
 
 # This method is for integrating a vector quantity for all variables over the entire domain,
-# such as the whole solution vector `u` (`VectorOfArray{T, 4, Vector{Array{T, 3}}}` for DG methods
-# with same basis across elements and `VectorOfArray{T, 4, Vector{VectorOfArray{T, 3, Vector{Matrix{T}}}}}}`
+# such as the whole solution vector `u` (`RaggedVectorOfArray{T, 4, Vector{Array{T, 3}}}` for DG methods
+# with same basis across elements and `RaggedVectorOfArray{T, 4, Vector{RaggedVectorOfArray{T, 3, Vector{Matrix{T}}}}}}`
 # for `PerElementFDSBP`).
 function PolynomialBases.integrate(func,
-                                   u::VectorOfArray{T, 4, T1},
+                                   u::RaggedVectorOfArray{T, 4, T1},
                                    semi::SemidiscretizationOversetGrid) where {T, T1}
     u_left, u_right = u
     integrals = zeros(real(semi), nvariables(semi))
     mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
     for v in eachvariable(semi)
-        u_left_v = VectorOfArray([u_left[v, :, element]
-                                  for element in eachelement(mesh_left)])
-        u_right_v = VectorOfArray([u_right[v, :, element]
-                                   for element in eachelement(mesh_right)])
-        u_v = VectorOfArray([u_left_v, u_right_v])
+        u_left_v = RaggedVectorOfArray([u_left[v, :, element]
+                                        for element in eachelement(mesh_left)])
+        u_right_v = RaggedVectorOfArray([u_right[v, :, element]
+                                         for element in eachelement(mesh_right)])
+        u_v = RaggedVectorOfArray([u_left_v, u_right_v])
         integrals[v] = integrate(func, u_v, semi)
     end
     return integrals
@@ -267,12 +267,12 @@ end
 # This method is for integrating a scalar quantity over the entire domain.
 # Need to dispatch on type of `u` to avoid method ambiguities.
 function PolynomialBases.integrate(func,
-                                   u::VectorOfArray{T, 3, T1},
+                                   u::RaggedVectorOfArray{T, 3, T1},
                                    semi::SemidiscretizationOversetGrid) where {T,
                                                                                T1 <:
-                                                                               Vector{VectorOfArray{T,
-                                                                                                    2,
-                                                                                                    Vector{Vector{T}}}}
+                                                                               Vector{RaggedVectorOfArray{T,
+                                                                                                          2,
+                                                                                                          Vector{Vector{T}}}}
                                                                                }
     u_left, u_right = u
     jacobian_left, jacobian_right = semi.cache.cache_left.jacobian,
@@ -305,7 +305,7 @@ function integrate_quantity(func, u, semi::SemidiscretizationOversetGrid)
     solver_left, solver_right = solver
     compute_quantity!(quantity_left, func, u_left, mesh_left, equations, solver_left)
     compute_quantity!(quantity_right, func, u_right, mesh_right, equations, solver_right)
-    quantity = VectorOfArray([quantity_left, quantity_right])
+    quantity = RaggedVectorOfArray([quantity_left, quantity_right])
     return integrate(quantity, semi)
 end
 
@@ -323,7 +323,7 @@ function analyze(::typeof(entropy_timederivative), du, u, t,
                                      mesh_left, equations, solver_left)
     compute_quantity_timederivative!(quantity_right, cons2entropy, du_right, u_right,
                                      mesh_right, equations, solver_right)
-    quantity = VectorOfArray([quantity_left, quantity_right])
+    quantity = RaggedVectorOfArray([quantity_left, quantity_right])
     return integrate(quantity, semi)
 end
 

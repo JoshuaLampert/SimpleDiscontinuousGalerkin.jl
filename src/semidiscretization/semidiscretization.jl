@@ -135,14 +135,14 @@ function integrate_on_element(func, u, D, element, jacobian)
 end
 # This method is for integrating a vector quantity for all variables over the entire domain,
 # such as the whole solution vector `u` (`Array{T, 3}` for DG methods with same basis across elements
-# and `VectorOfArray{T, 3, Vector{Matrix{T}}}` for `PerElementFDSBP`).
+# and `RaggedVectorOfArray{T, 3, Vector{Matrix{T}}}` for `PerElementFDSBP`).
 function PolynomialBases.integrate(func,
                                    u::Union{Array{T, 3},
-                                            VectorOfArray{T, 3, Vector{Matrix{T}}}},
+                                            RaggedVectorOfArray{T, 3, Vector{Matrix{T}}}},
                                    semi::Semidiscretization) where {T}
     integrals = zeros(real(semi), nvariables(semi))
     for v in eachvariable(semi)
-        u_v = VectorOfArray([u[v, :, element] for element in eachelement(semi)])
+        u_v = RaggedVectorOfArray([u[v, :, element] for element in eachelement(semi)])
         integrals[v] = integrate(func, u_v, semi)
     end
     return integrals
@@ -248,12 +248,12 @@ and simple second order finite difference to compute the Jacobian `J`
 of the semidiscretization `semi` at state `u0_ode`.
 """
 
-# Iterate over all indices of `u`, handling nested VectorOfArray inputs with ragged
-# inner dimensions. Each outer VectorOfArray level adds one trailing index.
+# Iterate over all indices of `u`, handling nested RaggedVectorOfArray inputs with ragged
+# inner dimensions. Each outer RaggedVectorOfArray level adds one trailing index.
 # Designed to work for both usual DG and overset grid DG methods with
 # potentially different nodes per element.
 fd_indices(u) = (idx.I for idx in CartesianIndices(u))
-function fd_indices(u::VectorOfArray)
+function fd_indices(u::RaggedVectorOfArray)
     return Iterators.flatten((((inner..., outer) for inner in fd_indices(arr))
                               for (outer, arr) in enumerate(u.u)))
 end

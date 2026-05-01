@@ -42,8 +42,8 @@ function create_jacobian_and_node_coordinates(mesh, solver::PerElementFDSBP)
     @assert length(solver.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
     # We need a `Vector{Vector}` to account for potentially different number of nodes for each element
     # compute all mapped nodes
-    x = VectorOfArray([zeros(real(solver), nnodes(solver, element))
-                       for element in eachelement(mesh)])
+    x = RaggedVectorOfArray([zeros(real(solver), nnodes(solver, element))
+                             for element in eachelement(mesh)])
     jacobian = zeros(real(solver), nelements(mesh))
     for element in eachelement(mesh)
         x_l = left_element_boundary(mesh, element)
@@ -61,14 +61,14 @@ function create_jacobian_and_node_coordinates(mesh, solver::PerElementFDSBP)
     return jacobian, x
 end
 
-# We need different data structure because we have a different number of nodes per element
+# We need different data structures because we have a different number of nodes per element
 # `get_node_coords`, `get_node_vars`, and `set_node_vars!` can be reused because we can
-# access the `Array{RealT, 3}` in the same way as the `VectorOfArray` structure
+# access the `Array{RealT, 3}` in the same way as the `RaggedVectorOfArray` structure
 # (`v` first, node variable(s) in the middle, `element` last).
 function allocate_coefficients(mesh, equations, solver::PerElementFDSBP)
     u = [zeros(real(solver), nvariables(equations), nnodes(solver, element))
          for element in eachelement(mesh)]
-    return VectorOfArray(u)
+    return RaggedVectorOfArray(u)
 end
 
 function get_variable(u, v, ::PerElementFDSBP)

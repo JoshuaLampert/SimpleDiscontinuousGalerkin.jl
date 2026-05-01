@@ -19,10 +19,11 @@ import LinearAlgebra: Diagonal, diag, dot
 using PolynomialBases: PolynomialBases
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
-using RecursiveArrayTools: VectorOfArray
+using RecursiveArrayToolsRaggedArrays: RaggedVectorOfArray
 using Reexport: @reexport
 using Roots: find_zero, AlefeldPotraShi
-import SciMLBase: ODESolution, solve, u_modified!, get_tmp_cache, set_proposed_dt!
+import SciMLBase: ODESolution, solve, derivative_discontinuity!, get_tmp_cache,
+                  set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
