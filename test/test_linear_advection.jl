@@ -197,6 +197,26 @@ end
     end
 end
 
+@testitem "linear_advection_gauss_legendre.jl" setup=[Setup] begin
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_gauss_legendre.jl"),
+                        l2=[2.4688288155398175e-5], linf=[3.8658415688064274e-5],
+                        cons_error=[6.730727086790012e-16],
+                        change_mass=6.730727086790012e-16,
+                        change_entropy=-1.735985421524866e-7,
+                        entropy_timederivative=-1.6829690752118154e-7)
+end
+
+@testitem "linear_advection_gauss_legendre_per_element.jl" setup=[Setup] begin
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_gauss_legendre_per_element.jl"),
+                        l2=[7.872398619443269e-5], linf=[0.0004360544275591183],
+                        cons_error=[6.730727086790012e-16],
+                        change_mass=6.730727086790012e-16,
+                        change_entropy=-5.410840427932939e-7,
+                        entropy_timederivative=-5.425500744782319e-7)
+end
+
 @testitem "linear_advection_per_element.jl" setup=[Setup] begin
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_per_element.jl"),
                         l2=[0.0023812781002631356], linf=[0.009084487338802849],
