@@ -197,7 +197,7 @@ end
     end
 end
 
-@testitem "linear_advection_gauss_legendre.jl" setup=[Setup] begin
+@testitem "linear_advection_gauss_legendre.jl" tags=[:sbp_operators_extra] setup=[Setup] begin
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_gauss_legendre.jl"),
                         l2=[2.4688288155398175e-5], linf=[3.8658415688064274e-5],
@@ -207,7 +207,7 @@ end
                         entropy_timederivative=-1.6829690752118154e-7)
 end
 
-@testitem "linear_advection_gauss_legendre_per_element.jl" setup=[Setup] begin
+@testitem "linear_advection_gauss_legendre_per_element.jl" tags=[:sbp_operators_extra] setup=[Setup] begin
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_gauss_legendre_per_element.jl"),
                         l2=[7.872398619443269e-5], linf=[0.0004360544275591183],
