@@ -12,8 +12,8 @@ if SBP_OPERATORS_EXTRA_AVAILABLE
     Pkg.add("SummationByPartsOperatorsExtra")
 end
 
-@run_package_tests filter=ti->SBP_OPERATORS_EXTRA_AVAILABLE ||
-                              !(:sbp_operators_extra in ti.tags)
+@run_package_tests filter = ti -> SBP_OPERATORS_EXTRA_AVAILABLE ||
+    !(:sbp_operators_extra in ti.tags)
 
 @testsnippet Setup begin
     include("test_util.jl")
