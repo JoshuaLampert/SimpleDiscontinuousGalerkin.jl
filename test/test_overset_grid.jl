@@ -106,6 +106,18 @@ end
                         entropy_timederivative=-1.0654816822358582e-5)
 end
 
+@testitem "linear_advection_overset_grid_gauss_legendre.jl" tags=[:sbp_operators_extra] setup=[Setup] begin
+    # Not mass conservative because we miss integrating the part from the left boundary of the left
+    # overlap element to b.
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
+                                 "linear_advection_overset_grid_gauss_legendre.jl"),
+                        l2=[9.496377230558069e-6], linf=[9.7414196928991e-6],
+                        cons_error=[1.4615925419611542e-8],
+                        change_mass=1.4615925419611542e-8,
+                        change_entropy=6.1938630162572395e-6,
+                        entropy_timederivative=0.09450597422424588)
+end
+
 @testitem "maxwell_overset_grid.jl" setup=[Setup] begin
     # Not mass conservative because we miss integrating the part from the left boundary of the left
     # overlap element to b.
