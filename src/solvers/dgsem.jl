@@ -52,7 +52,8 @@ end
 
 Base.summary(io::IO, solver::FDSBP) = print(io, "FDSBP(D=$(solver.basis)")
 
-function create_jacobian_and_node_coordinates(mesh, solver::Union{DGSEM, FDSBP})
+function create_jacobian_and_node_coordinates(mesh::AbstractMesh,
+                                              solver::Union{DGSEM, FDSBP})
     nodes_basis = grid(solver.basis)
     xmin = SummationByPartsOperators.xmin(solver.basis)
     xmax = SummationByPartsOperators.xmax(solver.basis)

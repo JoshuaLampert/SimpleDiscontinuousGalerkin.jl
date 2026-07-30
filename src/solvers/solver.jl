@@ -53,7 +53,7 @@ function compute_integral_operator(mesh, solver::PerElementFDSBP, integral; kwar
 end
 
 function calc_error_norms(u, t, initial_condition, mesh, equations,
-                          solver, cache)
+                          solver::DG, cache)
     u_exact = similar(u)
     compute_coefficients!(u_exact, initial_condition, t, mesh, equations, solver, cache)
     l2_error = zeros(real(solver), nvariables(equations))
@@ -77,11 +77,11 @@ function calc_error_norms(u, t, initial_condition, mesh, equations,
     return l2_error, linf_error
 end
 
-function calc_sources!(du, u, t, source_terms::Nothing, mesh, equations, solver, cache)
+function calc_sources!(du, u, t, source_terms::Nothing, mesh, equations, solver::DG, cache)
     return nothing
 end
 
-function calc_sources!(du, u, t, source_terms, mesh, equations, solver, cache)
+function calc_sources!(du, u, t, source_terms, mesh, equations, solver::DG, cache)
     node_coordinates = cache.node_coordinates
 
     for element in eachelement(mesh)

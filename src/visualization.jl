@@ -88,8 +88,8 @@ end
     end
 end
 
-function compute_data(mesh::OversetGridMesh, equations, solver, u, u_initial, u_exact,
-                      plot_initial, plot_analytical, conversion, nvars)
+function compute_data(mesh::OversetGridMesh, equations, solver::Tuple, u, u_initial,
+                      u_exact, plot_initial, plot_analytical, conversion, nvars)
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
     u_left, u_right = u
@@ -123,7 +123,7 @@ function compute_data(mesh::OversetGridMesh, equations, solver, u, u_initial, u_
            (data_exact_left, data_exact_right)
 end
 
-function compute_data(mesh, equations, solver, u, u_initial, u_exact, plot_initial,
+function compute_data(mesh, equations, solver::DG, u, u_initial, u_exact, plot_initial,
                       plot_analytical, conversion, nvars)
     data = zeros(real(mesh), nvars, ndofs(mesh, solver))
     if plot_initial == true
