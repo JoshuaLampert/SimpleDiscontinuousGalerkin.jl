@@ -67,3 +67,23 @@ clipboard("l2=$(errs.l2_error[:, end])\n, linf=$(errs.linf_error[:, end])\n, con
 
 Note that some of the quantities are only computed if they are included in the `analysis_callback`, which means that you
 might need to adjust the above command depending on which quantities you want to test for.
+
+### Static analysis with JET.jl
+
+In addition to the usual test suite, SimpleDiscontinuousGalerkin.jl is checked with
+[JET.jl](https://github.com/aviatesk/JET.jl) in a separate CI workflow (`.github/workflows/JET.yml`).
+JET.jl statically analyzes the package and reports potential runtime errors, e.g. calls for which no
+matching method exists. You can run the same analysis locally by
+
+```sh
+julia --project=. -e '
+using Pkg
+Pkg.add(["JET", "Plots"])
+using JET
+# We need to load Plots.jl to make the definition of `is_key_supported` available.
+# Otherwise, JET.jl fails since it is not defined for the keyword arguments in the plot recipes.
+import Plots
+using SimpleDiscontinuousGalerkin
+
+test_package(SimpleDiscontinuousGalerkin; target_modules = (SimpleDiscontinuousGalerkin,))'
+```

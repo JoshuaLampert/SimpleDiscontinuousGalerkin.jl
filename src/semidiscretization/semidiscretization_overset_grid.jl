@@ -15,7 +15,8 @@ function allocate_coefficients(mesh::OversetGridMesh, equations, solver::Tuple)
     return RaggedVectorOfArray([u_left, u_right])
 end
 
-function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, solver, cache)
+function compute_coefficients!(u, func, t, mesh::OversetGridMesh, equations, solver::Tuple,
+                               cache)
     u_left, u_right = u
     solver_left, solver_right = solver
     cache_left, cache_right = cache
@@ -328,7 +329,7 @@ function analyze(::typeof(entropy_timederivative), du, u, t,
 end
 
 function calc_error_norms(u, t, initial_condition, mesh::OversetGridMesh,
-                          equations, solver, cache)
+                          equations, solver::Tuple, cache)
     u_left, u_right = u
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
@@ -342,7 +343,7 @@ function calc_error_norms(u, t, initial_condition, mesh::OversetGridMesh,
     return l2_error_left + l2_error_right, max(linf_error_left, linf_error_right)
 end
 
-function max_dt(u, t, mesh::OversetGridMesh, equations, solver, cache)
+function max_dt(u, t, mesh::OversetGridMesh, equations, solver::Tuple, cache)
     u_left, u_right = u
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver

@@ -114,7 +114,7 @@ function allocate_coefficients(mesh, equations, solver)
     return zeros(real(solver), nvariables(equations), nnodes(solver), nelements(mesh))
 end
 
-function compute_coefficients!(u, func, t, mesh, equations, solver, cache)
+function compute_coefficients!(u, func, t, mesh, equations, solver::DG, cache)
     node_coordinates = cache.node_coordinates
     for element in eachelement(mesh)
         for i in eachnode(solver, element)

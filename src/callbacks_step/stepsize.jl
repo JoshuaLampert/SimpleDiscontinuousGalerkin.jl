@@ -88,7 +88,7 @@ function calculate_dt(u, t, cfl_number, semi)
     return dt
 end
 
-function max_dt(u, t, mesh, equations, dg, cache)
+function max_dt(u, t, mesh, equations, dg::DG, cache)
     # to avoid a division by zero if the speed vanishes everywhere,
     # e.g. for steady-state linear advection
     max_scaled_speed = nextfloat(zero(t))
