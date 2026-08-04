@@ -1,4 +1,5 @@
 using Documenter
+using DocumenterCodeBlocks: CodeBlocks
 using SimpleDiscontinuousGalerkin
 using TrixiBase
 
@@ -29,6 +30,9 @@ makedocs(;
                                   prettyurls = get(ENV, "CI", "false") == "true",
                                   canonical = "https://JoshuaLampert.github.io/SimpleDiscontinuousGalerkin.jl/stable",
                                   edit_link = "main"),
+         # Improve code blocks in the documentation by using DocumenterCodeBlocks.jl
+         plugins = [CodeBlocks()],
+         # Explicitly specify documentation structure
          pages = ["Home" => "index.md",
              "Overview" => "overview.md",
              "Development" => "development.md",
