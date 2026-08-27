@@ -6,4 +6,4 @@ TrixiBase = "9a0f1c46-06d5-4909-a5a3-ce25d3fa3284"
 [compat]
 Documenter = "1"
 DocumenterCodeBlocks = "1"
-TrixiBase = "0.1.1"
+TrixiBase = "0.1.6, 0.2"

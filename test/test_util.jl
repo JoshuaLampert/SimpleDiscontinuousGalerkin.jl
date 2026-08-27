@@ -1,5 +1,5 @@
 using Test: @test
-using TrixiTest: @trixi_test_nowarn, get_kwarg
+using TrixiTest: @trixi_test_nowarn, get_kwarg, trixi_include_kwargs
 
 # Use a macro to avoid world age issues when defining new initial conditions etc.
 # inside an example.
@@ -37,22 +37,19 @@ macro test_trixi_include(example, args...)
     local atol = get_kwarg(args, :atol, atol_default)
     local rtol = get_kwarg(args, :rtol, rtol_default)
 
-    local kwargs = Pair{Symbol, Any}[]
-    for arg in args
-        if (arg.head == :(=) &&
-            !(arg.args[1] in (:l2, :linf, :cons_error, :change_mass, :change_entropy,
-                              :entropy_timederivative, :RealT_for_test_tolerances,
-                              :atol, :rtol)))
-            push!(kwargs, Pair(arg.args...))
-        end
-    end
+    local kwargs = trixi_include_kwargs(args;
+                                        reserved = (:l2, :linf, :cons_error, :change_mass,
+                                                    :change_entropy,
+                                                    :entropy_timederivative,
+                                                    :RealT_for_test_tolerances, :atol,
+                                                    :rtol))
 
     quote
         println("═"^100)
-        println($example)
+        println($(esc(example)))
 
         # evaluate examples in the scope of the module they're called from
-        @trixi_test_nowarn trixi_include(@__MODULE__, $example; $kwargs...)
+        @trixi_test_nowarn trixi_include(@__MODULE__, $(esc(example)); $(kwargs...))
 
         # if present, compare l2, linf and conservation errors against reference values
         if !isnothing($l2) || !isnothing($linf) || !isnothing($cons_error)
