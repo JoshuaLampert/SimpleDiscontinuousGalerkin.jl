@@ -41,8 +41,8 @@ macro test_trixi_include(example, args...)
                                         reserved = (:l2, :linf, :cons_error, :change_mass,
                                                     :change_entropy,
                                                     :entropy_timederivative,
-                                                    :RealT_for_test_tolerances, :atol,
-                                                    :rtol))
+                                                    :RealT_for_test_tolerances,
+                                                    :atol, :rtol))
 
     quote
         println("═"^100)
