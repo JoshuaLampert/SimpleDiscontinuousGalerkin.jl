@@ -46,5 +46,5 @@ The package is developed and maintained by Joshua Lampert (University of Hamburg
 
 ## License and contributing
 
-SimpleDiscontinuousGalerkin.jl is published under the MIT license (see [License](https://github.com/JoshuaLampert/SimpleDiscontinuousGalerkin.jl/blob/main/LICENSE)).
+SimpleDiscontinuousGalerkin.jl is published under the MIT license (see [License](https://github.com/JoshuaLampert/SimpleDiscontinuousGalerkin.jl/blob/main/LICENSE.md)).
 We are pleased to accept contributions from everyone, preferably in the form of a PR.
