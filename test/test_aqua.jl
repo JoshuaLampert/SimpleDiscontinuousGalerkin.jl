@@ -16,8 +16,6 @@
                                      :barycentric_weights,
                                      # Base, used in the `AnalysisCallback`
                                      :gc_live_bytes, :gc_time_ns,
-                                     # Base, extended for broadcasting
-                                     :broadcastable,
                                      # TimerOutputs.jl
                                      :complement!,
                                      # TrixiBase.jl

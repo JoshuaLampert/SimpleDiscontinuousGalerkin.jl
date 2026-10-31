@@ -20,7 +20,7 @@ for the variables in `equations`. In particular, not the variables themselves ar
 """
 @inline eachvariable(equations::AbstractEquations) = Base.OneTo(nvariables(equations))
 
-Base.broadcastable(equations::AbstractEquations) = (equations,)
+Broadcast.broadcastable(equations::AbstractEquations) = (equations,)
 
 """
     get_name(equations::AbstractEquations)
