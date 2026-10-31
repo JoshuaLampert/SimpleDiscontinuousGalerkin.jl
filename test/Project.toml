@@ -16,7 +16,7 @@ TrixiTest = "0a316866-cbd0-4425-8bcb-08103b2c1f26"
 [compat]
 Aqua = "0.8.9"
 DoubleFloats = "1.4"
-ExplicitImports = "1.6"
+ExplicitImports = "1.15"
 LinearAlgebra = "1"
 OrdinaryDiffEqLowStorageRK = "2, 3"
 OrdinaryDiffEqSSPRK = "2"
