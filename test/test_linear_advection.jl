@@ -45,11 +45,13 @@ end
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION,
                                  "linear_advection_float32.jl"),
                         RealT=Double64,
-                        l2=[df64"1.11343962874803462940801969069672503e-04"],
-                        linf=[df64"4.2895011703240468510400642690940612e-04"],
-                        change_mass=df64"9.398538128609711e-32",
-                        change_entropy=df64"-9.08222294896891188069229575962773225e-07",
-                        entropy_timederivative=df64"-9.2106384991931779546407648803854876e-07",
+                        # Use `Double64` also for time to avoid `Float64` rounding
+                        tspan=(Double64(0), Double64(1)),
+                        l2=[df64"1.1134396287479846661318655180074082e-04"],
+                        linf=[df64"4.2895011703247163570825242592487736e-04"],
+                        change_mass=df64"3.928897086549961e-32",
+                        change_entropy=df64"-9.08222294896891219847669929344435e-07",
+                        entropy_timederivative=df64"-9.2106384991931779543285557667375749e-07",
                         RealT_for_test_tolerances=Double64)
     @test eltype(sol.u[end]) === Double64
 end
