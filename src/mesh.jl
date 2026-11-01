@@ -127,6 +127,12 @@ end
     OversetGridMesh(mesh_left, mesh_right)
 
 Create an overset grid (Chimera) mesh that combines two meshes, `mesh_left` and `mesh_right`, which have an overlap region.
+
+Integrals over the whole domain, e.g., in the [`AnalysisCallback`](@ref), use `mesh_left` up to the right
+boundary of the element of `mesh_left` containing `xmin(mesh_right)` and `mesh_right` everywhere else.
+Thus, the part of this element to the right of `xmin(mesh_right)` is counted twice unless `xmin(mesh_right)`
+is an element boundary of `mesh_left`. The L2 error is computed with the same decomposition of the domain
+and normalized by the length of the integrated domain. The L∞ error is the maximum over both meshes.
 """
 struct OversetGridMesh{NDIMS, RealT, MeshLeft <: AbstractMesh, MeshRight <: AbstractMesh} <:
        AbstractMesh{NDIMS, RealT}

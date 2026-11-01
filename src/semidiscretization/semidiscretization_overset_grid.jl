@@ -233,16 +233,15 @@ end
 # In general it is not clear which mesh should be used for the integration in the overlap region, so here we compute the integral on the left mesh.
 # TODO: This is inefficient because it computes unnecessarily many integrals (adds and subtracts the same contribution in the overlap region and
 # computes both the integral on the left and on the right although only one is needed)
-function overlap_integral(func, u, semi::SemidiscretizationOversetGrid)
+function overlap_integral(func, u, mesh::OversetGridMesh, solver::Tuple, cache)
     u_left, u_right = u
-    jacobian_left, jacobian_right = semi.cache.cache_left.jacobian,
-                                    semi.cache.cache_right.jacobian
-    mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
-    solver_left, solver_right = semi.solver
+    jacobian_left, jacobian_right = cache.cache_left.jacobian, cache.cache_right.jacobian
+    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
+    solver_left, solver_right = solver
     surface_integral_left, surface_integral_right = solver_left.surface_integral,
                                                     solver_right.surface_integral
-    l_left = left_overlap_element(semi.mesh)
-    l_right = right_overlap_element(semi.mesh)
+    l_left = left_overlap_element(mesh)
+    l_right = right_overlap_element(mesh)
     integral_overlap_left = sum(integrate_on_element(func, u_left.u[element],
                                                      get_basis(solver_left, element),
                                                      element, jacobian_left)
@@ -275,11 +274,16 @@ function PolynomialBases.integrate(func,
                                                                                                           2,
                                                                                                           Vector{Vector{T}}}}
                                                                                }
+    return integrate_overset(func, u, semi.mesh, semi.solver, semi.cache)
+end
+
+# This method integrates a scalar quantity `u` given on both meshes over the entire domain.
+# It is also used to compute the L2 error, see `calc_error_norms`.
+function integrate_overset(func, u, mesh::OversetGridMesh, solver::Tuple, cache)
     u_left, u_right = u
-    jacobian_left, jacobian_right = semi.cache.cache_left.jacobian,
-                                    semi.cache.cache_right.jacobian
-    mesh_left, mesh_right = semi.mesh.mesh_left, semi.mesh.mesh_right
-    solver_left, solver_right = semi.solver
+    jacobian_left, jacobian_right = cache.cache_left.jacobian, cache.cache_right.jacobian
+    mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
+    solver_left, solver_right = solver
     # TODO: This integrates the left domain only until the right boundary of the left overlap element,
     # i.e., we count the integral from b to the right boundary of the left overlap element twice.
     # In general, we cannot integrate on a subdomain with a standard SBP operator.
@@ -292,7 +296,7 @@ function PolynomialBases.integrate(func,
                                               element, jacobian_right)
                          for element in 1:nelements(mesh_right))
 
-    integral_overlap = overlap_integral(func, u, semi)
+    integral_overlap = overlap_integral(func, u, mesh, solver, cache)
     return integral_left + integral_right - integral_overlap
 end
 
@@ -334,13 +338,31 @@ function calc_error_norms(u, t, initial_condition, mesh::OversetGridMesh,
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
     cache_left, cache_right = cache
-    l2_error_left, linf_error_left = calc_error_norms(u_left, t, initial_condition,
-                                                      mesh_left, equations,
-                                                      solver_left, cache_left)
-    l2_error_right, linf_error_right = calc_error_norms(u_right, t, initial_condition,
-                                                        mesh_right, equations,
-                                                        solver_right, cache_right)
-    return l2_error_left + l2_error_right, max(linf_error_left, linf_error_right)
+    u_exact_left = similar(u_left)
+    compute_coefficients!(u_exact_left, initial_condition, t, mesh_left, equations,
+                          solver_left, cache_left)
+    u_exact_right = similar(u_right)
+    compute_coefficients!(u_exact_right, initial_condition, t, mesh_right, equations,
+                          solver_right, cache_right)
+    l2_error = zeros(real(solver_left), nvariables(equations))
+    linf_error = zeros(real(solver_left), nvariables(equations))
+    for v in eachvariable(equations)
+        diff_left = RaggedVectorOfArray([u_exact_left[v, :, element] -
+                                         u_left[v, :, element]
+                                         for element in eachelement(mesh_left)])
+        diff_right = RaggedVectorOfArray([u_exact_right[v, :, element] -
+                                          u_right[v, :, element]
+                                          for element in eachelement(mesh_right)])
+        diff = RaggedVectorOfArray([diff_left, diff_right])
+        # The L2 error uses the same decomposition of the domain as `integrate`. It is normalized
+        # by the length of the integrated domain, i.e., the integral of one, such that it coincides
+        # with the discrete L2 norm on the whole domain if `b` is an element boundary of the left mesh.
+        l2_error[v] = sqrt(integrate_overset(abs2, diff, mesh, solver, cache) /
+                           integrate_overset(one, diff, mesh, solver, cache))
+        linf_error[v] = max(maximum(e -> maximum(abs, e), diff_left.u),
+                            maximum(e -> maximum(abs, e), diff_right.u))
+    end
+    return l2_error, linf_error
 end
 
 function max_dt(u, t, mesh::OversetGridMesh, equations, solver::Tuple, cache)
@@ -348,9 +370,8 @@ function max_dt(u, t, mesh::OversetGridMesh, equations, solver::Tuple, cache)
     mesh_left, mesh_right = mesh.mesh_left, mesh.mesh_right
     solver_left, solver_right = solver
     cache_left, cache_right = cache
-    max_scaled_speed_left = max_dt(u_left, t, mesh_left, equations, solver_left,
-                                   cache_left)
-    max_scaled_speed_right = max_dt(u_right, t, mesh_right, equations, solver_right,
-                                    cache_right)
-    return max(max_scaled_speed_left, max_scaled_speed_right)
+    dt_left = max_dt(u_left, t, mesh_left, equations, solver_left, cache_left)
+    dt_right = max_dt(u_right, t, mesh_right, equations, solver_right, cache_right)
+    # The time step needs to be stable on both meshes
+    return min(dt_left, dt_right)
 end

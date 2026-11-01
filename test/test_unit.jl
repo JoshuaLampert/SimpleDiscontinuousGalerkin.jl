@@ -267,6 +267,49 @@ end
                                            [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
+@testitem "overset grid" begin
+    using SimpleDiscontinuousGalerkin: compute_coefficients, max_dt, calc_error_norms
+
+    # Different resolutions on the two meshes lead to different stable time steps.
+    # The time step of the overset grid needs to be stable on both meshes.
+    equations = LinearAdvectionEquation1D(1.0)
+    solver = DGSEM(polydeg = 3, surface_flux = flux_godunov)
+    mesh_left = Mesh(-1.0, 0.1, 4)
+    mesh_right = Mesh(-0.1, 1.0, 40)
+    mesh = OversetGridMesh(mesh_left, mesh_right)
+    semi = Semidiscretization(mesh, equations, initial_condition_convergence_test, solver;
+                              boundary_conditions = boundary_condition_periodic)
+    u = compute_coefficients(initial_condition_convergence_test, 0.0, semi)
+    u_left, u_right = u
+    solver_left, solver_right = semi.solver
+    dt = max_dt(u, 0.0, mesh, equations, semi.solver, semi.cache)
+    dt_left = max_dt(u_left, 0.0, mesh_left, equations, solver_left, semi.cache.cache_left)
+    dt_right = max_dt(u_right, 0.0, mesh_right, equations, solver_right,
+                      semi.cache.cache_right)
+    @test dt_right < dt_left
+    @test dt == dt_right
+
+    # The L2 error is normalized by the length of the integrated domain, such that a
+    # constant error yields this constant
+    u_left .-= 0.3
+    u_right .-= 0.3
+    l2, linf = calc_error_norms(u, 0.0, semi)
+    @test l2 ≈ [0.3]
+    @test linf ≈ [0.3]
+
+    # The Linf error is the maximum over both meshes for each variable separately
+    equations = MaxwellEquations1D(1.0)
+    mesh = OversetGridMesh(Mesh(-1.0, 0.1, 10), Mesh(-0.1, 1.0, 10))
+    semi = Semidiscretization(mesh, equations, initial_condition_convergence_test, solver;
+                              boundary_conditions = boundary_condition_periodic)
+    u = compute_coefficients(initial_condition_convergence_test, 0.0, semi)
+    u_left, u_right = u
+    u_left[2, :, :] .+= 0.01
+    u_right[1, :, :] .+= 0.1
+    l2, linf = calc_error_norms(u, 0.0, semi)
+    @test linf ≈ [0.1, 0.01]
+end
+
 @testitem "Jacobian" setup=[Setup] begin
     using LinearAlgebra: eigvals
     using DoubleFloats: Double64
