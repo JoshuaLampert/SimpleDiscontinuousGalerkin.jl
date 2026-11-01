@@ -381,6 +381,42 @@ end
     @test linf[1] == errs.linf_error[end]
 end
 
+@testitem "AnalysisCallback errors" begin
+    using OrdinaryDiffEqLowStorageRK: solve, RDPK3SpFSAL49
+
+    equations = LinearAdvectionEquation1D(2.0)
+    mesh = Mesh(-1.0, 1.0, 10)
+    solver = DGSEM(polydeg = 3, surface_flux = flux_godunov)
+    semi = Semidiscretization(mesh, equations, initial_condition_convergence_test, solver;
+                              boundary_conditions = boundary_condition_periodic)
+    ode = semidiscretize(semi, (0.0, 0.01))
+    function solve_and_get_errors(; kwargs...)
+        analysis_callback = AnalysisCallback(semi; interval = 1, io = devnull, kwargs...)
+        solve(ode, RDPK3SpFSAL49(); callback = analysis_callback, save_everystep = false)
+        return errors(analysis_callback)
+    end
+    errs = solve_and_get_errors(extra_analysis_errors = (:conservation_error,))
+    @test keys(errs) == (:l2_error, :linf_error, :conservation_error)
+
+    # Unsupported errors are ignored with a warning
+    message = "Analysis error foo is not supported and will be ignored."
+    extra_analysis_errors = (:conservation_error, :foo)
+    @test_logs (:warn, message) AnalysisCallback(semi; extra_analysis_errors)
+    errs_foo = @test_logs (:warn, message) solve_and_get_errors(; extra_analysis_errors)
+    @test errs_foo == errs
+
+    # The errors are stored according to their names, independent of the order
+    errs_reversed = solve_and_get_errors(analysis_errors = [:conservation_error,
+                                             :linf_error, :l2_error])
+    @test keys(errs_reversed) == (:conservation_error, :linf_error, :l2_error)
+    for name in keys(errs)
+        @test errs_reversed[name] == errs[name]
+    end
+    errs_conservation = solve_and_get_errors(analysis_errors = [:conservation_error])
+    @test keys(errs_conservation) == (:conservation_error,)
+    @test errs_conservation.conservation_error == errs.conservation_error
+end
+
 @testitem "StepsizeCallback" setup=[Setup] begin
     stepsize_callback = StepsizeCallback(cfl = 1.0)
     @test_nowarn print(stepsize_callback)
