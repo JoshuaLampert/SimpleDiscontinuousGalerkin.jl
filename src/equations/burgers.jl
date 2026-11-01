@@ -88,7 +88,8 @@ function (riemann_solver::RiemannSolver{BurgersEquation1D})(xi)
         elseif xi >= u_rr[1]
             return u_rr
         else
-            return xi
+            # Return the same type of state as `u_ll`, i.e., a scalar or an `SVector`
+            return zero(u_ll) .+ xi
         end
     end
 end

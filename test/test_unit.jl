@@ -71,6 +71,15 @@ end
     @test flux_godunov.(u1, u1, equations) == flux.(u1, equations)
     @test flux_lax_friedrichs.(u1, u1, equations) == flux.(u1, equations)
     @test flux_ec.(u1, u1, equations) == flux.(u1, equations)
+    # Transonic rarefaction: the Godunov state is the sonic point u = 0
+    @test @inferred(flux_godunov(SVector(-1.0), SVector(1.0), equations)) == SVector(0.0)
+    @test @inferred(flux_godunov(SVector(-1.0f0), SVector(1.0f0), equations)) isa
+          SVector{1, Float32}
+    # Rarefaction fan of the exact Riemann solver
+    riemann_solver = RiemannSolver(RiemannProblem(SVector(-1.0), SVector(1.0)), equations)
+    sol = solve(riemann_solver, range(-1.0, 1.0, length = 5), [0.5, 1.0])
+    @test sol[1] == SVector.([-1.0, -1.0, 0.0, 1.0, 1.0])
+    @test sol[2] == SVector.([-1.0, -0.5, 0.0, 0.5, 1.0])
 
     u2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
     equations = @test_nowarn MaxwellEquations1D(3.12)
