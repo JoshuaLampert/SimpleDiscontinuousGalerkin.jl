@@ -31,7 +31,9 @@ struct Semidiscretization{Mesh, Equations, InitialCondition, BoundaryConditions,
                                                                                  SourceTerms,
                                                                                  Solver,
                                                                                  Cache}
-        @assert ndims(mesh) == ndims(equations)
+        if ndims(mesh) != ndims(equations)
+            throw(ArgumentError("The mesh and the equations need to have the same number of spatial dimensions."))
+        end
 
         return new(mesh, equations, initial_condition, boundary_conditions, source_terms,
                    solver, cache)

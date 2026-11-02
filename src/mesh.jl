@@ -32,7 +32,7 @@ element_spacing(mesh::AbstractMesh, element) = element_spacing(mesh)
 Return the left boundary coordinate of the element `element` in the mesh.
 """
 function left_element_boundary(mesh::AbstractMesh, element)
-    @assert 1<=element<=nelements(mesh)+1 "Element index out of bounds"
+    1 <= element <= nelements(mesh) + 1 || throw(BoundsError(mesh, element))
     dx = element_spacing(mesh)
     return xmin(mesh) + (element - 1) * dx
 end
@@ -57,8 +57,12 @@ struct Mesh{NDIMS, RealT} <: AbstractMesh{NDIMS, RealT}
     N_elements::Int
 
     function Mesh{RealT}(xmin::RealT, xmax::RealT, N_elements::Int) where {RealT}
-        @assert xmin < xmax
-        @assert N_elements > 0
+        if !(xmin < xmax)
+            throw(ArgumentError("`xmin` needs to be smaller than `xmax`, got xmin = $xmin and xmax = $xmax."))
+        end
+        if N_elements <= 0
+            throw(ArgumentError("The number of elements `N_elements` needs to be positive, got N_elements = $N_elements."))
+        end
         return new{1, RealT}(xmin, xmax, N_elements)
     end
 end
@@ -67,10 +71,11 @@ end
     Mesh(xmin, xmax, N_elements)
 
 Create a simple homogeneous one-dimensional mesh from `xmin` to `xmax` with `N_elements` elements.
+The coordinates are converted to a common floating point type.
 """
-function Mesh(xmin, xmax, N_elements)
-    xmin, xmax = promote(xmin, xmax)
-    return Mesh{typeof(xmin)}(xmin, xmax, N_elements)
+function Mesh(xmin, xmax, N_elements::Integer)
+    xmin, xmax = float.(promote(xmin, xmax))
+    return Mesh{typeof(xmin)}(xmin, xmax, Int(N_elements))
 end
 
 """
@@ -101,13 +106,20 @@ element_spacing(mesh::Mesh) = total_volume(mesh) / nelements(mesh)
     InhomogeneousMesh(coordinates)
 
 Create an inhomogeneous one-dimensional mesh from the given `coordinates`.
+The coordinates are sorted and converted to a floating point type. They need to be unique.
 """
 struct InhomogeneousMesh{NDIMS, RealT} <: AbstractMesh{NDIMS, RealT}
     coordinates::Vector{RealT}
 
-    function InhomogeneousMesh(coordinates::AbstractVector{RealT}) where {RealT}
-        @assert length(coordinates)>1 "InhomogeneousMesh requires at least two coordinates"
-        return new{1, RealT}(sort(collect(coordinates)))
+    function InhomogeneousMesh(coordinates::AbstractVector)
+        if length(coordinates) < 2
+            throw(ArgumentError("`InhomogeneousMesh` requires at least two coordinates, got $(length(coordinates))."))
+        end
+        if !allunique(coordinates)
+            throw(ArgumentError("The coordinates of an `InhomogeneousMesh` need to be unique."))
+        end
+        coordinates = sort(float.(collect(coordinates)))
+        return new{1, eltype(coordinates)}(coordinates)
     end
 end
 
@@ -118,7 +130,7 @@ function element_spacing(mesh::InhomogeneousMesh, element)
     return mesh.coordinates[element + 1] - mesh.coordinates[element]
 end
 function left_element_boundary(mesh::InhomogeneousMesh, element)
-    @assert 1<=element<=nelements(mesh)+1 "Element index out of bounds"
+    1 <= element <= nelements(mesh) + 1 || throw(BoundsError(mesh, element))
     return mesh.coordinates[element]
 end
 
@@ -145,9 +157,9 @@ struct OversetGridMesh{NDIMS, RealT, MeshLeft <: AbstractMesh, MeshRight <: Abst
                                                            AbstractMesh{1, RealT},
                                                            MeshRight <:
                                                            AbstractMesh{1, RealT}}
-        @assert xmin(mesh_left) < xmin(mesh_right) &&
-                xmax(mesh_left) > xmin(mesh_right) &&
-                xmin(mesh_left) < xmax(mesh_right)
+        if !(xmin(mesh_left) < xmin(mesh_right) < xmax(mesh_left) < xmax(mesh_right))
+            throw(ArgumentError("The meshes need to overlap such that `xmin(mesh_left) < xmin(mesh_right) < xmax(mesh_left) < xmax(mesh_right)`, got the domains [$(xmin(mesh_left)), $(xmax(mesh_left))] and [$(xmin(mesh_right)), $(xmax(mesh_right))]."))
+        end
         return new{1, RealT, MeshLeft, MeshRight}(mesh_left, mesh_right)
     end
 end
