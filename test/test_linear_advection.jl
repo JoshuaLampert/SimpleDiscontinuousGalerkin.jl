@@ -75,12 +75,23 @@ end
 end
 
 @testitem "linear_advection_FDSBP.jl" setup=[Setup] begin
-    # Same errors as in "linear_advection.jl"
+    @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_FDSBP.jl"),
+                        l2=[0.00030162682770345546], linf=[0.0008088018130807395],
+                        change_mass=-6.105128699807061e-8,
+                        change_entropy=1.0693020243146556e-6,
+                        entropy_timederivative=-6.323724789369933e-7)
+
+    # Same errors as in "linear_advection_strong_form.jl" with the same boundary conditions
+    # and `surface_flux = (flux_central, flux_godunov)`
+    boundary_conditions = (x_neg = BoundaryConditionDirichlet(initial_condition_convergence_test),
+                           x_pos = boundary_condition_do_nothing)
     @test_trixi_include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_strong_form.jl"),
-                        l2=[0.00011134396287493107], linf=[0.00042895011704668917],
-                        change_mass=2.7755575615628914e-17,
-                        change_entropy=-9.082223090817187e-7,
-                        entropy_timederivative=-9.210638493017953e-7)
+                        surface_flux=(flux_central, flux_godunov),
+                        boundary_conditions=boundary_conditions,
+                        l2=[0.00030162682770345546], linf=[0.0008088018130807395],
+                        change_mass=-6.105128699807061e-8,
+                        change_entropy=1.0693020243146556e-6,
+                        entropy_timederivative=-6.323724789369933e-7)
 end
 
 @testitem "linear_advection_FDSBP_SAT.jl" setup=[Setup] begin
