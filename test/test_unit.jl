@@ -8,15 +8,21 @@
     f = interpolate(x, values, nodes, baryweights)
 
     e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
-    @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
-    @test_nowarn isapprox(e_M' * values, f, atol = 1.0e-14)
+    # The interpolation coincides with the barycentric interpolation and is exact
+    # for polynomials up to degree 4
+    @test isapprox(e_M' * values, f, atol = 1.0e-14)
+    for p in 0:4
+        @test isapprox(e_M' * nodes .^ p, x^p, atol = 1.0e-14)
+    end
 
     D = derivative_operator(MattssonNordström2004(), 1, 2, -1.1, 2.6, 20)
     nodes = grid(D)
-    values = sin.(nodes)
 
     e_M = SimpleDiscontinuousGalerkin.interpolation_operator(x, D)
-    @test_nowarn isapprox(e_M' * values, sin(x), atol = 1.0e-14)
+    # The interpolation is exact for polynomials up to the accuracy order
+    for p in 0:accuracy_order(D)
+        @test isapprox(e_M' * nodes .^ p, x^p, atol = 1.0e-14)
+    end
 
     # convergence test
     convergence_test(default_example(), 3, interval = 1000)
@@ -41,12 +47,14 @@
         @test isapprox(eoc_mean_values[:l2][1], polydeg + 1, atol = 0.15)
         @test isapprox(eoc_mean_values[:linf][1], polydeg + 1, atol = 0.15)
 
-        eoc_mean_values2, _ = convergence_test(default_example(), [16, 32, 64],
-                                               tspan = (0.0, 1.0), polydeg = polydeg,
-                                               abstol = 1e-14, reltol = 1e-14,
-                                               interval = 1000)
-        for kind in (:l2, :linf), variable in (1,)
-            eoc_mean_values[kind][variable] == eoc_mean_values2[kind][variable]
+        # Passing the resolutions instead of the number of iterations runs the same
+        # simulations. Since this is expensive, we check it only for one polynomial degree.
+        if polydeg == 3
+            eoc_mean_values2, _ = convergence_test(default_example(), [16, 32, 64],
+                                                   tspan = (0.0, 1.0), polydeg = polydeg,
+                                                   abstol = 1e-14, reltol = 1e-14,
+                                                   interval = 1000)
+            @test eoc_mean_values2 == eoc_mean_values
         end
     end
 end
