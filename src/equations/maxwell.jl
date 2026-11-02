@@ -80,11 +80,21 @@ end
     return SVector(E, equations.speed_of_light^2 * B)
 end
 
+"""
+    electric_field(u, equations::MaxwellEquations1D)
+
+Return the electric field ``E`` for the conservative variables `u`.
+"""
 function electric_field(u, equations::MaxwellEquations1D)
     return first(u)
 end
 varnames(::typeof(electric_field), ::MaxwellEquations1D) = ("E",)
 
+"""
+    magnetic_field(u, equations::MaxwellEquations1D)
+
+Return the magnetic field ``B`` for the conservative variables `u`.
+"""
 function magnetic_field(u, equations::MaxwellEquations1D)
     return last(u)
 end

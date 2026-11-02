@@ -1,7 +1,11 @@
 """
     AnalysisCallback(semi; interval=0,
                            extra_analysis_errors=Symbol[],
+                           analysis_errors=union(default_analysis_errors(equations),
+                                                 extra_analysis_errors),
                            extra_analysis_integrals=(),
+                           analysis_integrals=union(default_analysis_integrals(equations),
+                                                    extra_analysis_integrals),
                            io=stdout)
 
 Analyze a numerical solution every `interval` time steps.
@@ -15,6 +19,9 @@ solution and integrated over the computational domain. Some examples for this ar
 [`mass`](@ref), and [`entropy`](@ref).
 You can also write your own function with the same signature as the examples listed above and
 pass it via `extra_analysis_integrals`.
+To replace the default errors and integrals instead of extending them, pass
+`analysis_errors` and `analysis_integrals` directly. The defaults depend on the `equations`
+of `semi`, see [`default_analysis_errors`](@ref) and [`default_analysis_integrals`](@ref).
 The computed errors and integrals are saved for each timestep and can be obtained by calling
 [`errors`](@ref) and [`integrals`](@ref).
 

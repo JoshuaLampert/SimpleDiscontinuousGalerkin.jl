@@ -1,6 +1,11 @@
 abstract type AbstractMesh{NDIMS, RealT} end
 
 @inline Base.ndims(::AbstractMesh{NDIMS}) where {NDIMS} = NDIMS
+"""
+    eachelement(mesh::AbstractMesh)
+
+Return an iterator over the indices of the elements in `mesh`.
+"""
 @inline eachelement(mesh::AbstractMesh) = Base.OneTo(nelements(mesh))
 @inline Base.real(::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT} = RealT
 
@@ -90,6 +95,11 @@ xmin(mesh::Mesh) = mesh.xmin
 Return the maximum coordinate of the mesh.
 """
 xmax(mesh::Mesh) = mesh.xmax
+"""
+    nelements(mesh::AbstractMesh)
+
+Return the number of elements in `mesh`.
+"""
 @inline nelements(mesh::Mesh) = mesh.N_elements
 
 """

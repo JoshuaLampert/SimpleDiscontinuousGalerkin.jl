@@ -54,10 +54,24 @@ In particular, not the nodes themselves are returned.
 @inline eachnode(solver::DG, element) = Base.OneTo(nnodes(solver, element))
 # This method is only supported for solvers with a fixed number of nodes per element.
 @inline nnodes(solver::DG) = length(grid(solver))
+
+"""
+    nnodes(solver::DG, element)
+
+Return the number of nodes in a specific `element` in `solver`.
+"""
 @inline nnodes(solver::DG, element) = length(grid(solver, element))
-# This is the number of DOFs per variable. See a discussion in
-# https://github.com/trixi-framework/Trixi.jl/issues/1667
+
+"""
+    ndofs(mesh::AbstractMesh, solver::DG)
+    ndofs(semi::Semidiscretization)
+
+Return the number of degrees of freedom per variable, i.e., the total number of nodes
+in all elements of `mesh`.
+"""
 @inline function ndofs(mesh::AbstractMesh, solver::DG)
+    # This is the number of DOFs per variable. See a discussion in
+    # https://github.com/trixi-framework/Trixi.jl/issues/1667
     return sum(nnodes(solver, element) for element in eachelement(mesh))
 end
 

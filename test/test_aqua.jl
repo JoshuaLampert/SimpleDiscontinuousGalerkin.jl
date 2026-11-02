@@ -33,3 +33,17 @@
                           all_explicit_imports_are_public = imports_are_public,
                           all_qualified_accesses_are_public = accesses_are_public)
 end
+
+@testitem "docstrings" begin
+    # `Docs.undocumented_names` is available since Julia v1.11
+    if VERSION >= v"1.11"
+        # Only check our own names, not the ones reexported from SummationByPartsOperators.jl
+        undocumented = filter(name -> which(SimpleDiscontinuousGalerkin, name) ===
+                                      SimpleDiscontinuousGalerkin,
+                              Docs.undocumented_names(SimpleDiscontinuousGalerkin))
+        # TODO: `compute_coefficients` and `compute_coefficients!` shadow the functions
+        # from SummationByPartsOperators.jl instead of extending them.
+        @test isempty(setdiff(undocumented,
+                              (:compute_coefficients, :compute_coefficients!)))
+    end
+end
