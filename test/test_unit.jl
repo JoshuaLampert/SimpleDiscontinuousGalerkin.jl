@@ -208,6 +208,35 @@ end
     end
 end
 
+@testitem "flux differencing without boundary nodes" tags=[:sbp_operators_extra] begin
+    using SummationByPartsOperatorsExtra: polynomialbases_derivative_operator
+    using SimpleDiscontinuousGalerkin: compute_coefficients, rhs!
+
+    equations = LinearAdvectionEquation1D(2.0)
+    mesh = Mesh(-1.0, 1.0, 4)
+    D = polynomialbases_derivative_operator(GaussLegendre, -1.0, 1.0, 4)
+    function create_semi(surface_integral, volume_integral)
+        solver = FDSBP(D; surface_integral, volume_integral)
+        return Semidiscretization(mesh, equations, initial_condition_convergence_test,
+                                  solver; boundary_conditions = boundary_condition_periodic)
+    end
+
+    # The weak form of flux differencing requires the boundary nodes
+    @test_throws ArgumentError create_semi(SurfaceIntegralWeakForm(flux_godunov),
+                                           VolumeIntegralFluxDifferencing(flux_central))
+
+    # The strong form can be used and coincides with `VolumeIntegralStrongForm` for `flux_central`
+    function compute_rhs(volume_integral)
+        semi = create_semi(SurfaceIntegralStrongForm(flux_godunov), volume_integral)
+        u = compute_coefficients(initial_condition_convergence_test, 0.0, semi)
+        du = similar(u)
+        rhs!(du, u, semi, 0.0)
+        return du
+    end
+    @test compute_rhs(VolumeIntegralFluxDifferencingStrongForm(flux_central)) ≈
+          compute_rhs(VolumeIntegralStrongForm())
+end
+
 @testitem "solvers" begin
     solver = DGSEM(polydeg = 3)
     @test_nowarn summary(solver)

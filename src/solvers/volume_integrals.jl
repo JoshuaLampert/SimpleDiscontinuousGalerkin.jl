@@ -96,6 +96,9 @@ using a symmetric two-point `volume_flux`. This `volume_flux` needs to satisfy
 the interface of numerical fluxes.
 
 To be used together with [`SurfaceIntegralWeakForm`](@ref).
+This formulation requires an SBP operator whose first and last nodes are the boundary nodes,
+e.g., Lobatto-Legendre operators as in [`DGSEM`](@ref). For other operators, e.g.,
+Gauss-Legendre operators, use [`VolumeIntegralFluxDifferencingStrongForm`](@ref) instead.
 """
 struct VolumeIntegralFluxDifferencing{VolumeFlux} <:
        AbstractVolumeIntegral
@@ -106,12 +109,25 @@ VolumeIntegralFluxDifferencing() = VolumeIntegralFluxDifferencing(flux_central)
 
 function compute_integral_operator(basis::AbstractDerivativeOperator,
                                    ::VolumeIntegralFluxDifferencing)
+    # The correction of `2 * D` below assumes `B = Diagonal([-1, 0, ..., 0, 1])`, i.e.,
+    # that the first and last nodes are the boundary nodes
+    if !has_boundary_nodes(basis)
+        throw(ArgumentError("`VolumeIntegralFluxDifferencing` requires an SBP operator whose first and last nodes are the boundary nodes. Use `VolumeIntegralFluxDifferencingStrongForm` instead."))
+    end
     weights = diag(mass_matrix(basis))
     D = Matrix(basis)
     D_split = 2 * D
     D_split[1, 1] += 1 / weights[1]
     D_split[end, end] -= 1 / weights[end]
     return D_split
+end
+
+function has_boundary_nodes(basis::AbstractDerivativeOperator)
+    nodes = grid(basis)
+    x_min = SummationByPartsOperators.xmin(basis)
+    x_max = SummationByPartsOperators.xmax(basis)
+    tol = sqrt(eps(eltype(nodes))) * (x_max - x_min)
+    return abs(first(nodes) - x_min) <= tol && abs(last(nodes) - x_max) <= tol
 end
 
 function Base.show(io::IO, ::MIME"text/plain", integral::VolumeIntegralFluxDifferencing)
