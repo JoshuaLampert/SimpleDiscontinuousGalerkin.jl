@@ -16,18 +16,22 @@ module SimpleDiscontinuousGalerkin
 
 using CommonSolve: CommonSolve, init, solve!
 import LinearAlgebra: Diagonal, diag, dot, mul!
-using PolynomialBases: PolynomialBases
+using PolynomialBases: PolynomialBases, integrate, mass_matrix
 using Printf: @printf, @sprintf
 using RecipesBase: RecipesBase, @recipe, @series
 using RecursiveArrayToolsRaggedArrays: RaggedVectorOfArray
 using Reexport: @reexport
 using Roots: find_zero, AlefeldPotraShi
+using SciMLBase: SciMLBase, DiscreteCallback, ODEProblem
 import SciMLBase: ODESolution, solve, derivative_discontinuity!, get_tmp_cache,
                   set_proposed_dt!
 using SimpleUnPack: @unpack
 @reexport using StaticArrays: SVector
 @reexport using SummationByPartsOperators
-import SummationByPartsOperators: AbstractDerivativeOperator, grid
+using SummationByPartsOperators: SummationByPartsOperators, LegendreDerivativeOperator,
+                                 accuracy_order, legendre_derivative_operator
+import SummationByPartsOperators: AbstractDerivativeOperator, grid, compute_coefficients,
+                                  compute_coefficients!
 using TimerOutputs: TimerOutputs, @notimeit, print_timer, reset_timer!
 @reexport using TrixiBase: trixi_include
 using TrixiBase: TrixiBase, @trixi_timeit, timer

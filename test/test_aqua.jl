@@ -26,10 +26,7 @@
     imports_are_public = check_public && (ignore = non_public_explicit_imports,)
     accesses_are_public = check_public && (ignore = non_public_qualified_accesses,)
     test_explicit_imports(SimpleDiscontinuousGalerkin;
-                          # We reexport SummationByPartsOperators.jl
-                          no_implicit_imports = (;
-                                                 skip = (Core, Base,
-                                                         SimpleDiscontinuousGalerkin.SummationByPartsOperators)),
+                          no_implicit_imports = (; skip = (Core, Base)),
                           all_explicit_imports_are_public = imports_are_public,
                           all_qualified_accesses_are_public = accesses_are_public)
 end
@@ -41,9 +38,6 @@ end
         undocumented = filter(name -> which(SimpleDiscontinuousGalerkin, name) ===
                                       SimpleDiscontinuousGalerkin,
                               Docs.undocumented_names(SimpleDiscontinuousGalerkin))
-        # TODO: `compute_coefficients` and `compute_coefficients!` shadow the functions
-        # from SummationByPartsOperators.jl instead of extending them.
-        @test isempty(setdiff(undocumented,
-                              (:compute_coefficients, :compute_coefficients!)))
+        @test isempty(undocumented)
     end
 end

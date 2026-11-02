@@ -211,12 +211,26 @@ function rhs!(du, u, semi::Semidiscretization, t)
     return nothing
 end
 
+"""
+    compute_coefficients(func, t, semi::Semidiscretization)
+
+Compute the discrete coefficients of the function `func` at time `t` on the nodes
+of the semidiscretization `semi`. The function is called as `func(x, t, equations)`.
+See also [`compute_coefficients!`](@ref).
+"""
 function compute_coefficients(func, t, semi::Semidiscretization)
     u = allocate_coefficients(mesh_equations_solver_cache(semi)...)
     compute_coefficients!(u, func, t, semi)
     return u
 end
 
+"""
+    compute_coefficients!(u, func, t, semi::Semidiscretization)
+
+Compute the discrete coefficients of the function `func` at time `t` on the nodes
+of the semidiscretization `semi` in place, overwriting `u`.
+See also [`compute_coefficients`](@ref).
+"""
 function compute_coefficients!(u, func, t, semi::Semidiscretization)
     return compute_coefficients!(u, func, t, mesh_equations_solver_cache(semi)...)
 end
