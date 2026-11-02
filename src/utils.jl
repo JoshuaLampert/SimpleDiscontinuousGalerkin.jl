@@ -112,8 +112,9 @@ Adjusted from [Trixi.jl](https://github.com/trixi-framework/Trixi.jl).
 """
 function convergence_test(mod::Module, example, iterations; io::IO = stdout,
                           kwargs...)
-    @assert(iterations>1,
-            "Number of iterations must be bigger than 1 for a convergence analysis")
+    if iterations <= 1
+        throw(ArgumentError("Number of iterations must be bigger than 1 for a convergence analysis, got $iterations."))
+    end
 
     initial_N = extract_initial_N(example, kwargs)
     Ns = initial_N * 2 .^ (0:(iterations - 1))
@@ -126,11 +127,11 @@ function convergence_test(mod::Module, example, Ns::AbstractVector; io::IO = std
     errors = Dict(:l2 => Float64[], :linf => Float64[])
 
     Base.require_one_based_indexing(Ns)
-    sort!(Ns)
+    Ns = sort(Ns)
     iterations = length(Ns)
     # run simulations and extract errors
     for iter in 1:iterations
-        println("Running convtest iteration ", iter, "/", iterations)
+        println(io, "Running convtest iteration ", iter, "/", iterations)
 
         trixi_include(mod, example; kwargs..., N_elements = Ns[iter])
 
@@ -140,8 +141,8 @@ function convergence_test(mod::Module, example, Ns::AbstractVector; io::IO = std
         append!(errors[:l2], l2_error)
         append!(errors[:linf], linf_error)
 
-        println("\n\n")
-        println("#"^100)
+        println(io, "\n\n")
+        println(io, "#"^100)
     end
 
     # Use raw error values to compute EOC
@@ -243,6 +244,9 @@ function extract_initial_N(example, kwargs)
     else
         # get N from the example
         N = TrixiBase.find_assignment(expr, :N_elements)
+        if isnothing(N)
+            throw(ArgumentError("The example $example does not define `N_elements`. Please pass `N_elements` as keyword argument."))
+        end
         return N
     end
 end

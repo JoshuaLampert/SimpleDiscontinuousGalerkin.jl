@@ -39,7 +39,9 @@ end
 grid(solver::PerElementFDSBP, element) = grid(solver.basis, element)
 
 function create_jacobian_and_node_coordinates(mesh::AbstractMesh, solver::PerElementFDSBP)
-    @assert length(solver.basis.bases)==nelements(mesh) "Number of bases must match number of elements in the mesh"
+    if length(solver.basis.bases) != nelements(mesh)
+        throw(ArgumentError("The number of bases needs to match the number of elements in the mesh, got $(length(solver.basis.bases)) bases and $(nelements(mesh)) elements."))
+    end
     # We need a `Vector{Vector}` to account for potentially different number of nodes for each element
     # compute all mapped nodes
     x = RaggedVectorOfArray([zeros(real(solver), nnodes(solver, element))

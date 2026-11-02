@@ -20,6 +20,18 @@
 
     # convergence test
     convergence_test(default_example(), 3, interval = 1000)
+    @test_throws ArgumentError convergence_test(default_example(), 1)
+    # The example does not define `N_elements`
+    @test_throws ArgumentError convergence_test(joinpath(examples_dir(), "burgers",
+                                                         "exact_riemann_solver.jl"), 2)
+    # `Ns` is not modified and ranges can be passed
+    Ns = [32, 16]
+    eoc_mean_values, _ = convergence_test(default_example(), Ns, interval = 1000,
+                                          io = devnull)
+    @test Ns == [32, 16]
+    eoc_mean_values_range, _ = convergence_test(default_example(), 16:16:32,
+                                                interval = 1000, io = devnull)
+    @test eoc_mean_values_range == eoc_mean_values
     polydegs = [1, 3, 5]
     for polydeg in polydegs
         eoc_mean_values, _ = convergence_test(default_example(), 3, N_elements = 16,
@@ -182,6 +194,28 @@ end
     @test SimpleDiscontinuousGalerkin.xmax(mesh) == 1.0
     @test SimpleDiscontinuousGalerkin.left_overlap_element(mesh) == 5
     @test SimpleDiscontinuousGalerkin.right_overlap_element(mesh) == 1
+
+    # Integer coordinates are converted to floating point numbers
+    mesh = Mesh(-1, 1, Int32(8))
+    @test real(mesh) == Float64
+    @test SimpleDiscontinuousGalerkin.nelements(mesh) == 8
+    mesh = InhomogeneousMesh([1, 0, 2])
+    @test real(mesh) == Float64
+    @test SimpleDiscontinuousGalerkin.xmin(mesh) == 0.0
+    @test real(Mesh(-1.0f0, 1, 4)) == Float32
+
+    # Invalid input
+    @test_throws ArgumentError Mesh(1.0, -1.0, 10)
+    @test_throws ArgumentError Mesh(-1.0, 1.0, 0)
+    @test_throws ArgumentError InhomogeneousMesh([0.0])
+    @test_throws ArgumentError InhomogeneousMesh([0.0, 0.5, 0.5, 1.0])
+    @test_throws BoundsError SimpleDiscontinuousGalerkin.left_element_boundary(mesh_left, 7)
+    # `mesh_right` is contained in `mesh_left`
+    @test_throws ArgumentError OversetGridMesh(Mesh(0.0, 2.0, 4), Mesh(0.5, 1.0, 2))
+    # The meshes are swapped
+    @test_throws ArgumentError OversetGridMesh(mesh_right, mesh_left)
+    # The meshes do not overlap
+    @test_throws ArgumentError OversetGridMesh(Mesh(0.0, 1.0, 4), Mesh(2.0, 3.0, 4))
 end
 
 @testitem "surface integrals" begin
@@ -285,6 +319,9 @@ end
     D_leg_2 = legendre_derivative_operator(-1.0, 1.0, 3)
     Ds = [isodd(element) ? D_leg_2 : D_leg for element in eachelement(mesh)]
     solver = PerElementFDSBP(Ds, surface_flux = flux_godunov)
+    @test_throws ArgumentError Semidiscretization(Mesh(0.0, 1.0, 4), equations,
+                                                  initial_condition_convergence_test,
+                                                  solver; boundary_conditions)
     semi = Semidiscretization(mesh, equations, initial_condition_convergence_test, solver;
                               boundary_conditions)
     @test isapprox(grid(semi),
@@ -503,6 +540,8 @@ end
     @test_nowarn plot(analysis_callback)
     @test_nowarn plot(analysis_callback, what = (:errors,))
     @test_nowarn plot(analysis_callback, what = (:integrals, :errors))
+    @test_throws ArgumentError plot(analysis_callback,
+                                    start_from = length(tstops(analysis_callback)))
 
     include(joinpath(EXAMPLES_DIR_ADVECTION, "linear_advection_overset_grid.jl"))
     @test_nowarn plot(semi => sol, plot_initial = true, step = 6)

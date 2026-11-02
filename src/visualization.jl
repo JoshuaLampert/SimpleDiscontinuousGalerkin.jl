@@ -220,7 +220,9 @@ end
                    exclude = (:entropy_timederivative,)) where {Condition,
                                                                 Affect! <: AnalysisCallback}
     t = tstops(cb)
-    @assert length(t)>start_from "The keyword argument `start_from` needs to be smaller than the number of timesteps: $(length(t))"
+    if !(length(t) > start_from)
+        throw(ArgumentError("The keyword argument `start_from` needs to be smaller than the number of timesteps: $(length(t))"))
+    end
     subplot = 1
     layout --> length(what)
     if :integrals in what
