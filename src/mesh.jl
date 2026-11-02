@@ -4,7 +4,7 @@ abstract type AbstractMesh{NDIMS, RealT} end
 @inline eachelement(mesh::AbstractMesh) = Base.OneTo(nelements(mesh))
 @inline Base.real(::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT} = RealT
 
-function Base.show(io::IO, mesh::AbstractMesh{RealT}) where {RealT}
+function Base.show(io::IO, mesh::AbstractMesh{NDIMS, RealT}) where {NDIMS, RealT}
     print(io, nameof(typeof(mesh)), "{", RealT, "} with ", nelements(mesh), " elements")
     print(io, " from ", xmin(mesh), " to ", xmax(mesh))
     return nothing

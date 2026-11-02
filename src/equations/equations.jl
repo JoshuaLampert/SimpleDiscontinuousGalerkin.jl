@@ -79,8 +79,8 @@ function Base.show(io::IO, ::MIME"text/plain", equations::AbstractEquations)
         println(io, get_name(equations))
         print(io, "#variables: ", nvariables(equations))
         for variable in eachvariable(equations)
-            println()
-            print("    variable " * string(variable), ": ",
+            println(io)
+            print(io, "    variable " * string(variable), ": ",
                   varnames(cons2cons, equations)[variable])
         end
     end
