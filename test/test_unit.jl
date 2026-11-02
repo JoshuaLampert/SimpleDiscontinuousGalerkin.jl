@@ -355,6 +355,46 @@ end
                                            [0.8, 0.9, 1.0]]), atol = 1.0e-14)
 end
 
+@testitem "allocations" begin
+    using SimpleDiscontinuousGalerkin: compute_coefficients, rhs!
+
+    # Use a function to avoid measuring allocations caused by global variables
+    function allocations_rhs(semi)
+        u = compute_coefficients(initial_condition_convergence_test, 0.0, semi)
+        du = similar(u)
+        rhs!(du, u, semi, 0.0)
+        return @allocated rhs!(du, u, semi, 0.0)
+    end
+
+    D_1 = legendre_derivative_operator(-1.0, 1.0, 4)
+    D_2 = legendre_derivative_operator(-1.0, 1.0, 3)
+    strong_form = (; surface_integral = SurfaceIntegralStrongForm(flux_godunov),
+                   volume_integral = VolumeIntegralStrongForm())
+    advection = LinearAdvectionEquation1D(2.0)
+    euler = CompressibleEulerEquations1D(1.4)
+    mesh = Mesh(-1.0, 1.0, 8)
+    overset_mesh = OversetGridMesh(Mesh(-1.0, 0.1, 4), Mesh(-0.1, 1.0, 4))
+    flux_differencing = VolumeIntegralFluxDifferencing(flux_central)
+    per_element_solver = PerElementFDSBP([isodd(element) ? D_1 : D_2 for element in 1:8];
+                                         strong_form...)
+    configurations = [
+        (advection, DGSEM(polydeg = 3, surface_flux = flux_godunov), mesh),
+        (advection, DGSEM(; polydeg = 3, strong_form...), mesh),
+        (advection,
+         DGSEM(polydeg = 3, surface_flux = flux_godunov,
+               volume_integral = flux_differencing),
+         mesh),
+        (advection, per_element_solver, mesh),
+        (euler, DGSEM(polydeg = 3, surface_flux = flux_hll), mesh),
+        (advection, DGSEM(polydeg = 3, surface_flux = flux_godunov), overset_mesh)
+    ]
+    for (equations, solver, mesh) in configurations
+        semi = Semidiscretization(mesh, equations, initial_condition_convergence_test,
+                                  solver; boundary_conditions = boundary_condition_periodic)
+        @test allocations_rhs(semi) == 0
+    end
+end
+
 @testitem "overset grid" begin
     using SimpleDiscontinuousGalerkin: compute_coefficients, max_dt, calc_error_norms
 

@@ -42,14 +42,11 @@ function compute_integral_operator(mesh, solver::DG, integral; kwargs...)
     return compute_integral_operator(solver.basis, integral; kwargs...)
 end
 function compute_integral_operator(mesh, solver::PerElementFDSBP, integral; kwargs...)
-    n_elements = nelements(mesh)
-    # Vector needed for `SurfaceIntegralStrongForm`, otherwise we need a `Matrix`.
-    integral_operator = Vector{VecOrMat{real(solver)}}(undef, n_elements)
-    for element in eachelement(mesh)
-        integral_operator[element] = compute_integral_operator(get_basis(solver, element),
-                                                               integral; kwargs...)
-    end
-    return integral_operator
+    # The operators are `Vector`s for `SurfaceIntegralStrongForm` and `Matrix`es otherwise.
+    # Using a comprehension gives a concrete element type, which avoids allocations
+    # in `rhs!`.
+    return [compute_integral_operator(get_basis(solver, element), integral; kwargs...)
+            for element in eachelement(mesh)]
 end
 
 function calc_error_norms(u, t, initial_condition, mesh, equations,
