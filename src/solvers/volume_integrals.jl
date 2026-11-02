@@ -82,7 +82,9 @@ end
             end
         end
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] + volume_operator_ * f_all[v, :, element]
+            # du[v, :, element] += volume_operator_ * f_all[v, :, element]
+            # without allocations
+            mul!(du[v, :, element], volume_operator_, f_all[v, :, element], true, true)
         end
     end
     return nothing

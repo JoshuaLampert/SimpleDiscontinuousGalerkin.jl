@@ -106,11 +106,10 @@ end
         surface_operator_right_ = get_integral_operator(surface_operator_right, solver,
                                                         element)
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] +
-                                 surface_operator_left_ *
-                                 (surface_flux_values[v, 1, element] - f_L[v]) -
-                                 surface_operator_right_ *
-                                 (surface_flux_values[v, 2, element] - f_R[v])
+            du[v, :, element] .+= surface_operator_left_ .*
+                                  (surface_flux_values[v, 1, element] - f_L[v]) .-
+                                  surface_operator_right_ .*
+                                  (surface_flux_values[v, 2, element] - f_R[v])
         end
     end
     return nothing
@@ -183,8 +182,10 @@ end
     for element in eachelement(mesh)
         surface_operator_ = get_integral_operator(surface_operator, solver, element)
         for v in eachvariable(equations)
-            du[v, :, element] .= du[v, :, element] +
-                                 surface_operator_ * surface_flux_values[v, :, element]
+            # du[v, :, element] += surface_operator_ * surface_flux_values[v, :, element]
+            # without allocations
+            mul!(du[v, :, element], surface_operator_, surface_flux_values[v, :, element],
+                 true, true)
         end
     end
     return nothing

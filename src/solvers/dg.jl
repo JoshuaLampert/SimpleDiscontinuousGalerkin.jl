@@ -82,7 +82,8 @@ end
 end
 
 @inline function get_multiplied_node_vars(u, equations, factor, indices...)
-    return SVector(ntuple(v -> factor * u[v, indices...], Val(nvariables(equations))))
+    # Use a `view` to avoid allocating a slice for each variable
+    return SVector(ntuple(v -> factor * view(u, v, indices...), Val(nvariables(equations))))
 end
 
 @inline function set_node_vars!(u, u_node, equations, indices...)
@@ -126,7 +127,7 @@ function compute_coefficients!(u, func, t, mesh, equations, solver::DG, cache)
 end
 
 function reset_du!(du)
-    du .= zero(du)
+    fill!(du, zero(eltype(du)))
     return nothing
 end
 
