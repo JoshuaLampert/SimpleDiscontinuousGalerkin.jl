@@ -9,7 +9,11 @@ abstract type AbstractEquations{NDIMS, NVARS} end
 
 @inline Base.ndims(::AbstractEquations{NDIMS}) where {NDIMS} = NDIMS
 
-# Retrieve number of variables from equation instance
+"""
+    nvariables(equations::AbstractEquations)
+
+Return the number of variables of the system of `equations`.
+"""
 @inline nvariables(::AbstractEquations{NDIMS, NVARS}) where {NDIMS, NVARS} = NVARS
 
 """
@@ -33,6 +37,24 @@ julia> SimpleDiscontinuousGalerkin.get_name(LinearAdvectionEquation1D(1.0))
 ```
 """
 get_name(equations::AbstractEquations) = equations |> typeof |> nameof |> string
+
+"""
+    varnames(conversion_function, equations)
+
+Return the tuple of variable names when applying `conversion_function` (e.g.,
+[`cons2cons`](@ref) or [`cons2prim`](@ref)) to the conservative variables associated
+to `equations`. For scalar functions such as [`mass`](@ref) or [`entropy`](@ref),
+the name of the computed quantity is returned as a tuple with one element.
+"""
+function varnames end
+
+"""
+    flux(u, equations)
+
+Given the conservative variables `u`, calculate the (physical) flux for the corresponding
+set of governing `equations`.
+"""
+function flux end
 
 """
     cons2cons(u, equations)

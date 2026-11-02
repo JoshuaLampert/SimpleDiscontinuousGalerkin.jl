@@ -298,18 +298,33 @@ end
     return SVector(rho, rho_v1, rho_e_total)
 end
 
+"""
+    density(u, equations::CompressibleEulerEquations1D)
+
+Return the density ``\\rho`` for the conservative variables `u`.
+"""
 @inline function density(u, equations::CompressibleEulerEquations1D)
     rho = u[1]
     return rho
 end
 varnames(::typeof(density), ::CompressibleEulerEquations1D) = ("rho",)
 
+"""
+    momentum(u, equations::CompressibleEulerEquations1D)
+
+Return the momentum ``\\rho v_1`` for the conservative variables `u`.
+"""
 @inline function momentum(u, equations::CompressibleEulerEquations1D)
     rho_v1 = u[2]
     return rho_v1
 end
 varnames(::typeof(momentum), ::CompressibleEulerEquations1D) = ("rho_v1",)
 
+"""
+    velocity(u, equations::CompressibleEulerEquations1D)
+
+Return the velocity ``v_1`` for the conservative variables `u`.
+"""
 @inline function velocity(u, equations::CompressibleEulerEquations1D)
     rho = u[1]
     v1 = u[2] / rho
@@ -317,6 +332,11 @@ varnames(::typeof(momentum), ::CompressibleEulerEquations1D) = ("rho_v1",)
 end
 varnames(::typeof(velocity), ::CompressibleEulerEquations1D) = ("v1",)
 
+"""
+    pressure(u, equations::CompressibleEulerEquations1D)
+
+Return the pressure ``p`` for the conservative variables `u`.
+"""
 @inline function pressure(u, equations::CompressibleEulerEquations1D)
     rho, rho_v1, rho_e_total = u
     p = (equations.gamma - 1) * (rho_e_total - 0.5f0 * (rho_v1^2) / rho)
@@ -324,6 +344,11 @@ varnames(::typeof(velocity), ::CompressibleEulerEquations1D) = ("v1",)
 end
 varnames(::typeof(pressure), ::CompressibleEulerEquations1D) = ("p",)
 
+"""
+    density_pressure(u, equations::CompressibleEulerEquations1D)
+
+Return the product ``\\rho p`` of density and pressure for the conservative variables `u`.
+"""
 @inline function density_pressure(u, equations::CompressibleEulerEquations1D)
     rho, rho_v1, rho_e_total = u
     rho_times_p = (equations.gamma - 1) * (rho * rho_e_total - 0.5f0 * (rho_v1^2))
@@ -331,7 +356,12 @@ varnames(::typeof(pressure), ::CompressibleEulerEquations1D) = ("p",)
 end
 varnames(::typeof(density_pressure), ::CompressibleEulerEquations1D) = ("rho_p",)
 
-# Calculate thermodynamic entropy for a conservative state `cons`
+@doc raw"""
+    entropy_thermodynamic(cons, equations::CompressibleEulerEquations1D)
+
+Return the thermodynamic entropy ``s = \log(p) - \gamma \log(\rho)`` for the
+conservative variables `cons`.
+"""
 @inline function entropy_thermodynamic(cons, equations::CompressibleEulerEquations1D)
     # Pressure
     p = (equations.gamma - 1) * (cons[3] - 0.5f0 * (cons[2]^2) / cons[1])
@@ -343,7 +373,14 @@ varnames(::typeof(density_pressure), ::CompressibleEulerEquations1D) = ("rho_p",
 end
 varnames(::typeof(entropy_thermodynamic), ::CompressibleEulerEquations1D) = ("s",)
 
-# Calculate mathematical entropy for a conservative state `cons`
+@doc raw"""
+    entropy_math(cons, equations::CompressibleEulerEquations1D)
+
+Return the mathematical entropy ``S = -\rho s / (\gamma - 1)`` for the conservative
+variables `cons`, where ``s`` is the thermodynamic entropy, see
+[`entropy_thermodynamic`](@ref). This is the default [`entropy`](@ref) for the
+compressible Euler equations.
+"""
 @inline function entropy_math(cons, equations::CompressibleEulerEquations1D)
     # Mathematical entropy
     S = -entropy_thermodynamic(cons, equations) * cons[1] *
@@ -358,20 +395,42 @@ end
 end
 varnames(::typeof(entropy), ::CompressibleEulerEquations1D) = ("S",)
 
+@doc raw"""
+    energy_total(cons, equations::CompressibleEulerEquations1D)
+
+Return the total energy ``\rho e_{\text{total}}`` for the conservative variables `cons`.
+"""
 @inline energy_total(cons, ::CompressibleEulerEquations1D) = cons[3]
 varnames(::typeof(energy_total), ::CompressibleEulerEquations1D) = ("rho_e_total",)
 
+@doc raw"""
+    energy_kinetic(cons, equations::CompressibleEulerEquations1D)
+
+Return the kinetic energy ``\frac{1}{2} \rho v_1^2`` for the conservative variables `cons`.
+"""
 @inline function energy_kinetic(cons, equations::CompressibleEulerEquations1D)
     return 0.5f0 * (cons[2]^2) / cons[1]
 end
 varnames(::typeof(energy_kinetic), ::CompressibleEulerEquations1D) = ("e_kinetic",)
 
+@doc raw"""
+    energy_internal(cons, equations::CompressibleEulerEquations1D)
+
+Return the internal energy
+``\rho e_{\text{total}} - \frac{1}{2} \rho v_1^2 = p / (\gamma - 1)``
+for the conservative variables `cons`.
+"""
 @inline function energy_internal(cons, equations::CompressibleEulerEquations1D)
     return energy_total(cons, equations) - energy_kinetic(cons, equations)
 end
 varnames(::typeof(energy_internal), ::CompressibleEulerEquations1D) = ("e_internal",)
 
-# This is p/((gamma - 1) * rho)
+@doc raw"""
+    energy_internal_specific(cons, equations::CompressibleEulerEquations1D)
+
+Return the specific internal energy ``p / ((\gamma - 1) \rho)``, i.e., the internal
+energy divided by the density, for the conservative variables `cons`.
+"""
 @inline function energy_internal_specific(cons, equations::CompressibleEulerEquations1D)
     return energy_internal(cons, equations) / density(cons, equations)
 end

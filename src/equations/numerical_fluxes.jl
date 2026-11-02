@@ -1,7 +1,7 @@
 """
     flux_central(u_ll, u_rr, equations::AbstractEquations)
 
-The classical central numerical flux `f((u_ll) + f(u_rr)) / 2`. When this flux is
+The classical central numerical flux `(f(u_ll) + f(u_rr)) / 2`. When this flux is
 used as volume flux, the discretization is equivalent to the classical weak form
 DG method (except floating point errors).
 """
@@ -99,7 +99,7 @@ const flux_lax_friedrichs = FluxLaxFriedrichs()
 
 Create an HLL (Harten, Lax, van Leer) numerical flux where the minimum and maximum
 wave speeds are estimated as
-`λ_min, λ_max = min_max_speed(u_ll, u_rr, orientation_or_normal_direction, equations)`,
+`λ_min, λ_max = min_max_speed(u_ll, u_rr, equations)`,
 defaulting to [`min_max_speed_davis`](@ref).
 Original paper:
 - Amiram Harten, Peter D. Lax, Bram van Leer (1983)

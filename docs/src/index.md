@@ -26,8 +26,15 @@ executing the following commands from the Julia REPL
 ```julia
 julia> using Pkg
 
-julia> Pkg.add("https://github.com/JoshuaLampert/SimpleDiscontinuousGalerkin.jl")
+julia> Pkg.add(url = "https://github.com/JoshuaLampert/SimpleDiscontinuousGalerkin.jl")
+
+julia> Pkg.add(["OrdinaryDiffEqLowStorageRK", "Plots"])
 ```
+
+In addition, this installs the packages OrdinaryDiffEqLowStorageRK.jl from [OrdinaryDiffEq.jl](https://github.com/SciML/OrdinaryDiffEq.jl)
+used for time integration in the examples and [Plots.jl](https://github.com/JuliaPlots/Plots.jl) to visualize the results.
+If you want to use other time integration methods, you can install the respective subpackage or OrdinaryDiffEq.jl,
+which will install every available solver.
 
 ## Usage
 
@@ -38,7 +45,26 @@ julia> using SimpleDiscontinuousGalerkin
 ```
 
 SimpleDiscontinuousGalerkin.jl is built on top of the package SummationByPartsOperators.jl and exports all the functions
-and types of the package.
+and types of the package. You can run a basic simulation that solves the linear advection equation by executing
+
+```julia
+julia> trixi_include(default_example())
+```
+
+The result can be visualized by using the package Plots.jl
+
+```julia
+julia> using Plots
+
+julia> plot(semi => sol)
+```
+
+The command `plot` expects a `Pair` consisting of a `Semidiscretization` and an `ODESolution`.
+Other examples can be found in the subdirectory [examples/](https://github.com/JoshuaLampert/SimpleDiscontinuousGalerkin.jl/tree/main/examples).
+You can pass the filename of one of the examples or your own simulation file to `trixi_include` in order to run it, e.g.,
+`trixi_include(joinpath(examples_dir(), "compressible_euler", "compressible_euler_basic.jl"))`.
+Keyword arguments of `trixi_include` replace the corresponding assignments in the file, e.g.,
+`trixi_include(default_example(), N_elements = 20)` runs the default example with 20 elements.
 
 ## Authors
 

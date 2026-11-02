@@ -240,16 +240,6 @@ function Iterators.flatten(semi::Semidiscretization, u)
     return collect(Iterators.flatten(semi.solver, u))
 end
 
-"""
-    jacobian_fd(semi;
-                t0=zero(real(semi)),
-                u0_ode=compute_coefficients(t0, semi))
-
-Uses the right-hand side operator of the semidiscretization `semi`
-and simple second order finite difference to compute the Jacobian `J`
-of the semidiscretization `semi` at state `u0_ode`.
-"""
-
 # Iterate over all indices of `u`, handling nested RaggedVectorOfArray inputs with ragged
 # inner dimensions. Each outer RaggedVectorOfArray level adds one trailing index.
 # Designed to work for both usual DG and overset grid DG methods with
@@ -260,6 +250,15 @@ function fd_indices(u::RaggedVectorOfArray)
                               for (outer, arr) in enumerate(u.u)))
 end
 
+"""
+    jacobian_fd(semi;
+                t0=zero(real(semi)),
+                u0_ode=compute_coefficients(semi.initial_condition, t0, semi))
+
+Uses the right-hand side operator of the semidiscretization `semi`
+and simple second order finite differences to compute the Jacobian `J`
+of the semidiscretization `semi` at state `u0_ode`.
+"""
 function jacobian_fd(semi;
                      t0 = zero(real(semi)),
                      u0_ode = compute_coefficients(semi.initial_condition, t0, semi))

@@ -209,7 +209,7 @@ function pretty_form_utf(name)
     elseif name == :linf_error
         return "L∞ error"
     elseif name == :conservation_error
-        return "∫|u_u₀|"
+        return "|∫u - ∫u₀|"
     else
         return string(name)
     end
