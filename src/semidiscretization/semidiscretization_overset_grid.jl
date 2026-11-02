@@ -1,4 +1,4 @@
-SemidiscretizationOversetGrid = Semidiscretization{<:OversetGridMesh}
+const SemidiscretizationOversetGrid = Semidiscretization{<:OversetGridMesh}
 
 digest_solver(::OversetGridMesh, solver::Union{DGSEM, FDSBP}) = (solver, solver)
 

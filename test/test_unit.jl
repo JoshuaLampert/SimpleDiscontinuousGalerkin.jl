@@ -95,6 +95,9 @@ end
 
     u2 = [SVector(1.0, 2.0), SVector(-2.0, -3.0)]
     equations = @test_nowarn MaxwellEquations1D(3.12)
+    # Everything is printed to the `IO` passed to `show`
+    @test sprint(show, MIME"text/plain"(), equations) ==
+          "MaxwellEquations1D\n#variables: 2\n    variable 1: E\n    variable 2: B"
     for conversion in (cons2cons, cons2prim, electric_field, magnetic_field)
         @test length(varnames(conversion, equations)) ==
               length(conversion(first(u2), equations))
@@ -162,6 +165,7 @@ end
     coordinates_max = 1.0
     N = 10
     mesh = Mesh(coordinates_min, coordinates_max, N)
+    @test repr(mesh) == "Mesh{Float64} with 10 elements from 0.0 to 1.0"
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
     @test_nowarn show(IOContext(stdout, :compact => false), mesh)
@@ -172,6 +176,7 @@ end
     @test SimpleDiscontinuousGalerkin.xmax(mesh) == coordinates_max
 
     mesh = InhomogeneousMesh(coordinates_min:0.1:coordinates_max)
+    @test repr(mesh) == "InhomogeneousMesh{Float64} with 10 elements from 0.0 to 1.0"
     @test_nowarn print(mesh)
     @test_nowarn display(mesh)
     @test_nowarn show(IOContext(stdout, :compact => false), mesh)
